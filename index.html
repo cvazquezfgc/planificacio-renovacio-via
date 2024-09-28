@@ -27,7 +27,6 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log(`Datos cargados de ${url}:`, data); // Añadir log para ver los datos cargados
                 return data;
             } catch (error) {
                 console.error(`Error cargando datos de ${url}:`, error);
@@ -65,81 +64,54 @@
                 return;
             }
 
-            // Preparar datos para los ejes y gráficos de rehabilitación
-            const pkIniciVia1 = via1.map(d => (d['PK inici'] + d['PK final']) / 2);
-            const pkFinalVia1 = via1.map(d => d['PK final'] - d['PK inici']);
-            const anyPrevVia1 = via1.map(d => d['PREVISIÓ REHABILITACIÓ']);
-
-            const pkIniciVia2 = via2.map(d => (d['PK inici'] + d['PK final']) / 2);
-            const pkFinalVia2 = via2.map(d => d['PK final'] - d['PK inici']);
-            const anyPrevVia2 = via2.map(d => d['PREVISIÓ REHABILITACIÓ']);
-
-            console.log('Datos preparados para el gráfico:', { pkIniciVia1, pkFinalVia1, anyPrevVia1 });
-
-            // Configuración de colores según el año de rehabilitación
-            const minYear = 2000;
-            const maxYear = 2065;
-            const colorScale = any => {
-                const normValue = (any - minYear) / (maxYear - minYear);
-                return `rgba(${255 * (1 - normValue)}, ${255 * normValue}, 0, 0.8)`;
+            // Preparar datos para las barras
+            const prepareData = (viaData, viaName) => {
+                return viaData.map(d => ({
+                    x: d['PREVISIÓ REHABILITACIÓ'], // Año de rehabilitación
+                    y: d['PK final'] - d['PK inici'], // Altura de la barra según la longitud del tramo
+                    base: d['PK inici'], // Posición inicial de la barra en el eje Y
+                    name: viaName,
+                    type: 'bar',
+                    width: 5, // Ancho constante para cada barra
+                    marker: {
+                        color: `rgba(${255 * (1 - (d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, ${255 * ((d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, 0, 0.8)`
+                    }
+                }));
             };
 
-            // Datos de la gráfica
-            const traces = [
-                {
-                    x: anyPrevVia1,
-                    y: pkIniciVia1,
-                    type: 'bar',
-                    orientation: 'h',
-                    width: 0.2,
-                    marker: {
-                        color: anyPrevVia1.map(colorScale)
-                    },
-                    name: 'Vía 1'
-                },
-                {
-                    x: anyPrevVia2,
-                    y: pkIniciVia2,
-                    type: 'bar',
-                    orientation: 'h',
-                    width: 0.2,
-                    marker: {
-                        color: anyPrevVia2.map(colorScale)
-                    },
-                    name: 'Vía 2'
-                }
-            ];
+            // Obtener datos de Vía 1 y Vía 2
+            const dataVia1 = prepareData(via1, 'Vía 1');
+            const dataVia2 = prepareData(via2, 'Vía 2');
+
+            // Combinar datos
+            const data = [...dataVia1, ...dataVia2];
 
             // Configuración de la gráfica
             const layout = {
                 title: 'Espai-temps previsió rehabilitació via 1 i 2 PC-RE',
                 xaxis: {
                     title: 'Any previsió rehabilitació',
-                    tickangle: 45,
-                    tickvals: Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i),
-                    ticktext: Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i),
+                    tickangle: -45,
                     range: [2000, 2065],
-                    gridcolor: '#e2e2e2',
-                    zeroline: true
+                    dtick: 5,
+                    gridcolor: '#e2e2e2'
                 },
                 yaxis: {
                     title: 'PK',
-                    autorange: 'reversed',
-                    tickvals: pkIniciVia1,
-                    gridcolor: '#e2e2e2',
-                    zeroline: true
+                    range: [6, 0], // Invertido para mostrar de arriba hacia abajo
+                    gridcolor: '#e2e2e2'
                 },
-                barmode: 'overlay',
+                barmode: 'relative',
                 margin: {
                     l: 80,
                     r: 20,
                     t: 50,
-                    b: 50
+                    b: 100
                 }
             };
 
             // Dibujar la gráfica
-            Plotly.newPlot('plot', traces, layout);
+            Plotly.newPlot('plot', data, layout);
         }
 
         // Dibujar la gráfica al cargar la página
