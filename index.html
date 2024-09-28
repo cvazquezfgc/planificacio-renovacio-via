@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gráfico de Rehabilitación de Vía PC-RE</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #plot {
+            width: 90%;
+            margin: auto;
+        }
+    </style>
 </head>
 <body>
     <h1>Gráfico de Rehabilitación de Vía PC-RE</h1>
@@ -39,10 +48,6 @@
                 return;
             }
 
-            // Mostrar los datos en la consola para revisar el formato
-            console.log('Datos de resumen:', resumData);
-            console.log('Datos de estaciones:', estacionsData);
-
             // Convertir datos relevantes a números
             resumData.forEach(d => {
                 d['PK inici'] = parseFloat(d['PK inici']);
@@ -76,7 +81,7 @@
             const maxYear = 2065;
             const colorScale = any => {
                 const normValue = (any - minYear) / (maxYear - minYear);
-                return `rgba(${255 * (1 - normValue)}, ${255 * normValue}, 0, 1)`;
+                return `rgba(${255 * (1 - normValue)}, ${255 * normValue}, 0, 0.8)`;
             };
 
             // Datos de la gráfica
@@ -86,7 +91,7 @@
                     y: pkIniciVia1,
                     type: 'bar',
                     orientation: 'h',
-                    width: 0.5,
+                    width: 0.2,
                     marker: {
                         color: anyPrevVia1.map(colorScale)
                     },
@@ -97,7 +102,7 @@
                     y: pkIniciVia2,
                     type: 'bar',
                     orientation: 'h',
-                    width: 0.5,
+                    width: 0.2,
                     marker: {
                         color: anyPrevVia2.map(colorScale)
                     },
@@ -112,13 +117,25 @@
                     title: 'Any previsió rehabilitació',
                     tickangle: 45,
                     tickvals: Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i),
-                    ticktext: Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i)
+                    ticktext: Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i),
+                    range: [2000, 2065],
+                    gridcolor: '#e2e2e2',
+                    zeroline: true
                 },
                 yaxis: {
                     title: 'PK',
-                    autorange: 'reversed'
+                    autorange: 'reversed',
+                    tickvals: pkIniciVia1,
+                    gridcolor: '#e2e2e2',
+                    zeroline: true
                 },
-                barmode: 'stack'
+                barmode: 'overlay',
+                margin: {
+                    l: 80,
+                    r: 20,
+                    t: 50,
+                    b: 50
+                }
             };
 
             // Dibujar la gráfica
