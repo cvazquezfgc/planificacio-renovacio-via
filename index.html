@@ -64,27 +64,26 @@
                 return;
             }
 
-            // Preparar datos para las barras
-            const prepareData = (viaData, viaName) => {
-                return viaData.map(d => ({
-                    x: d['PREVISIÓ REHABILITACIÓ'], // Año de rehabilitación
-                    y: d['PK final'] - d['PK inici'], // Altura de la barra según la longitud del tramo
-                    base: d['PK inici'], // Posición inicial de la barra en el eje Y
-                    name: viaName,
+            // Preparar datos para las barras (todas con el mismo ancho y altura correspondiente a la diferencia de PK)
+            const prepareData = (viaData, viaName, color) => {
+                return {
+                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                    y: viaData.map(d => d['PK final'] - d['PK inici']),
+                    base: viaData.map(d => d['PK inici']),
                     type: 'bar',
-                    width: 5, // Ancho constante para cada barra
+                    name: viaName,
+                    width: 1,
                     marker: {
-                        color: `rgba(${255 * (1 - (d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, ${255 * ((d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, 0, 0.8)`
-                    }
-                }));
+                        color: color,
+                        opacity: 0.7
+                    },
+                    orientation: 'v'
+                };
             };
 
             // Obtener datos de Vía 1 y Vía 2
-            const dataVia1 = prepareData(via1, 'Vía 1');
-            const dataVia2 = prepareData(via2, 'Vía 2');
-
-            // Combinar datos
-            const data = [...dataVia1, ...dataVia2];
+            const traceVia1 = prepareData(via1, 'Vía 1', 'rgba(255, 100, 100, 0.8)');
+            const traceVia2 = prepareData(via2, 'Vía 2', 'rgba(100, 255, 100, 0.8)');
 
             // Configuración de la gráfica
             const layout = {
@@ -101,7 +100,7 @@
                     range: [6, 0], // Invertido para mostrar de arriba hacia abajo
                     gridcolor: '#e2e2e2'
                 },
-                barmode: 'relative',
+                barmode: 'group',
                 margin: {
                     l: 80,
                     r: 20,
@@ -111,7 +110,7 @@
             };
 
             // Dibujar la gráfica
-            Plotly.newPlot('plot', data, layout);
+            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
         // Dibujar la gráfica al cargar la página
