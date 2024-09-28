@@ -27,8 +27,8 @@
 
         async function drawPlot() {
             // Cargar los datos desde los archivos JSON en GitHub
-            const resumData = await loadData('https://raw.githubusercontent.com/tu_usuario/tu_repositorio/main/resum.json');
-            const estacionsData = await loadData('https://raw.githubusercontent.com/tu_usuario/tu_repositorio/main/estacions.json');
+            const resumData = await loadData('https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json');
+            const estacionsData = await loadData('https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json');
 
             // Filtrar los datos específicos para el tramo PC-RE
             const via1 = resumData.filter(d => d.Via === 1 && d.TRAM === 'PC-RE');
