@@ -207,4 +207,23 @@
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0]
                 },
-                shapes: [...shadedAreas, ...stationLines
+                               shapes: [...shadedAreas, ...stationLines, ...pkLines, ...yearLines],
+                annotations: stationAnnotations,
+                margin: {
+                    l: 120,
+                    r: 180,
+                    t: 80,
+                    b: 150
+                },
+                showlegend: true
+            };
+
+            // Dibujar la gráfica
+            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
+        }
+
+        // Dibujar la gráfica al cargar la página
+        drawPlot();
+    </script>
+</body>
+</html>
