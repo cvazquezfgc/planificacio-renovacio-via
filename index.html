@@ -89,14 +89,14 @@
             const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
 
-            // Añadir sombreado gris claro para la mitad izquierda de las verticales de Vía 2
-            const shadedAreas = Array.from({ length: 14 }, (_, i) => 2000 + i * 5).map(year => ({
+            // Añadir sombreado gris claro a la mitad derecha de cada año (Vía 2)
+            const shadedAreas = Array.from({ length: 72 }, (_, i) => 1998 + i).map(year => ({
                 type: 'rect',
-                x0: year - 0.2,
-                x1: year,
+                x0: year + 0.5,  // Mitad derecha de cada año
+                x1: year + 1,
                 y0: 0,
                 y1: 6,
-                fillcolor: 'rgba(200, 200, 200, 0.2)', // Gris muy claro con transparencia
+                fillcolor: 'rgba(200, 200, 200, 0.1)', // Gris muy claro con transparencia
                 line: {
                     width: 0
                 },
@@ -213,11 +213,4 @@
             };
 
             // Dibujar la gráfica
-            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
-        }
-
-        // Dibujar la gráfica al cargar la página
-        drawPlot();
-    </script>
-</body>
-</html>
+            Plotly.new
