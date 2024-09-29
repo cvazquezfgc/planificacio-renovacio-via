@@ -103,12 +103,12 @@
                 }
             };
 
-            // Añadir líneas y etiquetas de estaciones
+            // Añadir líneas y etiquetas de estaciones con rombos simulados
             const stationLines = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
                 .map(d => ({
                     type: 'line',
-                    x0: 2000,
+                    x0: 1998,
                     x1: 2065,
                     y0: d['PK'],
                     y1: d['PK'],
@@ -127,33 +127,47 @@
                     text: d['Abreviatura'],
                     showarrow: false,
                     font: {
-                        color: 'darkgray',
-                        size: 12 // Ajustar para que coincida con el tamaño de las etiquetas de los ejes
+                        color: 'black',
+                        size: 14, // Ajustar para que coincida con el tamaño de las etiquetas de los ejes
+                        family: 'Arial, sans-serif'
                     },
                     xanchor: 'left',
-                    yanchor: 'middle'
+                    yanchor: 'middle',
+                    bgcolor: 'white',
+                    bordercolor: 'gray',
+                    borderwidth: 2,
+                    borderpad: 5,
+                    ax: 0,
+                    ay: 0,
+                    arrowhead: 0
                 }));
 
             // Configuración de la gráfica
             const layout = {
                 title: 'Espai-temps previsió rehabilitació via 1 i 2 PC-RE',
+                titlefont: {
+                    family: 'Arial, sans-serif',
+                    size: 18,
+                    color: 'black'
+                },
                 xaxis: {
                     title: 'Any previsió rehabilitació',
                     titlefont: {
-                        size: 16,
+                        size: 20,
                         color: 'black',
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
                     tickangle: -45,
-                    range: [1995, 2070], // Ampliar el rango para incluir las etiquetas de las estaciones desde el inicio
+                    range: [1998, 2069], // Ampliar el rango para incluir las etiquetas de las estaciones desde el inicio
+                    tickvals: Array.from({length: 14}, (_, i) => 2000 + i * 5), // Mostrar desde el 2000 cada 5 años
                     dtick: 5,
                     gridcolor: '#e2e2e2'
                 },
                 yaxis: {
                     title: 'PK',
                     titlefont: {
-                        size: 16,
+                        size: 20,
                         color: 'black',
                         family: 'Arial, sans-serif',
                         weight: 'bold'
@@ -166,10 +180,10 @@
                 shapes: [line2024, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
-                    l: 100, // Mayor separación a la izquierda para el título del eje Y
-                    r: 150,
-                    t: 50,
-                    b: 120 // Mayor separación abajo para el título del eje X
+                    l: 120, // Mayor separación a la izquierda para el título del eje Y
+                    r: 180,
+                    t: 80,
+                    b: 150 // Mayor separación abajo para el título del eje X
                 },
                 showlegend: false // Mostrar solo la leyenda de la escala de colores
             };
