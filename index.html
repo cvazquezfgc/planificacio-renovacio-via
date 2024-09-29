@@ -89,6 +89,20 @@
             const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
 
+            // Añadir sombreado gris claro para la mitad izquierda de las verticales de Vía 2
+            const shadedAreas = Array.from({ length: 14 }, (_, i) => 2000 + i * 5).map(year => ({
+                type: 'rect',
+                x0: year - 0.2,
+                x1: year,
+                y0: 0,
+                y1: 6,
+                fillcolor: 'rgba(200, 200, 200, 0.2)', // Gris muy claro con transparencia
+                line: {
+                    width: 0
+                },
+                layer: 'below'
+            }));
+
             // Añadir líneas de estaciones como líneas continuas
             const stationLines = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
@@ -187,7 +201,7 @@
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0]
                 },
-                shapes: [...stationLines, ...pkLines, ...yearLines],
+                shapes: [...shadedAreas, ...stationLines, ...pkLines, ...yearLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
