@@ -89,7 +89,7 @@
             const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
 
-            // Añadir línea vertical para el año 2024 (línea continua)
+            // Añadir línea vertical para el año 2000 y 2024 (línea continua)
             const line2024 = {
                 type: 'line',
                 x0: 2024,
@@ -99,6 +99,19 @@
                 line: {
                     color: colorScale(2024).hex(),
                     width: 2,
+                    dash: 'solid'
+                }
+            };
+
+            const line2000 = {
+                type: 'line',
+                x0: 2000,
+                x1: 2000,
+                y0: 0,
+                y1: 6,
+                line: {
+                    color: '#e2e2e2',
+                    width: 1,
                     dash: 'solid'
                 }
             };
@@ -122,7 +135,7 @@
             const stationAnnotations = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
                 .map(d => ({
-                    x: 2066,
+                    x: 2063,  // Ajustar para que las etiquetas sean visibles desde el inicio
                     y: d['PK'],
                     text: d['Abreviatura'],
                     showarrow: false,
@@ -139,19 +152,31 @@
                 title: 'Espai-temps previsió rehabilitació via 1 i 2 PC-RE',
                 xaxis: {
                     title: 'Any previsió rehabilitació',
+                    titlefont: {
+                        size: 12,
+                        color: 'black',
+                        family: 'Arial, sans-serif',
+                        weight: 'bold'
+                    },
                     tickangle: -45,
-                    range: [2000, 2065],
+                    range: [1995, 2070], // Ampliar el rango para incluir las etiquetas de las estaciones desde el inicio
                     dtick: 5,
                     gridcolor: '#e2e2e2'
                 },
                 yaxis: {
                     title: 'PK',
+                    titlefont: {
+                        size: 12,
+                        color: 'black',
+                        family: 'Arial, sans-serif',
+                        weight: 'bold'
+                    },
                     tickvals: [0, 1, 2, 3, 4, 5],
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0], // Invertido para mostrar de arriba hacia abajo
                     gridcolor: '#e2e2e2'
                 },
-                shapes: [line2024, ...stationLines],
+                shapes: [line2000, line2024, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 80,
