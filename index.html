@@ -83,36 +83,40 @@
                 layer: 'below'
             }));
 
-            // Preparar datos para las barras de "Vía 1" y "Vía 2" con patrones más visibles
-            const createPatternTrace = (viaData, viaName, offset, patternShape) => {
-                return {
-                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
-                    y: viaData.map(d => d['PK final'] - d['PK inici']),
-                    base: viaData.map(d => d['PK inici']),
-                    type: 'bar',
-                    name: viaName,
-                    width: 0.4,
-                    marker: {
-                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
-                        line: {
-                            color: 'black',
-                            width: 1
-                        },
-                        pattern: {
-                            shape: patternShape,
-                            size: 8,  // Tamaño del patrón más pequeño para que sea visible
-                            fgcolor: 'rgba(0, 0, 0, 1)',  // Color de las rayas del patrón, en negro
-                            bgcolor: 'rgba(0, 0, 0, 0)', // Espacios entre rayas serán transparentes
-                            solidity: 0.4 // Ajustar la visibilidad del patrón
-                        }
-                    },
-                    orientation: 'v'
-                };
+            // Preparar datos para las barras de "Vía 1" y "Vía 2" con colores diferenciados
+            const traceVia1 = {
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.2),
+                y: via1.map(d => d['PK final'] - d['PK inici']),
+                base: via1.map(d => d['PK inici']),
+                type: 'bar',
+                name: 'Vía 1',
+                width: 0.4,
+                marker: {
+                    color: via1.map(d => chroma(colorScale(d['PREVISIÓ REHABILITACIÓ'])).brighten(1).hex()),
+                    line: {
+                        color: 'black',
+                        width: 1
+                    }
+                },
+                orientation: 'v'
             };
 
-            // Crear las trazas para las dos vías
-            const traceVia1 = createPatternTrace(via1, 'Vía 1', -0.2, '/');  // Vía 1 con patrón a 45 grados
-            const traceVia2 = createPatternTrace(via2, 'Vía 2', 0.2, '\\');  // Vía 2 con patrón a 135 grados
+            const traceVia2 = {
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.2),
+                y: via2.map(d => d['PK final'] - d['PK inici']),
+                base: via2.map(d => d['PK inici']),
+                type: 'bar',
+                name: 'Vía 2',
+                width: 0.4,
+                marker: {
+                    color: via2.map(d => chroma(colorScale(d['PREVISIÓ REHABILITACIÓ'])).darken(1).hex()),
+                    line: {
+                        color: 'black',
+                        width: 1
+                    }
+                },
+                orientation: 'v'
+            };
 
             // Añadir líneas de estaciones como líneas continuas
             const stationLines = estacionsData
@@ -197,7 +201,7 @@
                     },
                     tickangle: -45,
                     range: [1998, 2069], // Ajustar rango para incluir etiquetas
-                    tickvals: Array.from({ length: 14 }, (_, i) => 2000 + i * 5), // Mostrar solo cada 5 años
+                                        tickvals: Array.from({ length: 14 }, (_, i) => 2000 + i * 5), // Mostrar solo cada 5 años
                     dtick: 5
                 },
                 yaxis: {
@@ -232,4 +236,3 @@
     </script>
 </body>
 </html>
-
