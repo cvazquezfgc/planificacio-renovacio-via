@@ -12,6 +12,7 @@
         #plot {
             width: 90%;
             margin: auto;
+            height: 800px; /* Ajuste para hacer el gráfico más alto */
         }
     </style>
 </head>
@@ -64,7 +65,17 @@
                 return;
             }
 
-            // Preparar datos para las barras (todas con el mismo ancho y altura correspondiente a la diferencia de PK)
+            // Configuración del rango de colores del año
+            const minYear = 2000;
+            const maxYear = 2065;
+            const colorScale = (year) => {
+                const normValue = (year - minYear) / (maxYear - minYear);
+                const red = Math.round(255 * (1 - normValue));
+                const green = Math.round(255 * normValue);
+                return `rgb(${red}, ${green}, 0)`;
+            };
+
+            // Preparar datos para las barras de "Vía 1" y "Vía 2"
             const prepareData = (viaData, viaName, offset) => {
                 return {
                     x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
@@ -72,17 +83,31 @@
                     base: viaData.map(d => d['PK inici']),
                     type: 'bar',
                     name: viaName,
-                    width: 0.4, // Ancho de cada barra (dividido por 2 para evitar superposición)
+                    width: 0.4,
                     marker: {
-                        color: viaData.map(d => `rgba(${255 * (1 - (d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, ${255 * ((d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, 0, 1)`),
+                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ'])),
                     },
                     orientation: 'v'
                 };
             };
 
-            // Obtener datos de Vía 1 y Vía 2, desplazando ligeramente cada barra para que no se superpongan
+            // Obtener datos de Vía 1 y Vía 2
             const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
+
+            // Añadir línea vertical para el año 2024
+            const line2024 = {
+                type: 'line',
+                x0: 2024,
+                x1: 2024,
+                y0: 0,
+                y1: 6,
+                line: {
+                    color: colorScale(2024),
+                    width: 2,
+                    dash: 'dash'
+                }
+            };
 
             // Añadir líneas y etiquetas de estaciones
             const stationLines = estacionsData
@@ -126,18 +151,20 @@
                 },
                 yaxis: {
                     title: 'PK',
+                    tickvals: [0, 1, 2, 3, 4, 5],
+                    ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0], // Invertido para mostrar de arriba hacia abajo
                     gridcolor: '#e2e2e2'
                 },
-                shapes: stationLines,
+                shapes: [line2024, ...stationLines],
                 annotations: stationAnnotations,
-                barmode: 'group',
                 margin: {
                     l: 80,
-                    r: 100,
+                    r: 150,
                     t: 50,
                     b: 100
-                }
+                },
+                showlegend: false // Mostrar solo la leyenda de la escala de colores
             };
 
             // Dibujar la gráfica
