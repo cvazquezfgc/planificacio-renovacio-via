@@ -90,7 +90,7 @@
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
 
             // Añadir sombreado gris claro a la mitad derecha de cada año (Vía 2)
-            const shadedAreas = Array.from({ length: 72 }, (_, i) => 1998 + i).map(year => ({
+            const shadedAreas = Array.from({ length: 70 }, (_, i) => 1998 + i).map(year => ({
                 type: 'rect',
                 x0: year + 0.5,  // Mitad derecha de cada año
                 x1: year + 1,
@@ -168,6 +168,28 @@
                 }
             }));
 
+            // Añadir traza de leyenda de colores
+            const colorBarTrace = {
+                x: [2000, 2065],
+                y: [null, null],
+                mode: 'markers',
+                marker: {
+                    colorscale: 'RdYlGn',
+                    cmin: 2000,
+                    cmax: 2065,
+                    color: [2000, 2065],
+                    showscale: true,
+                    colorbar: {
+                        title: 'Año',
+                        titleside: 'right',
+                        tickvals: [2000, 2020, 2040, 2060],
+                        ticks: 'outside'
+                    }
+                },
+                hoverinfo: 'none',
+                showlegend: false
+            };
+
             // Configuración de la gráfica
             const layout = {
                 title: 'Espai-temps previsió rehabilitació via 1 i 2 PC-RE',
@@ -209,16 +231,16 @@
                     t: 80,
                     b: 150
                 },
-                showlegend: false,
-                coloraxis: {
-                    colorbar: {
-                        title: 'Año',
-                        titleside: 'right',
-                        tickvals: [2000, 2020, 2040, 2060],
-                        ticks: 'outside'
-                    }
-                }
+                showlegend: false
             };
 
             // Dibujar la gráfica
-            Plotly.newPlot('plot', [traceVia1, traceVia2],
+            Plotly.newPlot('plot', [traceVia1, traceVia2, colorBarTrace], layout);
+        }
+
+        // Dibujar la gráfica al cargar la página
+        drawPlot();
+    </script>
+</body>
+</html>
+
