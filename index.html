@@ -103,6 +103,44 @@
                 layer: 'below'
             }));
 
+            // Añadir líneas de estaciones como líneas continuas
+            const stationLines = estacionsData
+                .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
+                .map(d => ({
+                    type: 'line',
+                    x0: 1998,
+                    x1: 2068, // Extender hasta el rombo de la estación
+                    y0: d['PK'],
+                    y1: d['PK'],
+                    line: {
+                        color: 'gray', // Gris para las líneas de las estaciones
+                        width: 1,
+                        dash: 'solid'
+                    }
+                }));
+
+            // Crear un marcador para las estaciones en forma de rombo
+            const stationAnnotations = estacionsData
+                .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
+                .map(d => ({
+                    x: 2068,
+                    y: d['PK'],
+                    text: `<b>${d['Abreviatura']}</b>`,
+                    showarrow: false,
+                    font: {
+                        color: 'black',
+                        size: 14,
+                        family: 'Arial, sans-serif'
+                    },
+                    xanchor: 'center',
+                    yanchor: 'middle',
+                    bgcolor: 'white',
+                    bordercolor: 'gray',
+                    borderwidth: 2,
+                    borderpad: 5,
+                    opacity: 1
+                }));
+
             // Añadir líneas discontinuas para los PKs y los años
             const pkLines = [0, 1, 2, 3, 4, 5].map(pk => ({
                 type: 'line',
@@ -129,22 +167,6 @@
                     dash: 'dot'
                 }
             }));
-
-            // Añadir una leyenda con degradado de colores
-            const colorBar = {
-                type: 'rect',
-                xref: 'paper',
-                yref: 'paper',
-                x0: 1.1,
-                y0: 0.2,
-                x1: 1.13,
-                y1: 0.8,
-                fillcolor: 'rgba(255,255,255,0)',
-                line: {
-                    width: 0
-                },
-                layer: 'above'
-            };
 
             // Configuración de la gráfica
             const layout = {
@@ -179,39 +201,24 @@
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0]
                 },
-                shapes: [...shadedAreas, ...pkLines, ...yearLines, colorBar],
+                shapes: [...shadedAreas, ...stationLines, ...pkLines, ...yearLines],
+                annotations: stationAnnotations,
                 margin: {
                     l: 120,
-                    r: 220,
+                    r: 180,
                     t: 80,
                     b: 150
                 },
+                showlegend: false,
                 coloraxis: {
-                    cmin: 2000,
-                    cmax: 2065,
-                    colorscale: 'RdYlGn',
                     colorbar: {
-                        title: {
-                            text: 'Años',
-                            side: 'right'
-                        },
-                        thickness: 15,
-                        y: 0.5,
-                        len: 0.6,
+                        title: 'Año',
+                        titleside: 'right',
                         tickvals: [2000, 2020, 2040, 2060],
-                        ticktext: ['2000', '2020', '2040', '2060'],
                         ticks: 'outside'
                     }
-                },
-                showlegend: false
+                }
             };
 
             // Dibujar la gráfica
-            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
-        }
-
-        // Dibujar la gráfica al cargar la página
-        drawPlot();
-    </script>
-</body>
-</html>
+            Plotly.newPlot('plot', [traceVia1, traceVia2],
