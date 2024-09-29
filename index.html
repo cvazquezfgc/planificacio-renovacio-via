@@ -109,22 +109,23 @@
                 .map(d => ({
                     type: 'line',
                     x0: 1998,
-                    x1: 2065,
+                    x1: 2068, // Extender hasta el rombo de la estación
                     y0: d['PK'],
                     y1: d['PK'],
                     line: {
-                        color: 'gray',
+                        color: 'lightgray', // Gris más claro para las líneas de los PKs
                         width: 1,
                         dash: 'dot'
                     }
                 }));
 
+            // Simular el rombo como anotación personalizada
             const stationAnnotations = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
                 .map(d => ({
                     x: 2068,  // Ajustar para que las etiquetas sean visibles desde el inicio
                     y: d['PK'],
-                    text: d['Abreviatura'],
+                    text: `<b>${d['Abreviatura']}</b>`, // Usar HTML para el texto en negrita
                     showarrow: false,
                     font: {
                         color: 'black',
@@ -139,7 +140,9 @@
                     borderpad: 5,
                     ax: 0,
                     ay: 0,
-                    arrowhead: 0
+                    arrowhead: 0,
+                    borderradius: 0, // Simular bordes rectos para el rombo
+                    textangle: 45 // Angulo para simular el rombo
                 }));
 
             // Configuración de la gráfica
@@ -175,7 +178,7 @@
                     tickvals: [0, 1, 2, 3, 4, 5],
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0], // Invertido para mostrar de arriba hacia abajo
-                    gridcolor: '#e2e2e2'
+                    gridcolor: 'lightgray' // Gris claro para las líneas de PK
                 },
                 shapes: [line2024, ...stationLines],
                 annotations: stationAnnotations,
@@ -194,6 +197,4 @@
 
         // Dibujar la gráfica al cargar la página
         drawPlot();
-    </script>
-</body>
-</html>
+   
