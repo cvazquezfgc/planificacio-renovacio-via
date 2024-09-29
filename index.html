@@ -103,7 +103,7 @@
                 }
             };
 
-            // Añadir líneas y etiquetas de estaciones con simulación de rombo
+            // Añadir líneas de estaciones como líneas continuas
             const stationLines = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
                 .map(d => ({
@@ -113,9 +113,9 @@
                     y0: d['PK'],
                     y1: d['PK'],
                     line: {
-                        color: 'lightgray', // Gris más claro para las líneas de los PKs
+                        color: 'gray', // Gris para las líneas de las estaciones
                         width: 1,
-                        dash: 'dot'
+                        dash: 'solid'
                     }
                 }));
 
@@ -141,6 +141,20 @@
                     opacity: 1
                 }));
 
+            // Añadir líneas discontinuas para los PKs y los años
+            const pkLines = [0, 1, 2, 3, 4, 5].map(pk => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2068,
+                y0: pk,
+                y1: pk,
+                line: {
+                    color: 'lightgray',
+                    width: 1,
+                    dash: 'dot'
+                }
+            }));
+
             // Configuración de la gráfica
             const layout = {
                 title: 'Espai-temps previsió rehabilitació via 1 i 2 PC-RE',
@@ -161,7 +175,11 @@
                     range: [1998, 2069], // Ajustar rango para incluir etiquetas
                     tickvals: Array.from({length: 14}, (_, i) => 2000 + i * 5),
                     dtick: 5,
-                    gridcolor: '#e2e2e2'
+                    gridcolor: 'lightgray',
+                    showgrid: true,
+                    gridwidth: 1,
+                    gridcolor: 'lightgray',
+                    dash: 'dot'
                 },
                 yaxis: {
                     title: 'PK',
@@ -174,9 +192,13 @@
                     tickvals: [0, 1, 2, 3, 4, 5],
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0],
-                    gridcolor: 'lightgray'
+                    gridcolor: 'lightgray',
+                    showgrid: true,
+                    gridwidth: 1,
+                    gridcolor: 'lightgray',
+                    dash: 'dot'
                 },
-                shapes: [line2024, ...stationLines],
+                shapes: [line2024, ...stationLines, ...pkLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
