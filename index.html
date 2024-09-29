@@ -103,7 +103,7 @@
                 }
             };
 
-            // Añadir líneas y etiquetas de estaciones con rombos simulados
+            // Añadir líneas y etiquetas de estaciones con simulación de rombo
             const stationLines = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
                 .map(d => ({
@@ -119,30 +119,26 @@
                     }
                 }));
 
-            // Simular el rombo como anotación personalizada
+            // Crear un marcador para las estaciones en forma de rombo
             const stationAnnotations = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
                 .map(d => ({
-                    x: 2068,  // Ajustar para que las etiquetas sean visibles desde el inicio
+                    x: 2068,
                     y: d['PK'],
-                    text: `<b>${d['Abreviatura']}</b>`, // Usar HTML para el texto en negrita
+                    text: `<b>${d['Abreviatura']}</b>`,
                     showarrow: false,
                     font: {
                         color: 'black',
-                        size: 14, // Ajustar para que coincida con el tamaño de las etiquetas de los ejes
+                        size: 14,
                         family: 'Arial, sans-serif'
                     },
-                    xanchor: 'left',
+                    xanchor: 'center',
                     yanchor: 'middle',
                     bgcolor: 'white',
                     bordercolor: 'gray',
                     borderwidth: 2,
                     borderpad: 5,
-                    ax: 0,
-                    ay: 0,
-                    arrowhead: 0,
-                    borderradius: 0, // Simular bordes rectos para el rombo
-                    textangle: 45 // Angulo para simular el rombo
+                    opacity: 1
                 }));
 
             // Configuración de la gráfica
@@ -162,8 +158,8 @@
                         weight: 'bold'
                     },
                     tickangle: -45,
-                    range: [1998, 2069], // Ampliar el rango para incluir las etiquetas de las estaciones desde el inicio
-                    tickvals: Array.from({length: 14}, (_, i) => 2000 + i * 5), // Mostrar desde el 2000 cada 5 años
+                    range: [1998, 2069], // Ajustar rango para incluir etiquetas
+                    tickvals: Array.from({length: 14}, (_, i) => 2000 + i * 5),
                     dtick: 5,
                     gridcolor: '#e2e2e2'
                 },
@@ -177,18 +173,18 @@
                     },
                     tickvals: [0, 1, 2, 3, 4, 5],
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
-                    range: [6, 0], // Invertido para mostrar de arriba hacia abajo
-                    gridcolor: 'lightgray' // Gris claro para las líneas de PK
+                    range: [6, 0],
+                    gridcolor: 'lightgray'
                 },
                 shapes: [line2024, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
-                    l: 120, // Mayor separación a la izquierda para el título del eje Y
+                    l: 120,
                     r: 180,
                     t: 80,
-                    b: 150 // Mayor separación abajo para el título del eje X
+                    b: 150
                 },
-                showlegend: false // Mostrar solo la leyenda de la escala de colores
+                showlegend: false
             };
 
             // Dibujar la gráfica
@@ -197,4 +193,6 @@
 
         // Dibujar la gráfica al cargar la página
         drawPlot();
-   
+    </script>
+</body>
+</html>
