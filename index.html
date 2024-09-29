@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gráfico de Rehabilitación de Vía PC-RE</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -65,15 +66,8 @@
                 return;
             }
 
-            // Configuración del rango de colores del año
-            const minYear = 2000;
-            const maxYear = 2065;
-            const colorScale = (year) => {
-                const normValue = (year - minYear) / (maxYear - minYear);
-                const red = Math.round(255 * (1 - normValue));
-                const green = Math.round(255 * normValue);
-                return `rgb(${red}, ${green}, 0)`;
-            };
+            // Configuración del rango de colores usando la paleta RdYlGn
+            const colorScale = chroma.scale('RdYlGn').domain([2000, 2065]);
 
             // Preparar datos para las barras de "Vía 1" y "Vía 2"
             const prepareData = (viaData, viaName, offset) => {
@@ -85,7 +79,7 @@
                     name: viaName,
                     width: 0.4,
                     marker: {
-                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ'])),
+                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
                     },
                     orientation: 'v'
                 };
@@ -95,7 +89,7 @@
             const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
 
-            // Añadir línea vertical para el año 2024
+            // Añadir línea vertical para el año 2024 (línea continua)
             const line2024 = {
                 type: 'line',
                 x0: 2024,
@@ -103,9 +97,9 @@
                 y0: 0,
                 y1: 6,
                 line: {
-                    color: colorScale(2024),
+                    color: colorScale(2024).hex(),
                     width: 2,
-                    dash: 'dash'
+                    dash: 'solid'
                 }
             };
 
@@ -136,7 +130,8 @@
                         color: 'darkgray',
                         size: 10
                     },
-                    xanchor: 'left'
+                    xanchor: 'left',
+                    yanchor: 'middle'
                 }));
 
             // Configuración de la gráfica
