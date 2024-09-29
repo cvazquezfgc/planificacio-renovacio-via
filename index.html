@@ -83,7 +83,7 @@
                 layer: 'below'
             }));
 
-            // Preparar datos para las barras de "Vía 1" y "Vía 2"
+            // Preparar datos para las barras de "Vía 1" y "Vía 2" con patrones
             const traceVia1 = {
                 x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.2),
                 y: via1.map(d => d['PK final'] - d['PK inici']),
@@ -93,9 +93,9 @@
                 width: 0.4,
                 marker: {
                     color: via1.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
-                    opacity: 0.7,
                     pattern: {
                         shape: '/',
+                        fillmode: 'overlay',
                         size: 10
                     }
                 },
@@ -111,9 +111,9 @@
                 width: 0.4,
                 marker: {
                     color: via2.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
-                    opacity: 0.7,
                     pattern: {
                         shape: '\\',
+                        fillmode: 'overlay',
                         size: 10
                     }
                 },
@@ -208,7 +208,6 @@
                 },
                 yaxis: {
                     title: 'PK',
-                   
                     titlefont: {
                         size: 20,
                         color: 'black',
@@ -216,7 +215,7 @@
                         weight: 'bold'
                     },
                     tickvals: [0, 1, 2, 3, 4, 5],
-                    ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
+                                        ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0]
                 },
                 shapes: [...shadedAreas, ...stationLines, ...pkLines, ...yearLines],
