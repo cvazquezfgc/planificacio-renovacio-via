@@ -93,9 +93,15 @@
                 width: 0.4,
                 marker: {
                     color: via1.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
+                    line: {
+                        color: 'black',
+                        width: 1
+                    },
                     pattern: {
                         shape: '/',
                         fillmode: 'overlay',
+                        fgcolor: via1.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()), // Color de las rayas
+                        bgcolor: 'rgba(0, 0, 0, 0)', // Espacios entre rayas serán transparentes
                         size: 10
                     }
                 },
@@ -111,9 +117,15 @@
                 width: 0.4,
                 marker: {
                     color: via2.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
+                    line: {
+                        color: 'black',
+                        width: 1
+                    },
                     pattern: {
                         shape: '\\',
                         fillmode: 'overlay',
+                        fgcolor: via2.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()), // Color de las rayas
+                        bgcolor: 'rgba(0, 0, 0, 0)', // Espacios entre rayas serán transparentes
                         size: 10
                     }
                 },
@@ -202,7 +214,7 @@
                         weight: 'bold'
                     },
                     tickangle: -45,
-                    range: [1998, 2069], // Ajustar rango para incluir etiquetas
+                                       range: [1998, 2069], // Ajustar rango para incluir etiquetas
                     tickvals: Array.from({ length: 14 }, (_, i) => 2000 + i * 5), // Mostrar solo cada 5 años
                     dtick: 5
                 },
@@ -215,7 +227,7 @@
                         weight: 'bold'
                     },
                     tickvals: [0, 1, 2, 3, 4, 5],
-                                        ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
+                    ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0]
                 },
                 shapes: [...shadedAreas, ...stationLines, ...pkLines, ...yearLines],
