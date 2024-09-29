@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráfico de Rehabilitación de Vía PC-RE</title>
+    <title>Gráfico de Rehabilitación de Vía PC-RE (Sombreado)</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,82 +12,16 @@
         #plot {
             width: 90%;
             margin: auto;
-            height: 800px; /* Ajuste para hacer el gráfico más alto */
+            height: 800px;
         }
     </style>
 </head>
 <body>
-    <h1>Gráfico de Rehabilitación de Vía PC-RE</h1>
+    <h1>Gráfico de Rehabilitación de Vía PC-RE (Sombreado)</h1>
     <div id="plot"></div>
 
     <script>
-        async function loadData(url) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                console.error(`Error cargando datos de ${url}:`, error);
-            }
-        }
-
         async function drawPlot() {
-            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-            const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-
-            // Cargar los datos desde los archivos JSON
-            const resumData = await loadData(resumUrl);
-            const estacionsData = await loadData(estacionsUrl);
-
-            // Verificar si los datos están cargados correctamente
-            if (!resumData || !estacionsData) {
-                console.error('Los datos no pudieron ser cargados.');
-                return;
-            }
-
-            // Convertir datos relevantes a números
-            resumData.forEach(d => {
-                d['PK inici'] = parseFloat(d['PK inici']);
-                d['PK final'] = parseFloat(d['PK final']);
-                d['PREVISIÓ REHABILITACIÓ'] = parseInt(d['PREVISIÓ REHABILITACIÓ']);
-                d.Via = parseInt(d.Via);
-            });
-
-            // Filtrar los datos específicos para el tramo PC-RE
-            const via1 = resumData.filter(d => d.Via === 1 && d.TRAM && d.TRAM.trim() === 'PC-RE');
-            const via2 = resumData.filter(d => d.Via === 2 && d.TRAM && d.TRAM.trim() === 'PC-RE');
-
-            if (via1.length === 0 && via2.length === 0) {
-                console.error('No se encontraron datos para el tramo PC-RE.');
-                return;
-            }
-
-            // Configuración del rango de colores usando la paleta RdYlGn
-            const colorScale = chroma.scale('RdYlGn').domain([2000, 2065]);
-
-            // Preparar datos para las barras de "Vía 1" y "Vía 2"
-            const prepareData = (viaData, viaName, offset) => {
-                return {
-                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
-                    y: viaData.map(d => d['PK final'] - d['PK inici']),
-                    base: viaData.map(d => d['PK inici']),
-                    type: 'bar',
-                    name: viaName,
-                    width: 0.4,
-                    marker: {
-                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
-                    },
-                    orientation: 'v'
-                };
-            };
-
-            // Obtener datos de Vía 1 y Vía 2
-            const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
-            const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
-
             // Añadir sombreado gris claro a la mitad derecha de cada año (Vía 2)
             const shadedAreas = Array.from({ length: 70 }, (_, i) => 1998 + i).map(year => ({
                 type: 'rect',
@@ -103,81 +36,16 @@
                 layer: 'below'
             }));
 
-            // Añadir líneas de estaciones como líneas continuas
-            const stationLines = estacionsData
-                .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
-                .map(d => ({
-                    type: 'line',
-                    x0: 1998,
-                    x1: 2068, // Extender hasta el rombo de la estación
-                    y0: d['PK'],
-                    y1: d['PK'],
-                    line: {
-                        color: 'gray', // Gris para las líneas de las estaciones
-                        width: 1,
-                        dash: 'solid'
-                    }
-                }));
-
-            // Crear un marcador para las estaciones en forma de rombo
-            const stationAnnotations = estacionsData
-                .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
-                .map(d => ({
-                    x: 2068,
-                    y: d['PK'],
-                    text: `<b>${d['Abreviatura']}</b>`,
-                    showarrow: false,
-                    font: {
-                        color: 'black',
-                        size: 14,
-                        family: 'Arial, sans-serif'
-                    },
-                    xanchor: 'center',
-                    yanchor: 'middle',
-                    bgcolor: 'white',
-                    bordercolor: 'gray',
-                    borderwidth: 2,
-                    borderpad: 5,
-                    opacity: 1
-                }));
-
-            // Añadir líneas discontinuas para los PKs y los años
-            const pkLines = [0, 1, 2, 3, 4, 5].map(pk => ({
-                type: 'line',
-                x0: 1998,
-                x1: 2069,
-                y0: pk,
-                y1: pk,
-                line: {
-                    color: 'lightgray',
-                    width: 1,
-                    dash: 'dot'
-                }
-            }));
-
-            const yearLines = Array.from({ length: 14 }, (_, i) => 2000 + i * 5).map(year => ({
-                type: 'line',
-                x0: year,
-                x1: year,
-                y0: 0,
-                y1: 6,
-                line: {
-                    color: 'lightgray',
-                    width: 1,
-                    dash: 'dot'
-                }
-            }));
-
             // Configuración de la gráfica
             const layout = {
-                title: 'Espai-temps previsió rehabilitació via 1 i 2 PC-RE',
+                title: 'Sombreado en la Mitad Derecha de Cada Año (Vía 2)',
                 titlefont: {
                     family: 'Arial, sans-serif',
                     size: 18,
                     color: 'black'
                 },
                 xaxis: {
-                    title: 'Any previsió rehabilitació',
+                    title: 'Años',
                     titlefont: {
                         size: 20,
                         color: 'black',
@@ -186,7 +54,7 @@
                     },
                     tickangle: -45,
                     range: [1998, 2069], // Ajustar rango para incluir etiquetas
-                    tickvals: Array.from({ length: 14 }, (_, i) => 2000 + i * 5),
+                    tickvals: Array.from({ length: 72 }, (_, i) => 1998 + i),
                     dtick: 5
                 },
                 yaxis: {
@@ -201,8 +69,7 @@
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
                     range: [6, 0]
                 },
-                shapes: [...shadedAreas, ...stationLines, ...pkLines, ...yearLines],
-                annotations: stationAnnotations,
+                shapes: shadedAreas,
                 margin: {
                     l: 120,
                     r: 180,
@@ -213,4 +80,11 @@
             };
 
             // Dibujar la gráfica
-            Plotly.new
+            Plotly.newPlot('plot', [], layout);
+        }
+
+        // Dibujar la gráfica al cargar la página
+        drawPlot();
+    </script>
+</body>
+</html>
