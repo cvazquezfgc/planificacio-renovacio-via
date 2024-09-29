@@ -65,25 +65,54 @@
             }
 
             // Preparar datos para las barras (todas con el mismo ancho y altura correspondiente a la diferencia de PK)
-            const prepareData = (viaData, viaName, color) => {
+            const prepareData = (viaData, viaName, offset) => {
                 return {
-                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
                     y: viaData.map(d => d['PK final'] - d['PK inici']),
                     base: viaData.map(d => d['PK inici']),
                     type: 'bar',
                     name: viaName,
-                    width: 1,
+                    width: 0.4, // Ancho de cada barra (dividido por 2 para evitar superposición)
                     marker: {
-                        color: color,
-                        opacity: 0.7
+                        color: viaData.map(d => `rgba(${255 * (1 - (d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, ${255 * ((d['PREVISIÓ REHABILITACIÓ'] - 2000) / 65)}, 0, 1)`),
                     },
                     orientation: 'v'
                 };
             };
 
-            // Obtener datos de Vía 1 y Vía 2
-            const traceVia1 = prepareData(via1, 'Vía 1', 'rgba(255, 100, 100, 0.8)');
-            const traceVia2 = prepareData(via2, 'Vía 2', 'rgba(100, 255, 100, 0.8)');
+            // Obtener datos de Vía 1 y Vía 2, desplazando ligeramente cada barra para que no se superpongan
+            const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
+            const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
+
+            // Añadir líneas y etiquetas de estaciones
+            const stationLines = estacionsData
+                .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
+                .map(d => ({
+                    type: 'line',
+                    x0: 2000,
+                    x1: 2065,
+                    y0: d['PK'],
+                    y1: d['PK'],
+                    line: {
+                        color: 'gray',
+                        width: 1,
+                        dash: 'dot'
+                    }
+                }));
+
+            const stationAnnotations = estacionsData
+                .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
+                .map(d => ({
+                    x: 2066,
+                    y: d['PK'],
+                    text: d['Abreviatura'],
+                    showarrow: false,
+                    font: {
+                        color: 'darkgray',
+                        size: 10
+                    },
+                    xanchor: 'left'
+                }));
 
             // Configuración de la gráfica
             const layout = {
@@ -100,10 +129,12 @@
                     range: [6, 0], // Invertido para mostrar de arriba hacia abajo
                     gridcolor: '#e2e2e2'
                 },
+                shapes: stationLines,
+                annotations: stationAnnotations,
                 barmode: 'group',
                 margin: {
                     l: 80,
-                    r: 20,
+                    r: 100,
                     t: 50,
                     b: 100
                 }
