@@ -15,6 +15,16 @@
             margin: auto;
             height: 800px;
         }
+        /* Definir patrones de rayas diagonales para cada vía */
+        svg {
+            display: block;
+        }
+        #diagonal-45 {
+            background-image: repeating-linear-gradient(45deg, #000, #000 2px, #fff 2px, #fff 6px);
+        }
+        #diagonal-135 {
+            background-image: repeating-linear-gradient(135deg, #000, #000 2px, #fff 2px, #fff 6px);
+        }
     </style>
 </head>
 <body>
@@ -69,30 +79,10 @@
             // Configuración del rango de colores usando la paleta RdYlGn
             const colorScale = chroma.scale('RdYlGn').domain([2000, 2065]);
 
-            // Preparar datos para las barras de "Vía 1" y "Vía 2"
-            const prepareData = (viaData, viaName, offset) => {
-                return {
-                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
-                    y: viaData.map(d => d['PK final'] - d['PK inici']),
-                    base: viaData.map(d => d['PK inici']),
-                    type: 'bar',
-                    name: viaName,
-                    width: 0.4,
-                    marker: {
-                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
-                    },
-                    orientation: 'v'
-                };
-            };
-
-            // Obtener datos de Vía 1 y Vía 2
-            const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
-            const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
-
-            // Añadir sombreado gris claro a la mitad derecha de cada año (Vía 2)
-            const shadedAreas = Array.from({ length: 70 }, (_, i) => 1998 + i).map(year => ({
+            // Añadir sombreado gris claro para años enteros alternos
+            const shadedAreas = Array.from({ length: 36 }, (_, i) => 2000 + i * 2).map(year => ({
                 type: 'rect',
-                x0: year + 0.5,  // Mitad derecha de cada año
+                x0: year,
                 x1: year + 1,
                 y0: 0,
                 y1: 6,
@@ -102,6 +92,28 @@
                 },
                 layer: 'below'
             }));
+
+            // Crear trazas con patrones de relleno para Vía 1 y Vía 2
+            const createPatternData = (viaData, pattern, offset) => {
+                return {
+                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
+                    y: viaData.map(d => d['PK final'] - d['PK inici']),
+                    base: viaData.map(d => d['PK inici']),
+                    type: 'bar',
+                    name: `Vía ${offset > 0 ? 2 : 1}`,
+                    width: 0.4,
+                    marker: {
+                        pattern: {
+                            shape: pattern,
+                            bgcolor: colorScale(d['PREVISIÓ REHABILITACIÓ'])
+                        }
+                    },
+                    orientation: 'v'
+                };
+            };
+
+            const traceVia1 = createPatternData(via1, '/', -0.2);  // Vía 1 con patrón diagonal a 45 grados
+            const traceVia2 = createPatternData(via2, '\\', 0.2);  // Vía 2 con patrón diagonal a 135 grados
 
             // Añadir líneas de estaciones como líneas continuas
             const stationLines = estacionsData
@@ -201,7 +213,7 @@
                 xaxis: {
                     title: 'Any previsió rehabilitació',
                     titlefont: {
-                        size: 20,
+                                                size: 20,
                         color: 'black',
                         family: 'Arial, sans-serif',
                         weight: 'bold'
@@ -243,4 +255,3 @@
     </script>
 </body>
 </html>
-
