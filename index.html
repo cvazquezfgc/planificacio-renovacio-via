@@ -89,20 +89,6 @@
             const traceVia1 = prepareData(via1, 'Vía 1', -0.2);
             const traceVia2 = prepareData(via2, 'Vía 2', 0.2);
 
-            // Añadir línea vertical para el año 2024 (línea continua)
-            const line2024 = {
-                type: 'line',
-                x0: 2024,
-                x1: 2024,
-                y0: 0,
-                y1: 6,
-                line: {
-                    color: colorScale(2024).hex(),
-                    width: 2,
-                    dash: 'solid'
-                }
-            };
-
             // Añadir líneas de estaciones como líneas continuas
             const stationLines = estacionsData
                 .filter(d => d['Tram'] && d['Tram'].trim() === 'PC-RE')
@@ -145,9 +131,22 @@
             const pkLines = [0, 1, 2, 3, 4, 5].map(pk => ({
                 type: 'line',
                 x0: 1998,
-                x1: 2068,
+                x1: 2069,
                 y0: pk,
                 y1: pk,
+                line: {
+                    color: 'lightgray',
+                    width: 1,
+                    dash: 'dot'
+                }
+            }));
+
+            const yearLines = Array.from({ length: 14 }, (_, i) => 2000 + i * 5).map(year => ({
+                type: 'line',
+                x0: year,
+                x1: year,
+                y0: 0,
+                y1: 6,
                 line: {
                     color: 'lightgray',
                     width: 1,
@@ -173,13 +172,8 @@
                     },
                     tickangle: -45,
                     range: [1998, 2069], // Ajustar rango para incluir etiquetas
-                    tickvals: Array.from({length: 14}, (_, i) => 2000 + i * 5),
-                    dtick: 5,
-                    gridcolor: 'lightgray',
-                    showgrid: true,
-                    gridwidth: 1,
-                    gridcolor: 'lightgray',
-                    dash: 'dot'
+                    tickvals: Array.from({ length: 14 }, (_, i) => 2000 + i * 5),
+                    dtick: 5
                 },
                 yaxis: {
                     title: 'PK',
@@ -191,14 +185,9 @@
                     },
                     tickvals: [0, 1, 2, 3, 4, 5],
                     ticktext: ["0+000", "1+000", "2+000", "3+000", "4+000", "5+000"],
-                    range: [6, 0],
-                    gridcolor: 'lightgray',
-                    showgrid: true,
-                    gridwidth: 1,
-                    gridcolor: 'lightgray',
-                    dash: 'dot'
+                    range: [6, 0]
                 },
-                shapes: [line2024, ...stationLines, ...pkLines],
+                shapes: [...stationLines, ...pkLines, ...yearLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
