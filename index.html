@@ -75,28 +75,30 @@
                 pkRange.push(pk);
             }
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2"
+            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
             const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.1), // Ajustar posición para mitad izquierda del año
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
                 y: via1.map(d => d['PK final'] - d['PK inici']),
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                width: 0.45, // Ajuste de ancho para ocupar mitad del año
+                width: 0.4, // Ajuste de ancho para ocupar mitad del año
+                offset: 0.0, // Desplazar la barra hacia la izquierda de su año correspondiente
                 marker: {
                     color: 'rgba(31, 119, 180, 1)' // Color para diferenciar claramente
                 }
             };
 
             const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.1), // Ajustar posición para mitad derecha del año
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
                 y: via2.map(d => d['PK final'] - d['PK inici']),
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                width: 0.45, // Ajuste de ancho para ocupar mitad del año
+                width: 0.4, // Ajuste de ancho para ocupar mitad del año
+                offset: 0.4, // Desplazar la barra hacia la derecha de su año correspondiente
                 marker: {
                     color: 'rgba(255, 127, 14, 1)' // Color para diferenciar claramente
                 }
@@ -110,7 +112,7 @@
                 y0: parseFloat(d['PK']),
                 y1: parseFloat(d['PK']),
                 line: {
-                    color: 'darkgray',
+                    color: 'darkgray', // Más visible que las líneas de los PKs
                     width: 1.5,
                 }
             }));
@@ -193,7 +195,7 @@
                     range: [pkMax, pkMin], // Invertir el eje
                     autorange: 'reversed'
                 },
-                shapes: [...stationLines, ...yearLines, ...pkLines], // Asegurar que todas las líneas se dibujen debajo de las barras
+                shapes: [...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
@@ -204,7 +206,7 @@
                 showlegend: true
             };
 
-            // Dibujar la gráfica con los datos
+            // Dibujar la gráfica con los datos, asegurando que las barras estén sobre todo lo demás
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
@@ -212,9 +214,9 @@
         async function init() {
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
-            const tramSelector = document.getElementById('tramSelector');
+                      const tramSelector = document.getElementById('tramSelector');
 
-                       if (!resumData) {
+            if (!resumData) {
                 console.error('Error al cargar los datos para llenar el selector.');
                 return;
             }
@@ -250,4 +252,4 @@
     </script>
 </body>
 </html>
-
+ 
