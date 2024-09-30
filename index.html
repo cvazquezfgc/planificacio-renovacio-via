@@ -138,7 +138,7 @@
 
             if (tram === 'LINIA COMPLETA') {
                 const trams = [...new Set(resumData.map(d => d.TRAM))];
-                trams.forEach((currentTram, index) => {
+                trams.forEach((currentTram) => {
                     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === currentTram);
                     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === currentTram);
                     const estaciones = estacionsData.filter(d => d.Tram === currentTram);
@@ -243,16 +243,17 @@
                             showarrow: false,
                             font: {
                                 color: 'black',
-                                                                size: 16,
+                                size: 16,
                                 family: 'Arial, sans-serif'
                             },
+                           
                             textangle: -90,
                             xanchor: 'center',
                             yanchor: 'middle'
                         });
 
-                        // Actualizar el offset para el siguiente tramo
-                        yOffset += tramPkMax - tramPkMin + 0.5; // Añadir un espacio vertical entre los tramos
+                        // Actualizar el offset para el siguiente tramo, añadiendo un espacio de separación
+                        yOffset += tramPkMax - tramPkMin + 0.5;
                     }
                 });
             } else {
@@ -401,18 +402,21 @@
             shapes.push(...shadedYears, ...yearLines, year2025Line, shadedBefore2025);
 
             // Añadir líneas horizontales para los PKs
-            const pkLines = pkRange.map(pk => ({
-                type: 'line',
-                x0: 1998,
-                x1: 2069,
-                y0: pk,
-                y1: pk,
-                line: {
-                    color: 'lightgray',
-                    width: 1,
-                    layer: 'below'
-                }
-            }));
+            const pkLines = [];
+            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
+                pkLines.push({
+                    type: 'line',
+                    x0: 1998,
+                    x1: 2069,
+                    y0: pk,
+                    y1: pk,
+                    line: {
+                        color: 'lightgray',
+                        width: 1,
+                        layer: 'below'
+                    }
+                });
+            }
 
             shapes.push(...pkLines);
 
@@ -444,9 +448,9 @@
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
-                    tickvals: pkRange,
-                    ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [pkMax, pkMin], // Ajuste dinámico del eje vertical desde pkMin hasta pkMax
+                    tickvals: Array.from({ length: Math.ceil(pkMin); pk <= pkMax; pk++ }),
+                    ticktext: Array.from({ length: Math.ceil(pkMin); pk <= pkMax; pk++ }).map(pk => `${pk}+000`),
+                                       range: [pkMax, pkMin], // Ajuste dinámico del eje vertical desde pkMin hasta pkMax
                     autorange: 'reversed'
                 },
                 shapes: shapes,
@@ -491,7 +495,7 @@
             // Obtener todos los tramos únicos
             const trams = [...new Set(resumData.map(d => d.TRAM))];
 
-                       // Añadir botones para cada tramo
+            // Añadir botones para cada tramo
             trams.forEach(tram => {
                 if (tram) {
                     const button = document.createElement('button');
@@ -518,5 +522,3 @@
     </script>
 </body>
 </html>
-
-
