@@ -3,11 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráfico de Rehabilitación de Vía</title>
+    <title>Planificació reposició actius de via</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #header {
+            display: flex;
+            align-items: center;
+            background-color: rgb(77, 83, 88);
+            color: white;
+            padding: 10px;
+        }
+        #header img {
+            height: 50px;
+            margin-right: 15px;
+        }
+        #header h1 {
+            margin: 0;
+            font-size: 24px;
         }
         #plot {
             width: 90%;
@@ -39,7 +56,10 @@
     </style>
 </head>
 <body>
-    <h1>Gráfico de Rehabilitación de Vía</h1>
+    <div id="header">
+        <img src="https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/fgc_logo.png" alt="FGC Logo">
+        <h1>Planificació reposició actius de via</h1>
+    </div>
     <div id="tramButtons"></div>
     <div id="plot"></div>
 
@@ -173,7 +193,7 @@
                 x0: 1998,
                 x1: 2069,
                 y0: parseFloat(d['PK']),
-                y1: parseFloat(d['PK']),
+                               y1: parseFloat(d['PK']),
                 line: {
                     color: 'darkgray',
                     width: 1.5,
@@ -216,7 +236,7 @@
 
             const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
                 type: 'rect',
-                               x0: year,
+                x0: year,
                 x1: year + 1,
                 y0: pkMin,
                 y1: pkMax,
