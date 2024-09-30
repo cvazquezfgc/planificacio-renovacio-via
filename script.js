@@ -1,3 +1,5 @@
+// script.js
+
 async function loadData(url) {
     try {
         const response = await fetch(url);
@@ -5,90 +7,10 @@ async function loadData(url) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        console.log(`Datos cargados de ${url}:`, data); // Mostrar datos cargados para ver si llegan bien
         return data;
     } catch (error) {
         console.error(`Error cargando datos de ${url}:`, error);
-        return null;
     }
-}
-
-async function init() {
-    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-    const resumData = await loadData(resumUrl);
-    if (!resumData) {
-        console.error('Error al cargar los datos para llenar los botones de tramo.');
-        return;
-    }
-
-    const tramButtonsContainer = document.getElementById('tramButtons');
-    const trams = [...new Set(resumData.map(d => d.TRAM))];
-
-    // Añadir el botón para "LINIA COMPLETA"
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        drawPlot('LINIA COMPLETA', resumData);
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Añadir botones para cada tramo
-    trams.forEach(tram => {
-        if (tram) {
-            const button = document.createElement('button');
-            button.className = 'tram-button';
-            button.textContent = tram;
-            button.addEventListener('click', () => {
-                selectTramButton(button);
-                drawPlot(tram, resumData);
-            });
-            tramButtonsContainer.appendChild(button);
-        }
-    });
-
-    // Seleccionar y dibujar la "LINIA COMPLETA" por defecto
-    selectTramButton(liniaCompletaButton);
-    drawPlot('LINIA COMPLETA', resumData);
-}
-
-function selectTramButton(button) {
-    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-}
-
-function groupConsecutiveSegments(data) {
-    const groupedData = [];
-    let currentGroup = null;
-
-    data.forEach(segment => {
-        const pkInici = parseFloat(segment['PK inici']);
-        const pkFinal = parseFloat(segment['PK final']);
-        const previsio = segment['PREVISIÓ REHABILITACIÓ'];
-
-        if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio) {
-            currentGroup.PKFinal = pkFinal;
-            currentGroup.length += (pkFinal - pkInici) * 1000;
-        } else {
-            if (currentGroup) {
-                groupedData.push(currentGroup);
-            }
-            currentGroup = {
-                PKInici: pkInici,
-                PKFinal: pkFinal,
-                PREVISIO: previsio,
-                length: (pkFinal - pkInici) * 1000,
-                via: segment.Via
-            };
-        }
-    });
-
-    if (currentGroup) {
-        groupedData.push(currentGroup);
-    }
-
-    return groupedData;
 }
 
 async function drawPlot(tram, resumData) {
@@ -106,7 +28,6 @@ async function drawPlot(tram, resumData) {
     let pkMin = Infinity;
     let pkMax = -Infinity;
 
-    // Definir datos según la opción seleccionada
     if (tram === 'LINIA COMPLETA') {
         const trams = [...new Set(resumData.map(d => d.TRAM))];
         let offsetPk = 0;
@@ -124,7 +45,6 @@ async function drawPlot(tram, resumData) {
                 const tramPkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
                 const tramPkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
 
-                // Ajustar el rango de PK con el offset
                 via1.forEach(segment => {
                     segment.PKInici += offsetPk;
                     segment.PKFinal += offsetPk;
@@ -137,10 +57,8 @@ async function drawPlot(tram, resumData) {
                 pkMin = Math.min(pkMin, tramPkMin + offsetPk);
                 pkMax = Math.max(pkMax, tramPkMax + offsetPk);
 
-                // Añadir las barras de Vía 1 y Vía 2
                 addBarTraces(traces, via1, via2, currentTram);
 
-                // Añadir las líneas y etiquetas de estaciones
                 estaciones.forEach(estacion => {
                     const pk = parseFloat(estacion['PK']) + offsetPk;
                     stationAnnotations.push({
@@ -175,9 +93,8 @@ async function drawPlot(tram, resumData) {
                     });
                 });
 
-                // Añadir la etiqueta del tramo al eje Y
                 stationAnnotations.push({
-                    x: 1996, // Colocar a la izquierda del eje Y
+                    x: 1996,
                     y: (tramPkMin + tramPkMax) / 2 + offsetPk,
                     text: `<b>${currentTram}</b>`,
                     showarrow: false,
@@ -196,8 +113,7 @@ async function drawPlot(tram, resumData) {
                     opacity: 1
                 });
 
-                // Incrementar el offset para el siguiente tramo
-                offsetPk += tramPkMax - tramPkMin + 0.5; // Añadir un espacio entre tramos
+                offsetPk += tramPkMax - tramPkMin + 0.5;
             } else {
                 console.warn(`No hay datos para el tramo ${currentTram}`);
             }
@@ -221,7 +137,6 @@ async function drawPlot(tram, resumData) {
 
         addBarTraces(traces, via1, via2, tram);
 
-        // Añadir las líneas y etiquetas de estaciones
         estaciones.forEach(estacion => {
             const pk = parseFloat(estacion['PK']);
             stationAnnotations.push({
@@ -257,7 +172,6 @@ async function drawPlot(tram, resumData) {
         });
     }
 
-    // Añadir líneas verticales para cada año y sombreado de años múltiplos de 5
     for (let year = 1998; year <= 2068; year++) {
         shapes.push({
             type: 'line',
@@ -272,7 +186,6 @@ async function drawPlot(tram, resumData) {
             }
         });
 
-        // Sombreado para años múltiplos de 5
         if (year % 5 === 0) {
             shapes.push({
                 type: 'rect',
@@ -289,7 +202,6 @@ async function drawPlot(tram, resumData) {
         }
     }
 
-    // Añadir la línea roja vertical en 2025 y el sombreado rojo en años anteriores
     shapes.push({
         type: 'line',
         x0: 2025,
@@ -316,7 +228,6 @@ async function drawPlot(tram, resumData) {
         }
     });
 
-    // Configuración del gráfico
     const layout = {
         title: `Espai-temps previsió rehabilitació del tram ${tram}`,
         titlefont: {
@@ -334,7 +245,8 @@ async function drawPlot(tram, resumData) {
             },
             tickangle: -45,
             range: [1998, 2069],
-            tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i        },
+            tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
+        },
         yaxis: {
             title: 'PK',
             titlefont: {
@@ -348,15 +260,15 @@ async function drawPlot(tram, resumData) {
             range: [pkMax, pkMin],
             autorange: 'reversed'
         },
-        shapes: shapes, // Añadir todas las formas (líneas, sombreados, etc.)
-        annotations: stationAnnotations, // Añadir todas las etiquetas de las estaciones
+        shapes: shapes,
+        annotations: stationAnnotations,
         margin: {
             l: 160,
             r: 180,
             t: 80,
             b: 150
         },
-        showlegend: true,
+                showlegend: true,
         hovermode: 'closest', // Configurar para que sólo se muestre el hover de la barra más cercana
         barmode: 'overlay' // Para superponer las barras correctamente
     };
@@ -379,7 +291,7 @@ function addBarTraces(traces, via1, via2, currentTram) {
     // Añadir barras de "Vía 1" (mitad izquierda de cada año)
     traces.push({
         x: via1.map(d => d.PREVISIO),
-        y: via1.map(d => d.PKFinal - d.PKInici),
+        y: via1.map(d => (d.PKFinal - d.PKInici) * 1000), // Longitud en metros
         base: via1.map(d => d.PKInici),
         type: 'bar',
         name: 'Vía 1',
@@ -397,7 +309,7 @@ function addBarTraces(traces, via1, via2, currentTram) {
     // Añadir barras de "Vía 2" (mitad derecha de cada año)
     traces.push({
         x: via2.map(d => d.PREVISIO),
-        y: via2.map(d => d.PKFinal - d.PKInici),
+        y: via2.map(d => (d.PKFinal - d.PKInici) * 1000), // Longitud en metros
         base: via2.map(d => d.PKInici),
         type: 'bar',
         name: 'Vía 2',
@@ -413,6 +325,76 @@ function addBarTraces(traces, via1, via2, currentTram) {
     });
 }
 
+// Helper function para agrupar segmentos consecutivos de un mismo tramo
+function groupConsecutiveSegments(data) {
+    let groupedData = [];
+    let currentSegment = null;
+
+    data.forEach((d, index) => {
+        if (!currentSegment) {
+            currentSegment = { ...d };
+        } else {
+            if (currentSegment.PKFinal === d.PKInici && currentSegment.PREVISIO === d.PREVISIO) {
+                // Si el segmento es consecutivo y tiene la misma previsión de rehabilitación
+                currentSegment.PKFinal = d.PKFinal;
+            } else {
+                // Si no es consecutivo, guardar el segmento actual y empezar uno nuevo
+                groupedData.push(currentSegment);
+                currentSegment = { ...d };
+            }
+        }
+        // Guardar el último segmento si es el final del array
+        if (index === data.length - 1) {
+            groupedData.push(currentSegment);
+        }
+    });
+
+    return groupedData;
+}
+
 // Inicializar la página
+async function init() {
+    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+    const resumData = await loadData(resumUrl);
+    const tramButtonsContainer = document.getElementById('tramButtons');
+
+    if (!resumData) {
+        console.error('Error al cargar los datos para llenar los botones de tramo.');
+        return;
+    }
+
+    // Obtener todos los tramos únicos y añadir "LINIA COMPLETA"
+    const trams = ['LINIA COMPLETA', ...new Set(resumData.map(d => d.TRAM))];
+
+    // Añadir botones al contenedor para cada tramo
+    trams.forEach(tram => {
+        if (tram) {
+            const button = document.createElement('button');
+            button.className = 'tram-button';
+            button.textContent = tram;
+            button.addEventListener('click', () => {
+                // Quitar la clase "selected" de todos los botones
+                document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+
+                // Añadir la clase "selected" al botón actual
+                button.classList.add('selected');
+
+                // Dibujar el gráfico del tramo seleccionado
+                drawPlot(tram, resumData);
+            });
+            tramButtonsContainer.appendChild(button);
+        }
+    });
+
+    // Dibujar el gráfico inicialmente para "LINIA COMPLETA"
+    if (trams.length > 0) {
+        document.querySelector('.tram-button').classList.add('selected');
+        drawPlot(trams[0], resumData);
+    } else {
+        console.error('No se encontraron tramos disponibles en los datos.');
+    }
+}
+
+// Ejecutar la función de inicialización
 init();
 
