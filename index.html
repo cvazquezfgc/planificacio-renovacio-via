@@ -75,9 +75,9 @@
                 pkRange.push(pk);
             }
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2"
+            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 a la izquierda, Vía 2 a la derecha)
             const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.2),
                 y: via1.map(d => d['PK final'] - d['PK inici']),
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
@@ -86,7 +86,7 @@
             };
 
             const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.2),
                 y: via2.map(d => d['PK final'] - d['PK inici']),
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
@@ -103,7 +103,8 @@
                 y1: parseFloat(d['PK']),
                 line: {
                     color: 'darkgray', // Más visible que las líneas de los PKs
-                    width: 1.5
+                    width: 1.5,
+                    layer: 'below' // Asegurarse de que las barras estén por encima
                 }
             }));
 
@@ -135,7 +136,8 @@
                 y1: pkMax,
                 line: {
                     color: year % 5 === 0 ? 'black' : 'lightgray',
-                    width: year % 5 === 0 ? 1.5 : 0.8
+                    width: year % 5 === 0 ? 1.5 : 0.8,
+                    layer: 'below' // Asegurarse de que las barras estén por encima
                 }
             }));
 
@@ -148,7 +150,8 @@
                 y1: pk,
                 line: {
                     color: 'lightgray',
-                    width: 1
+                    width: 1,
+                    layer: 'below' // Asegurarse de que las barras estén por encima
                 }
             }));
 
@@ -185,7 +188,7 @@
                     range: [pkMax, pkMin], // Invertir el eje
                     autorange: 'reversed'
                 },
-                shapes: [...stationLines, ...yearLines, ...pkLines],
+                shapes: [...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
@@ -217,29 +220,4 @@
             // Añadir opciones al selector
             trams.forEach(tram => {
                 if (tram) {
-                    const option = document.createElement('option');
-                    option.value = tram;
-                    option.textContent = tram;
-                    tramSelector.appendChild(option);
-                }
-            });
-
-            // Agregar evento al selector para dibujar el gráfico del tramo seleccionado
-            tramSelector.addEventListener('change', (e) => {
-                drawPlot(e.target.value);
-            });
-
-            // Dibujar el gráfico inicialmente para el primer tramo
-            if (trams.length > 0) {
-                drawPlot(trams[0]);
-            } else {
-                console.error('No se encontraron tramos disponibles en los datos.');
-            }
-        }
-
-               // Inicializar la página
-        init();
-    </script>
-</body>
-</html>
-
+                    const option = document
