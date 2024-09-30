@@ -66,9 +66,11 @@
                 const pkFinal = parseFloat(segment['PK final']);
                 const previsio = segment['PREVISIÓ REHABILITACIÓ'];
 
-                if (currentGroup && 
-                    currentGroup.PKFinal === pkInici && 
-                    currentGroup.PREVISIO === previsio) {
+                if (
+                    currentGroup &&
+                    currentGroup.PKFinal === pkInici &&
+                    currentGroup.PREVISIO === previsio
+                ) {
                     // Si el segmento es consecutivo y del mismo año, se añade al grupo actual
                     currentGroup.PKFinal = pkFinal;
                     currentGroup.length += (pkFinal - pkInici) * 1000;
@@ -136,7 +138,7 @@
                     color: 'rgba(31, 119, 180, 1)'
                 },
                 hoverinfo: 'text',
-                hovertemplate: via1.map(d => `${Math.round(d.length)} m<extra></extra>`),
+                hovertext: via1.map(d => `${Math.round(d.length)} m`),
                 textposition: 'outside'
             };
 
@@ -153,7 +155,7 @@
                     color: 'rgba(255, 127, 14, 1)'
                 },
                 hoverinfo: 'text',
-                hovertemplate: via2.map(d => `${Math.round(d.length)} m<extra></extra>`),
+                hovertext: via2.map(d => `${Math.round(d.length)} m`),
                 textposition: 'outside'
             };
 
@@ -190,47 +192,6 @@
                 opacity: 1
             }));
 
-            // Añadir líneas verticales y sombreado de años
-            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
-                type: 'line',
-                x0: year,
-                x1: year,
-                y0: Math.min(...pkRange),
-                y1: Math.max(...pkRange),
-                line: {
-                                       color: 'lightgray',
-                    width: 0.8,
-                    layer: 'below'
-                }
-            }));
-
-            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: Math.min(...pkRange),
-                y1: Math.max(...pkRange),
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            }));
-
-            // Añadir líneas horizontales para los PKs
-            const pkLines = pkRange.map(pk => ({
-                type: 'line',
-                x0: 1998,
-                x1: 2069,
-                y0: pk,
-                y1: pk,
-                line: {
-                    color: 'lightgray',
-                    width: 1,
-                    layer: 'below'
-                }
-            }));
-
             // Configuración del gráfico
             const layout = {
                 title: `Espai-temps previsió rehabilitació del tram ${tram}`,
@@ -259,13 +220,8 @@
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
-                    tickvals: pkRange,
-                    ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [Math.max(...pkRange), Math.min(...pkRange)],
                     autorange: 'reversed'
                 },
-                shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
-                annotations: stationAnnotations,
                 margin: {
                     l: 120,
                     r: 180,
@@ -273,18 +229,19 @@
                     b: 150
                 },
                 showlegend: true,
-                hovermode: 'closest' // Configurar para que sólo se muestre el hover de la barra más cercana
+                hovermode: 'closest'
             };
 
             // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
-        // Llenar la fila de botones de tramo y agregar eventos
+        // Inicializar la página y eventos
         async function init() {
+            // Cargar la lista de tramos y crear los botones de selección
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
-            const tramButtonsContainer = document.getElementById('tramButtons');
+            const tramButtonsContainer = document.getElementById('tramButtonsContainer');
 
             if (!resumData) {
                 console.error('Error al cargar los datos para llenar los botones de tramo.');
