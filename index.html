@@ -214,7 +214,8 @@
         async function init() {
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
-                      const tramSelector = document.getElementById('tramSelector');
+           
+ const tramSelector = document.getElementById('tramSelector');
 
             if (!resumData) {
                 console.error('Error al cargar los datos para llenar el selector.');
@@ -252,4 +253,3 @@
     </script>
 </body>
 </html>
- 
