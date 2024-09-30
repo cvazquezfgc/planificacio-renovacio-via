@@ -74,7 +74,67 @@
                 return data;
             } catch (error) {
                 console.error(`Error cargando datos de ${url}:`, error);
+                return null;
             }
+        }
+
+        async function init() {
+            // URLs de los datos
+            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+            const resumData = await loadData(resumUrl);
+            if (!resumData) {
+                console.error('Error al cargar los datos para llenar los botones de tramo.');
+                return;
+            }
+
+            // Obtener los tramos únicos
+            const trams = [...new Set(resumData.map(d => d.TRAM))];
+            if (trams.length === 0) {
+                console.error('No se encontraron tramos disponibles en los datos.');
+                return;
+            }
+
+            // Contenedor de botones
+            const tramButtonsContainer = document.getElementById('tramButtons');
+
+            // Añadir el botón para "LINIA COMPLETA"
+            const liniaCompletaButton = document.createElement('button');
+            liniaCompletaButton.className = 'tram-button';
+            liniaCompletaButton.textContent = 'LINIA COMPLETA';
+            liniaCompletaButton.addEventListener('click', () => {
+                // Marcar el botón como seleccionado
+                selectTramButton(liniaCompletaButton);
+                // Dibujar el gráfico de la línea completa
+                drawPlot('LINIA COMPLETA', resumData);
+            });
+            tramButtonsContainer.appendChild(liniaCompletaButton);
+
+            // Añadir botones para cada tramo
+            trams.forEach(tram => {
+                if (tram) {
+                    const button = document.createElement('button');
+                    button.className = 'tram-button';
+                    button.textContent = tram;
+                    button.addEventListener('click', () => {
+                        // Marcar el botón como seleccionado
+                        selectTramButton(button);
+                        // Dibujar el gráfico del tramo seleccionado
+                        drawPlot(tram, resumData);
+                    });
+                    tramButtonsContainer.appendChild(button);
+                }
+            });
+
+            // Seleccionar y dibujar la "LINIA COMPLETA" por defecto
+            selectTramButton(liniaCompletaButton);
+            drawPlot('LINIA COMPLETA', resumData);
+        }
+
+        function selectTramButton(button) {
+            // Desmarcar todos los botones
+            document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+            // Marcar el botón seleccionado
+            button.classList.add('selected');
         }
 
         function groupConsecutiveSegments(data) {
@@ -86,11 +146,7 @@
                 const pkFinal = parseFloat(segment['PK final']);
                 const previsio = segment['PREVISIÓ REHABILITACIÓ'];
 
-                if (
-                    currentGroup &&
-                    currentGroup.PKFinal === pkInici &&
-                    currentGroup.PREVISIO === previsio
-                ) {
+                if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio) {
                     // Si el segmento es consecutivo y del mismo año, se añade al grupo actual
                     currentGroup.PKFinal = pkFinal;
                     currentGroup.length += (pkFinal - pkInici) * 1000;
@@ -117,11 +173,8 @@
             return groupedData;
         }
 
-        async function drawPlot(tram) {
-            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+        async function drawPlot(tram, resumData) {
             const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-
-            const resumData = await loadData(resumUrl);
             const estacionsData = await loadData(estacionsUrl);
 
             if (!resumData || !estacionsData) {
@@ -138,7 +191,7 @@
 
             if (tram === 'LINIA COMPLETA') {
                 const trams = [...new Set(resumData.map(d => d.TRAM))];
-                trams.forEach((currentTram) => {
+                trams.forEach(currentTram => {
                     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === currentTram);
                     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === currentTram);
                     const estaciones = estacionsData.filter(d => d.Tram === currentTram);
@@ -183,7 +236,7 @@
                             marker: {
                                 color: 'rgba(255, 127, 14, 1)'
                             },
-                            hoverinfo: 'text',
+                                                        hoverinfo: 'text',
                             hovertext: via2.map(d => `${Math.round(d.length)} m`),
                             textposition: 'outside'
                         });
@@ -246,13 +299,12 @@
                                 size: 16,
                                 family: 'Arial, sans-serif'
                             },
-                           
                             textangle: -90,
                             xanchor: 'center',
                             yanchor: 'middle'
                         });
 
-                        // Actualizar el offset para el siguiente tramo, añadiendo un espacio de separación
+                        // Actualizar el offset para el siguiente tramo
                         yOffset += tramPkMax - tramPkMin + 0.5;
                     }
                 });
@@ -448,9 +500,9 @@
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
-                    tickvals: Array.from({ length: Math.ceil(pkMin); pk <= pkMax; pk++ }),
-                    ticktext: Array.from({ length: Math.ceil(pkMin); pk <= pkMax; pk++ }).map(pk => `${pk}+000`),
-                                       range: [pkMax, pkMin], // Ajuste dinámico del eje vertical desde pkMin hasta pkMax
+                                        tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
+                    ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`),
+                    range: [pkMax, pkMin], // Ajuste dinámico del eje vertical desde pkMin hasta pkMax
                     autorange: 'reversed'
                 },
                 shapes: shapes,
@@ -474,51 +526,56 @@
             // Cargar la lista de tramos y crear los botones de selección
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
-            const tramButtonsContainer = document.getElementById('tramButtons');
-
             if (!resumData) {
                 console.error('Error al cargar los datos para llenar los botones de tramo.');
                 return;
             }
 
-            // Añadir botón para "LINIA COMPLETA"
+            // Contenedor de botones
+            const tramButtonsContainer = document.getElementById('tramButtons');
+
+            // Añadir el botón para "LINIA COMPLETA"
             const liniaCompletaButton = document.createElement('button');
             liniaCompletaButton.className = 'tram-button';
             liniaCompletaButton.textContent = 'LINIA COMPLETA';
             liniaCompletaButton.addEventListener('click', () => {
-                document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-                liniaCompletaButton.classList.add('selected');
-                drawPlot('LINIA COMPLETA');
+                // Marcar el botón como seleccionado
+                selectTramButton(liniaCompletaButton);
+                // Dibujar el gráfico de la línea completa
+                drawPlot('LINIA COMPLETA', resumData);
             });
             tramButtonsContainer.appendChild(liniaCompletaButton);
 
-            // Obtener todos los tramos únicos
+            // Obtener los tramos únicos y añadir los botones correspondientes
             const trams = [...new Set(resumData.map(d => d.TRAM))];
-
-            // Añadir botones para cada tramo
             trams.forEach(tram => {
                 if (tram) {
                     const button = document.createElement('button');
                     button.className = 'tram-button';
                     button.textContent = tram;
                     button.addEventListener('click', () => {
-                        // Quitar la clase "selected" de todos los botones
-                        document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-
-                        // Añadir la clase "selected" al botón actual
-                        button.classList.add('selected');
-
+                        // Marcar el botón como seleccionado
+                        selectTramButton(button);
                         // Dibujar el gráfico del tramo seleccionado
-                        drawPlot(tram);
+                        drawPlot(tram, resumData);
                     });
                     tramButtonsContainer.appendChild(button);
                 }
             });
 
-            // Dibujar el gráfico inicialmente para la "LINIA COMPLETA"
-            liniaCompletaButton.classList.add('selected');
-            drawPlot('LINIA COMPLETA');
+            // Seleccionar y dibujar la "LINIA COMPLETA" por defecto
+            selectTramButton(liniaCompletaButton);
+            drawPlot('LINIA COMPLETA', resumData);
         });
+
+        function selectTramButton(button) {
+            // Desmarcar todos los botones
+            document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+            // Marcar el botón seleccionado
+            button.classList.add('selected');
+        }
     </script>
 </body>
 </html>
+
+
