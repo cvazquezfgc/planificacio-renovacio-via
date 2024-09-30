@@ -102,9 +102,8 @@
                 y0: parseFloat(d['PK']),
                 y1: parseFloat(d['PK']),
                 line: {
-                    color: 'gray',
-                    width: 1,
-                    dash: 'solid'
+                    color: 'darkgray', // Más visible que las líneas de los PKs
+                    width: 1.5
                 }
             }));
 
@@ -136,8 +135,20 @@
                 y1: pkMax,
                 line: {
                     color: year % 5 === 0 ? 'black' : 'lightgray',
-                    width: year % 5 === 0 ? 1.5 : 0.5,
-                    dash: 'dot'
+                    width: year % 5 === 0 ? 1.5 : 0.8
+                }
+            }));
+
+            // Añadir líneas horizontales para los PKs
+            const pkLines = pkRange.map(pk => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2069,
+                y0: pk,
+                y1: pk,
+                line: {
+                    color: 'lightgray',
+                    width: 1
                 }
             }));
 
@@ -159,7 +170,7 @@
                     },
                     tickangle: -45,
                     range: [1998, 2069],
-                    dtick: 1
+                    tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
                 },
                 yaxis: {
                     title: 'PK',
@@ -174,7 +185,7 @@
                     range: [pkMax, pkMin], // Invertir el eje
                     autorange: 'reversed'
                 },
-                shapes: [...stationLines, ...yearLines],
+                shapes: [...stationLines, ...yearLines, ...pkLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
@@ -226,8 +237,9 @@
             }
         }
 
-        // Inicializar la página
+               // Inicializar la página
         init();
     </script>
 </body>
 </html>
+
