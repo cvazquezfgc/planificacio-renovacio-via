@@ -200,7 +200,7 @@
                 },
                 shapes: [...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
-                margin: {
+                               margin: {
                     l: 120,
                     r: 180,
                     t: 80,
@@ -209,8 +209,8 @@
                 showlegend: true
             };
 
-            // Dibujar la gráfica con los datos, asegurando que las barras estén en la capa superior
-                        Plotly.newPlot('plot', [traceVia1, traceVia2], layout, { layer: 'above' });
+            // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
+            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
         // Llenar el selector de tramo y agregar evento
