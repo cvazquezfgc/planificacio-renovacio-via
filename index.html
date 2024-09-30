@@ -192,6 +192,54 @@
                 opacity: 1
             }));
 
+            // Añadir líneas verticales y sombreado de años
+            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
+                type: 'line',
+                x0: year,
+                x1: year,
+                y0: Math.min(...resumData.map(d => parseFloat(d['PK inici']))),
+                y1: Math.max(...resumData.map(d => parseFloat(d['PK final']))),
+                line: {
+                    color: 'lightgray',
+                    width: 0.8,
+                    layer: 'below'
+                }
+            }));
+
+            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                                y0: Math.min(...resumData.map(d => parseFloat(d['PK inici']))),
+                y1: Math.max(...resumData.map(d => parseFloat(d['PK final']))),
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            }));
+
+            // Añadir líneas horizontales para los PKs
+            const pkRange = [];
+            const pkMin = Math.floor(Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici']))));
+            const pkMax = Math.ceil(Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final']))));
+            for (let pk = pkMin; pk <= pkMax; pk++) {
+                pkRange.push(pk);
+            }
+
+            const pkLines = pkRange.map(pk => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2069,
+                y0: pk,
+                y1: pk,
+                line: {
+                    color: 'lightgray',
+                    width: 1,
+                    layer: 'below'
+                }
+            }));
+
             // Configuración del gráfico
             const layout = {
                 title: `Espai-temps previsió rehabilitació del tram ${tram}`,
@@ -210,7 +258,7 @@
                     },
                     tickangle: -45,
                     range: [1998, 2069],
-                                       tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
+                    tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
                 },
                 yaxis: {
                     title: 'PK',
@@ -220,8 +268,13 @@
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
+                    tickvals: pkRange,
+                    ticktext: pkRange.map(pk => `${pk}+000`),
+                    range: [pkMax, pkMin],
                     autorange: 'reversed'
                 },
+                shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
+                annotations: stationAnnotations,
                 margin: {
                     l: 120,
                     r: 180,
@@ -229,7 +282,7 @@
                     b: 150
                 },
                 showlegend: true,
-                hovermode: 'closest'
+                hovermode: 'closest' // Configurar para que sólo se muestre el hover de la barra más cercana
             };
 
             // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
