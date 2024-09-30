@@ -80,40 +80,124 @@
                 return;
             }
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2" con etiquetas hover personalizadas
-            const createTrace = (data, viaName, offset, hoverSide) => {
-                return {
-                    x: data.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                    y: data.map(d => d['PK final'] - d['PK inici']),
-                    base: data.map(d => d['PK inici']),
-                    type: 'bar',
-                    name: viaName,
-                    orientation: 'v',
-                    width: 0.5,
-                    offset: offset,
-                    marker: {
-                        color: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)'
-                    },
-                    hoverinfo: 'text',
-                    text: data.map(d => {
-                        const pkMedio = (parseFloat(d['PK inici']) + parseFloat(d['PK final'])) / 2;
-                        const longitud = Math.abs(parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000; // Longitud en metros
-                        return `<b>${viaName}</b><br>PK medio: ${pkMedio.toFixed(3)}<br>Longitud: ${longitud} m`;
-                    }),
-                    hoverlabel: {
-                        align: hoverSide,
-                        bgcolor: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 0.8)' : 'rgba(255, 127, 14, 0.8)',
-                        font: {
-                            color: 'white'
-                        }
-                    }
-                };
+            // Calcular el rango de PKs
+            const pkMin = Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici'])));
+            const pkMax = Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final'])));
+            const pkRange = [];
+            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
+                pkRange.push(pk);
+            }
+
+            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
+            const traceVia1 = {
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                y: via1.map(d => d['PK final'] - d['PK inici']),
+                base: via1.map(d => d['PK inici']),
+                type: 'bar',
+                name: 'Vía 1',
+                orientation: 'v',
+                width: 0.5,
+                offset: 0.0,
+                marker: {
+                    color: 'rgba(31, 119, 180, 1)'
+                },
+                hoverinfo: 'y',
+                hovertemplate: '<b>Longitud:</b> %{y:.0f} m<extra></extra>',
+                textposition: 'outside'
             };
 
-            const traceVia1 = createTrace(via1, 'Vía 1', 0.0, 'left');
-            const traceVia2 = createTrace(via2, 'Vía 2', 0.5, 'right');
+            const traceVia2 = {
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                y: via2.map(d => d['PK final'] - d['PK inici']),
+                base: via2.map(d => d['PK inici']),
+                type: 'bar',
+                name: 'Vía 2',
+                orientation: 'v',
+                width: 0.5,
+                offset: 0.5,
+                marker: {
+                    color: 'rgba(255, 127, 14, 1)'
+                },
+                hoverinfo: 'y',
+                hovertemplate: '<b>Longitud:</b> %{y:.0f} m<extra></extra>',
+                textposition: 'outside'
+            };
 
-            // Añadir otras configuraciones al gráfico
+            // Añadir líneas y etiquetas para las estaciones
+            const stationLines = estaciones.map(d => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2069,
+                y0: parseFloat(d['PK']),
+                y1: parseFloat(d['PK']),
+                line: {
+                    color: 'darkgray',
+                    width: 1.5,
+                    layer: 'below'
+                }
+            }));
+
+            const stationAnnotations = estaciones.map(d => ({
+                x: 2068,
+                y: parseFloat(d['PK']),
+                text: `<b>${d['Abreviatura']}</b>`,
+                showarrow: false,
+                font: {
+                    color: 'black',
+                    size: 14,
+                    family: 'Arial, sans-serif'
+                },
+                xanchor: 'center',
+                yanchor: 'middle',
+                bgcolor: 'white',
+                bordercolor: 'gray',
+                borderwidth: 2,
+                borderpad: 5,
+                opacity: 1
+            }));
+
+            // Añadir líneas verticales y sombreado de años
+            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
+                type: 'line',
+                x0: year,
+                x1: year,
+                y0: pkMin,
+                y1: pkMax,
+                line: {
+                    color: 'lightgray',
+                    width: 0.8,
+                    layer: 'below'
+                }
+            }));
+
+            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            }));
+
+            // Añadir líneas horizontales para los PKs
+            const pkLines = pkRange.map(pk => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2069,
+                y0: pk,
+                y1: pk,
+                line: {
+                    color: 'lightgray',
+                    width: 1,
+                    layer: 'below'
+                }
+            }));
+
+            // Configuración del gráfico
             const layout = {
                 title: `Espai-temps previsió rehabilitació del tram ${tram}`,
                 titlefont: {
@@ -130,77 +214,84 @@
                         weight: 'bold'
                     },
                     tickangle: -45,
-                    range: [1998, 2069]
+                    range: [1998, 2069],
+                    tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
                 },
-                yaxis: {
-                    title: 'PK',
-                    titlefont: {
-                        size: 20,
-                        color: 'black',
-                        family: 'Arial, sans-serif',
-                        weight: 'bold'
+                                   yaxis: {
+                        title: 'PK',
+                        titlefont: {
+                            size: 20,
+                            color: 'black',
+                            family: 'Arial, sans-serif',
+                            weight: 'bold'
+                        },
+                        tickvals: pkRange,
+                        ticktext: pkRange.map(pk => `${pk}+000`),
+                        range: [pkMax, pkMin],
+                        autorange: 'reversed'
                     },
-                    autorange: 'reversed'
-                },
-                shapes: [],
-                margin: {
-                    l: 120,
-                    r: 180,
-                    t: 80,
-                    b: 150
-                },
-                showlegend: true
-            };
+                    shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
+                    annotations: stationAnnotations,
+                    margin: {
+                        l: 120,
+                        r: 180,
+                        t: 80,
+                        b: 150
+                    },
+                    showlegend: true,
+                    hovermode: 'closest' // Configurar para que sólo se muestre el hover de la barra más cercana
+                };
 
-            // Dibujar la gráfica con los datos
-            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
-        }
-
-        // Llenar la fila de botones de tramo y agregar eventos
-        async function init() {
-            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-            const resumData = await loadData(resumUrl);
-            const tramButtonsContainer = document.getElementById('tramButtons');
-
-            if (!resumData) {
-                console.error('Error al cargar los datos para llenar los botones de tramo.');
-                return;
+                // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
+                Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
             }
 
-            // Obtener todos los tramos únicos
-            const trams = [...new Set(resumData.map(d => d.TRAM))];
+            // Llenar la fila de botones de tramo y agregar eventos
+            async function init() {
+                const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+                const resumData = await loadData(resumUrl);
+                const tramButtonsContainer = document.getElementById('tramButtons');
 
-            // Añadir botones al contenedor para cada tramo
-            trams.forEach(tram => {
-                if (tram) {
-                    const button = document.createElement('button');
-                    button.className = 'tram-button';
-                    button.textContent = tram;
-                    button.addEventListener('click', () => {
-                        // Quitar la clase "selected" de todos los botones
-                        document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-
-                        // Añadir la clase "selected" al botón actual
-                        button.classList.add('selected');
-
-                        // Dibujar el gráfico del tramo seleccionado
-                        drawPlot(tram);
-                    });
-                    tramButtonsContainer.appendChild(button);
+                if (!resumData) {
+                    console.error('Error al cargar los datos para llenar los botones de tramo.');
+                    return;
                 }
-            });
 
-            // Dibujar el gráfico inicialmente para el primer tramo
-            if (trams.length > 0) {
-                document.querySelector('.tram-button').classList.add('selected');
-                drawPlot(trams[0]);
-            } else {
-                console.error('No se encontraron tramos disponibles en los datos.');
+                // Obtener todos los tramos únicos
+                const trams = [...new Set(resumData.map(d => d.TRAM))];
+
+                // Añadir botones al contenedor para cada tramo
+                trams.forEach(tram => {
+                    if (tram) {
+                        const button = document.createElement('button');
+                        button.className = 'tram-button';
+                        button.textContent = tram;
+                        button.addEventListener('click', () => {
+                            // Quitar la clase "selected" de todos los botones
+                            document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+
+                            // Añadir la clase "selected" al botón actual
+                            button.classList.add('selected');
+
+                            // Dibujar el gráfico del tramo seleccionado
+                            drawPlot(tram);
+                        });
+                        tramButtonsContainer.appendChild(button);
+                    }
+                });
+
+                // Dibujar el gráfico inicialmente para el primer tramo
+                if (trams.length > 0) {
+                    document.querySelector('.tram-button').classList.add('selected');
+                    drawPlot(trams[0]);
+                } else {
+                    console.error('No se encontraron tramos disponibles en los datos.');
+                }
             }
-        }
 
-        // Inicializar la página
-        init();
-    </script>
-</body>
+            // Inicializar la página
+            init();
+        </script>
+    </body>
 </html>
+
