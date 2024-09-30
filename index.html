@@ -200,10 +200,59 @@
                 },
                 shapes: [...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
-                margin: {
+                              margin: {
                     l: 120,
                     r: 180,
                     t: 80,
                     b: 150
                 },
-               
+                showlegend: true
+            };
+
+            // Dibujar la gráfica con los datos
+            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
+        }
+
+        // Llenar el selector de tramo y agregar evento
+        async function init() {
+            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+            const resumData = await loadData(resumUrl);
+            const tramSelector = document.getElementById('tramSelector');
+
+            if (!resumData) {
+                console.error('Error al cargar los datos para llenar el selector.');
+                return;
+            }
+
+            // Obtener todos los tramos únicos
+            const trams = [...new Set(resumData.map(d => d.TRAM))];
+
+            // Añadir opciones al selector
+            trams.forEach(tram => {
+                if (tram) {
+                    const option = document.createElement('option');
+                    option.value = tram;
+                    option.textContent = tram;
+                    tramSelector.appendChild(option);
+                }
+            });
+
+            // Agregar evento al selector para dibujar el gráfico del tramo seleccionado
+            tramSelector.addEventListener('change', (e) => {
+                drawPlot(e.target.value);
+            });
+
+            // Dibujar el gráfico inicialmente para el primer tramo
+            if (trams.length > 0) {
+                drawPlot(trams[0]);
+            } else {
+                console.error('No se encontraron tramos disponibles en los datos.');
+            }
+        }
+
+        // Inicializar la página
+        init();
+    </script>
+</body>
+</html>
+
