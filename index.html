@@ -80,119 +80,40 @@
                 return;
             }
 
-            // Calcular el rango de PKs
-            const pkMin = Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici'])));
-            const pkMax = Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final'])));
-            const pkRange = [];
-            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
-                pkRange.push(pk);
-            }
-
-            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
-            const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via1.map(d => d['PK final'] - d['PK inici']),
-                base: via1.map(d => d['PK inici']),
-                type: 'bar',
-                name: 'Vía 1',
-                orientation: 'v',
-                width: 0.5,
-                offset: 0.0,
-                marker: {
-                    color: 'rgba(31, 119, 180, 1)'
-                }
+            // Crear datos para las barras de "Vía 1" y "Vía 2" con etiquetas hover personalizadas
+            const createTrace = (data, viaName, offset, hoverSide) => {
+                return {
+                    x: data.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                    y: data.map(d => d['PK final'] - d['PK inici']),
+                    base: data.map(d => d['PK inici']),
+                    type: 'bar',
+                    name: viaName,
+                    orientation: 'v',
+                    width: 0.5,
+                    offset: offset,
+                    marker: {
+                        color: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)'
+                    },
+                    hoverinfo: 'text',
+                    text: data.map(d => {
+                        const pkMedio = (parseFloat(d['PK inici']) + parseFloat(d['PK final'])) / 2;
+                        const longitud = Math.abs(parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000; // Longitud en metros
+                        return `<b>${viaName}</b><br>PK medio: ${pkMedio.toFixed(3)}<br>Longitud: ${longitud} m`;
+                    }),
+                    hoverlabel: {
+                        align: hoverSide,
+                        bgcolor: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 0.8)' : 'rgba(255, 127, 14, 0.8)',
+                        font: {
+                            color: 'white'
+                        }
+                    }
+                };
             };
 
-            const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via2.map(d => d['PK final'] - d['PK inici']),
-                base: via2.map(d => d['PK inici']),
-                type: 'bar',
-                name: 'Vía 2',
-                orientation: 'v',
-                width: 0.5,
-                offset: 0.5,
-                marker: {
-                    color: 'rgba(255, 127, 14, 1)'
-                }
-            };
+            const traceVia1 = createTrace(via1, 'Vía 1', 0.0, 'left');
+            const traceVia2 = createTrace(via2, 'Vía 2', 0.5, 'right');
 
-            // Añadir líneas y etiquetas para las estaciones
-            const stationLines = estaciones.map(d => ({
-                type: 'line',
-                x0: 1998,
-                x1: 2069,
-                y0: parseFloat(d['PK']),
-                y1: parseFloat(d['PK']),
-                line: {
-                    color: 'darkgray',
-                    width: 1.5,
-                    layer: 'below'
-                }
-            }));
-
-            const stationAnnotations = estaciones.map(d => ({
-                x: 2068,
-                y: parseFloat(d['PK']),
-                text: `<b>${d['Abreviatura']}</b>`,
-                showarrow: false,
-                font: {
-                    color: 'black',
-                    size: 14,
-                    family: 'Arial, sans-serif'
-                },
-                xanchor: 'center',
-                yanchor: 'middle',
-                bgcolor: 'white',
-                bordercolor: 'gray',
-                borderwidth: 2,
-                borderpad: 5,
-                opacity: 1
-            }));
-
-            // Añadir líneas verticales para todos los años
-            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
-                type: 'line',
-                x0: year,
-                x1: year,
-                y0: pkMin,
-                y1: pkMax,
-                line: {
-                    color: 'lightgray',
-                    width: 0.8,
-                    layer: 'below'
-                }
-            }));
-
-            // Añadir sombreado para los años múltiplos de 5 (desde el año hasta el año siguiente)
-            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)', // Sombreado gris tenue
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            }));
-
-            // Añadir líneas horizontales para los PKs
-            const pkLines = pkRange.map(pk => ({
-                type: 'line',
-                x0: 1998,
-                x1: 2069,
-                y0: pk,
-                y1: pk,
-                line: {
-                    color: 'lightgray',
-                    width: 1,
-                    layer: 'below'
-                }
-            }));
-
-            // Configuración del gráfico
+            // Añadir otras configuraciones al gráfico
             const layout = {
                 title: `Espai-temps previsió rehabilitació del tram ${tram}`,
                 titlefont: {
@@ -209,8 +130,7 @@
                         weight: 'bold'
                     },
                     tickangle: -45,
-                    range: [1998, 2069],
-                    tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
+                    range: [1998, 2069]
                 },
                 yaxis: {
                     title: 'PK',
@@ -220,15 +140,11 @@
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
-                    tickvals: pkRange,
-                    ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [pkMax, pkMin],
                     autorange: 'reversed'
                 },
-                shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
-                annotations: stationAnnotations,
+                shapes: [],
                 margin: {
-                                        l: 120,
+                    l: 120,
                     r: 180,
                     t: 80,
                     b: 150
@@ -236,7 +152,7 @@
                 showlegend: true
             };
 
-            // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
+            // Dibujar la gráfica con los datos
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
@@ -288,4 +204,3 @@
     </script>
 </body>
 </html>
-
