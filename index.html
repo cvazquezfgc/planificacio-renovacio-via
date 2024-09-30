@@ -145,8 +145,8 @@
             const via2 = groupConsecutiveSegments(via2Data);
 
             // Obtener el rango dinámico de PKs
-            const pkMin = Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici'])));
-            const pkMax = Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final'])));
+            const pkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
+            const pkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
             const pkRange = [];
             for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
                 pkRange.push(pk);
@@ -252,7 +252,7 @@
             const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
                 type: 'line',
                 x0: year,
-                               x1: year,
+                x1: year,
                 y0: pkMin,
                 y1: pkMax,
                 line: {
@@ -319,7 +319,7 @@
                     },
                     tickvals: pkRange,
                     ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [Math.ceil(pkMax), Math.floor(pkMin)],  // Ajuste dinámico del eje vertical
+                    range: [pkMax, pkMin], // Ajuste dinámico del eje vertical desde pkMin hasta pkMax
                     autorange: 'reversed'
                 },
                 shapes: [
