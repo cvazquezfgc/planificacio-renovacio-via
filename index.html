@@ -220,11 +220,39 @@
                 opacity: 1
             }));
 
+            // Añadir línea roja vertical en el año 2025
+            const year2025Line = {
+                type: 'line',
+                x0: 2025,
+                x1: 2025,
+                y0: pkMin,
+                y1: pkMax,
+                line: {
+                    color: 'red',
+                    width: 2,
+                    layer: 'below'
+                }
+            };
+
+            // Añadir sombreado tenue rojo en todos los años anteriores a 2025
+            const shadedBefore2025 = {
+                type: 'rect',
+                x0: 1998,
+                x1: 2025,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(255, 0, 0, 0.1)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            };
+
             // Añadir líneas verticales y sombreado de años
             const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
                 type: 'line',
                 x0: year,
-                x1: year,
+                               x1: year,
                 y0: pkMin,
                 y1: pkMax,
                 line: {
@@ -252,7 +280,7 @@
                 type: 'line',
                 x0: 1998,
                 x1: 2069,
-                y0: pk,           
+                y0: pk,
                 y1: pk,
                 line: {
                     color: 'lightgray',
@@ -294,7 +322,14 @@
                     range: [Math.ceil(pkMax), Math.floor(pkMin)],  // Ajuste dinámico del eje vertical
                     autorange: 'reversed'
                 },
-                shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
+                shapes: [
+                    ...shadedYears,
+                    ...yearLines,
+                    ...pkLines,
+                    ...stationLines,
+                    year2025Line,
+                    shadedBefore2025
+                ],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
@@ -356,3 +391,4 @@
     </script>
 </body>
 </html>
+
