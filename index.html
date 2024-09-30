@@ -164,7 +164,7 @@
                 }
             }));
 
-            // Añadir sombreado para los años múltiplos de 5
+            // Añadir sombreado para los años múltiplos de 5 con un offset de 0.5
             const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
                 type: 'rect',
                 x0: year - 0.5,
@@ -232,8 +232,9 @@
                     r: 180,
                     t: 80,
                     b: 150
-                               },
+                },
                 showlegend: true
+           
             };
 
             // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
@@ -288,4 +289,3 @@
     </script>
 </body>
 </html>
-
