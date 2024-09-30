@@ -158,9 +158,23 @@
                 y0: pkMin,
                 y1: pkMax,
                 line: {
-                    color: year % 5 === 0 ? 'black' : 'lightgray',
-                    width: year % 5 === 0 ? 1.5 : 0.8,
+                    color: 'lightgray',
+                    width: 0.8,
                     layer: 'below'
+                }
+            }));
+
+            // Añadir sombreado para los años múltiplos de 5
+            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
+                type: 'rect',
+                x0: year - 0.5,
+                x1: year + 0.5,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)', // Sombreado gris tenue
+                layer: 'below',
+                line: {
+                    width: 0
                 }
             }));
 
@@ -211,25 +225,25 @@
                     range: [pkMax, pkMin],
                     autorange: 'reversed'
                 },
-                shapes: [...yearLines, ...pkLines, ...stationLines],
+                shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
                     r: 180,
                     t: 80,
                     b: 150
-                },
+                               },
                 showlegend: true
             };
 
-            // Dibujar la gráfica con los datos
+            // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
         // Llenar la fila de botones de tramo y agregar eventos
         async function init() {
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-                        const resumData = await loadData(resumUrl);
+            const resumData = await loadData(resumUrl);
             const tramButtonsContainer = document.getElementById('tramButtons');
 
             if (!resumData) {
@@ -274,3 +288,4 @@
     </script>
 </body>
 </html>
+
