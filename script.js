@@ -5,6 +5,7 @@ async function loadData(url) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        console.log(`Datos cargados de ${url}:`, data); // Mostrar datos cargados
         return data;
     } catch (error) {
         console.error(`Error cargando datos de ${url}:`, error);
@@ -105,10 +106,12 @@ async function drawPlot(tram, resumData) {
     let pkMin = Infinity;
     let pkMax = -Infinity;
 
+    // Definir datos según la opción seleccionada
     if (tram === 'LINIA COMPLETA') {
         // Concatenar todos los tramos
         const trams = [...new Set(resumData.map(d => d.TRAM))];
         trams.forEach(currentTram => {
+            console.log(`Procesando tramo: ${currentTram}`); // Mensaje de depuración
             const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === currentTram);
             const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === currentTram);
             const estaciones = estacionsData.filter(d => d.Tram === currentTram);
@@ -125,6 +128,8 @@ async function drawPlot(tram, resumData) {
 
                 // Añadir las barras de Vía 1 y Vía 2
                 addBarTraces(traces, via1, via2, currentTram);
+            } else {
+                console.warn(`No hay datos para el tramo ${currentTram}`);
             }
         });
     } else {
@@ -149,6 +154,10 @@ async function drawPlot(tram, resumData) {
         addBarTraces(traces, via1, via2, tram);
     }
 
+    // Revisión de los valores para depuración
+    console.log(`Rango PK: pkMin=${pkMin}, pkMax=${pkMax}`);
+    console.log(`Traces a dibujar:`, traces);
+
     // Configuración del gráfico
     const layout = {
         title: `Espai-temps previsió rehabilitació del tram ${tram}`,
@@ -169,43 +178,6 @@ async function drawPlot(tram, resumData) {
     };
 
     Plotly.newPlot('plot', traces, layout);
-}
-
-function addBarTraces(traces, via1, via2, tram) {
-    // Añadir las barras de Vía 1 y Vía 2 al array de "traces"
-    traces.push({
-        x: via1.map(d => d.PREVISIO),
-        y: via1.map(d => d.PKFinal - d.PKInici),
-        base: via1.map(d => d.PKInici),
-        type: 'bar',
-        name: `Vía 1 - ${tram}`,
-        width: 0.5,
-        offset: 0.0,
-        orientation: 'v',
-        marker: {
-            color: 'rgba(31, 119, 180, 1)'
-        },
-        hoverinfo: 'text',
-        hovertext: via1.map(d => `${Math.round(d.length)} m`),
-        textposition: 'outside'
-    });
-
-    traces.push({
-        x: via2.map(d => d.PREVISIO),
-        y: via2.map(d => d.PKFinal - d.PKInici),
-        base: via2.map(d => d.PKInici),
-        type: 'bar',
-        name: `Vía 2 - ${tram}`,
-        width: 0.5,
-        offset: 0.5,
-        orientation: 'v',
-        marker: {
-            color: 'rgba(255, 127, 14, 1)'
-        },
-        hoverinfo: 'text',
-        hovertext: via2.map(d => `${Math.round(d.length)} m`),
-        textposition: 'outside'
-    });
 }
 
 document.addEventListener('DOMContentLoaded', init);
