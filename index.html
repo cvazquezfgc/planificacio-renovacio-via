@@ -164,11 +164,11 @@
                 }
             }));
 
-            // Añadir sombreado para los años múltiplos de 5 con un offset de 0.5
+            // Añadir sombreado para los años múltiplos de 5 (desde el año hasta el año siguiente)
             const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
                 type: 'rect',
-                x0: year - 0.5,
-                x1: year + 0.5,
+                x0: year,
+                x1: year + 1,
                 y0: pkMin,
                 y1: pkMax,
                 fillcolor: 'rgba(211, 211, 211, 0.3)', // Sombreado gris tenue
@@ -228,13 +228,12 @@
                 shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
-                    l: 120,
+                                        l: 120,
                     r: 180,
                     t: 80,
                     b: 150
                 },
                 showlegend: true
-           
             };
 
             // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
@@ -289,3 +288,4 @@
     </script>
 </body>
 </html>
+
