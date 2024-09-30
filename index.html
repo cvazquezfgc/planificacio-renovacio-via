@@ -75,30 +75,28 @@
                 pkRange.push(pk);
             }
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
+            // Crear datos para las barras de "Vía 1" y "Vía 2"
             const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.1), // Ajustar posición para mitad izquierda del año
                 y: via1.map(d => d['PK final'] - d['PK inici']),
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                width: 0.4, // Ajuste de ancho para ocupar mitad del año
-                offset: -0.2, // Desplazar la barra hacia la izquierda
+                width: 0.45, // Ajuste de ancho para ocupar mitad del año
                 marker: {
                     color: 'rgba(31, 119, 180, 1)' // Color para diferenciar claramente
                 }
             };
 
             const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.1), // Ajustar posición para mitad derecha del año
                 y: via2.map(d => d['PK final'] - d['PK inici']),
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                width: 0.4, // Ajuste de ancho para ocupar mitad del año
-                offset: 0.2, // Desplazar la barra hacia la derecha
+                width: 0.45, // Ajuste de ancho para ocupar mitad del año
                 marker: {
                     color: 'rgba(255, 127, 14, 1)' // Color para diferenciar claramente
                 }
@@ -112,9 +110,8 @@
                 y0: parseFloat(d['PK']),
                 y1: parseFloat(d['PK']),
                 line: {
-                    color: 'darkgray', // Más visible que las líneas de los PKs
+                    color: 'darkgray',
                     width: 1.5,
-                    layer: 'below' // Asegurarse de que las barras estén por encima
                 }
             }));
 
@@ -147,7 +144,6 @@
                 line: {
                     color: year % 5 === 0 ? 'black' : 'lightgray',
                     width: year % 5 === 0 ? 1.5 : 0.8,
-                    layer: 'below' // Asegurarse de que las barras estén por encima
                 }
             }));
 
@@ -161,7 +157,6 @@
                 line: {
                     color: 'lightgray',
                     width: 1,
-                    layer: 'below' // Asegurarse de que las barras estén por encima
                 }
             }));
 
@@ -198,9 +193,9 @@
                     range: [pkMax, pkMin], // Invertir el eje
                     autorange: 'reversed'
                 },
-                shapes: [...yearLines, ...pkLines, ...stationLines],
+                shapes: [...stationLines, ...yearLines, ...pkLines], // Asegurar que todas las líneas se dibujen debajo de las barras
                 annotations: stationAnnotations,
-                              margin: {
+                margin: {
                     l: 120,
                     r: 180,
                     t: 80,
@@ -219,7 +214,7 @@
             const resumData = await loadData(resumUrl);
             const tramSelector = document.getElementById('tramSelector');
 
-            if (!resumData) {
+                       if (!resumData) {
                 console.error('Error al cargar los datos para llenar el selector.');
                 return;
             }
