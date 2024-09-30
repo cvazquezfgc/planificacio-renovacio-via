@@ -75,27 +75,25 @@
                 pkRange.push(pk);
             }
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 a la izquierda, Vía 2 a la derecha)
+            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
             const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.25), // Desplazar ligeramente para representar la mitad izquierda
                 y: via1.map(d => d['PK final'] - d['PK inici']),
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                offset: -0.1, // Mover la barra de Vía 1 ligeramente a la izquierda
-                width: 0.2
+                width: 0.5 // Cada vía ocupa la mitad del ancho del año
             };
 
             const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.25), // Desplazar ligeramente para representar la mitad derecha
                 y: via2.map(d => d['PK final'] - d['PK inici']),
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                offset: 0.1, // Mover la barra de Vía 2 ligeramente a la derecha
-                width: 0.2
+                width: 0.5 // Cada vía ocupa la mitad del ancho del año
             };
 
             // Añadir líneas y etiquetas para las estaciones
@@ -209,7 +207,7 @@
 
         // Llenar el selector de tramo y agregar evento
         async function init() {
-            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+                        const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
             const tramSelector = document.getElementById('tramSelector');
 
@@ -218,7 +216,7 @@
                 return;
             }
 
-                        // Obtener todos los tramos únicos
+            // Obtener todos los tramos únicos
             const trams = [...new Set(resumData.map(d => d.TRAM))];
 
             // Añadir opciones al selector
