@@ -220,4 +220,29 @@
             // Añadir opciones al selector
             trams.forEach(tram => {
                 if (tram) {
-                    const option = document
+                    const option = document.createElement('option');
+                    option.value = tram;
+                    option.textContent = tram;
+                    tramSelector.appendChild(option);
+                }
+            });
+
+            // Agregar evento al selector para dibujar el gráfico del tramo seleccionado
+            tramSelector.addEventListener('change', (e) => {
+                drawPlot(e.target.value);
+            });
+
+            // Dibujar el gráfico inicialmente para el primer tramo
+            if (trams.length > 0) {
+                drawPlot(trams[0]);
+            } else {
+                console.error('No se encontraron tramos disponibles en los datos.');
+            }
+        }
+
+        // Inicializar la página
+        init();
+    </script>
+</body>
+</html>
+
