@@ -91,7 +91,7 @@
             // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
             const traceVia1 = {
                 x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via1.map(d => d['PK final'] - d['PK inici']),
+                y: via1.map(d => (d['PK final'] - d['PK inici']) * 1000), // Convertir a metros
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 1',
@@ -101,14 +101,17 @@
                 marker: {
                     color: 'rgba(31, 119, 180, 1)'
                 },
-                hoverinfo: 'y',
-                hovertemplate: '<b>Longitud:</b> %{y:.0f} m<extra></extra>',
-                textposition: 'outside'
+                hoverinfo: 'text',
+                hovertext: via1.map(d => `${((d['PK final'] - d['PK inici']) * 1000).toFixed(1)} m`),
+                textposition: 'outside',
+                hoverlabel: {
+                    align: 'right'
+                }
             };
 
             const traceVia2 = {
                 x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via2.map(d => d['PK final'] - d['PK inici']),
+                y: via2.map(d => (d['PK final'] - d['PK inici']) * 1000), // Convertir a metros
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 2',
@@ -118,9 +121,12 @@
                 marker: {
                     color: 'rgba(255, 127, 14, 1)'
                 },
-                hoverinfo: 'y',
-                hovertemplate: '<b>Longitud:</b> %{y:.0f} m<extra></extra>',
-                textposition: 'outside'
+                hoverinfo: 'text',
+                hovertext: via2.map(d => `${((d['PK final'] - d['PK inici']) * 1000).toFixed(1)} m`),
+                textposition: 'outside',
+                hoverlabel: {
+                    align: 'left'
+                }
             };
 
             // Añadir líneas y etiquetas para las estaciones
@@ -217,7 +223,7 @@
                     range: [1998, 2069],
                     tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
                 },
-                                   yaxis: {
+                                    yaxis: {
                         title: 'PK',
                         titlefont: {
                             size: 20,
@@ -295,3 +301,4 @@
     </body>
 </html>
 
+                   
