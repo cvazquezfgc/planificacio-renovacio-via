@@ -77,23 +77,29 @@
 
             // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
             const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.2), // Asegurarse de que cada barra de Vía 1 se posicione en la mitad izquierda
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.2), // Ajustar posición para mitad izquierda del año
                 y: via1.map(d => d['PK final'] - d['PK inici']),
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                width: 0.4 // Ocupa la mitad del año sin superponerse con Vía 2
+                width: 0.4, // Ajuste de ancho para ocupar mitad del año
+                marker: {
+                    color: 'rgba(31, 119, 180, 1)' // Color para diferenciar claramente
+                }
             };
 
             const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.2), // Asegurarse de que cada barra de Vía 2 se posicione en la mitad derecha
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.2), // Ajustar posición para mitad derecha del año
                 y: via2.map(d => d['PK final'] - d['PK inici']),
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                width: 0.4 // Ocupa la mitad del año sin superponerse con Vía 1
+                width: 0.4, // Ajuste de ancho para ocupar mitad del año
+                marker: {
+                    color: 'rgba(255, 127, 14, 1)' // Color para diferenciar claramente
+                }
             };
 
             // Añadir líneas y etiquetas para las estaciones
@@ -192,13 +198,14 @@
                 },
                 shapes: [...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
-                margin: {
+                                margin: {
                     l: 120,
                     r: 180,
                     t: 80,
                     b: 150
                 },
-                showlegend: true
+                showlegend: true,
+                barmode: 'overlay' // Para asegurarnos de que las barras se muestren sin superposición
             };
 
             // Dibujar la gráfica con los datos
@@ -207,7 +214,7 @@
 
         // Llenar el selector de tramo y agregar evento
         async function init() {
-                        const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+            const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
             const tramSelector = document.getElementById('tramSelector');
 
