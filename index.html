@@ -55,9 +55,15 @@
                 return;
             }
 
+            // Normalizar el valor del tramo (eliminar espacios adicionales y convertir a mayúsculas)
+            const tramNormalized = tram.trim().toUpperCase();
+
             // Filtrar los datos específicos para el tramo seleccionado
-            const via1 = resumData.filter(d => d.Via === 1 && d.TRAM && d.TRAM.trim() === tram);
-            const via2 = resumData.filter(d => d.Via === 2 && d.TRAM && d.TRAM.trim() === tram);
+            const via1 = resumData.filter(d => d.Via === 1 && d.TRAM && d.TRAM.trim().toUpperCase() === tramNormalized);
+            const via2 = resumData.filter(d => d.Via === 2 && d.TRAM && d.TRAM.trim().toUpperCase() === tramNormalized);
+
+            console.log(`Datos filtrados para el tramo ${tram}: Vía 1:`, via1);
+            console.log(`Datos filtrados para el tramo ${tram}: Vía 2:`, via2);
 
             if (via1.length === 0 && via2.length === 0) {
                 console.error(`No se encontraron datos para el tramo ${tram}.`);
@@ -112,8 +118,8 @@
                 return;
             }
 
-            // Obtener todos los tramos únicos
-            const trams = [...new Set(resumData.map(d => d.TRAM.trim()))];
+            // Obtener todos los tramos únicos, normalizando espacios y mayúsculas/minúsculas
+            const trams = [...new Set(resumData.map(d => d.TRAM.trim().toUpperCase()))];
 
             // Añadir opciones al selector
             trams.forEach(tram => {
