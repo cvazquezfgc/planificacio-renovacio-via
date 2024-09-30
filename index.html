@@ -77,23 +77,23 @@
 
             // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
             const traceVia1 = {
-                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.25), // Desplazar ligeramente para representar la mitad izquierda
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ'] - 0.2), // Asegurarse de que cada barra de Vía 1 se posicione en la mitad izquierda
                 y: via1.map(d => d['PK final'] - d['PK inici']),
                 base: via1.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                width: 0.5 // Cada vía ocupa la mitad del ancho del año
+                width: 0.4 // Ocupa la mitad del año sin superponerse con Vía 2
             };
 
             const traceVia2 = {
-                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.25), // Desplazar ligeramente para representar la mitad derecha
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ'] + 0.2), // Asegurarse de que cada barra de Vía 2 se posicione en la mitad derecha
                 y: via2.map(d => d['PK final'] - d['PK inici']),
                 base: via2.map(d => d['PK inici']),
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                width: 0.5 // Cada vía ocupa la mitad del ancho del año
+                width: 0.4 // Ocupa la mitad del año sin superponerse con Vía 1
             };
 
             // Añadir líneas y etiquetas para las estaciones
@@ -247,4 +247,3 @@
     </script>
 </body>
 </html>
-
