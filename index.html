@@ -89,39 +89,41 @@
             }
 
             // Calcular la longitud en metros para las etiquetas de hover
-            const getLengthInMeters = (pkInicio, pkFinal) => (pkFinal - pkInicio) * 1000;
+            const getLengthInMeters = (pkInicio, pkFinal) => Math.round((pkFinal - pkInicio) * 1000);
 
             // Crear datos para las barras de "Vía 1" y "Vía 2"
             const traceVia1 = {
                 x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via1.map(d => d['PK inici']),
-                base: via1.map(d => d['PK inici']),
-                width: 0.5,
+                y: via1.map(d => (parseFloat(d['PK final']) - parseFloat(d['PK inici']))),
+                base: via1.map(d => parseFloat(d['PK inici'])),
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
+                width: 0.5,
                 offset: 0.0,
                 marker: {
                     color: 'rgba(31, 119, 180, 1)'
                 },
                 hoverinfo: 'text',
-                hovertemplate: via1.map(d => `${getLengthInMeters(d['PK inici'], d['PK final'])} m<extra></extra>`)
+                hovertemplate: via1.map(d => `${getLengthInMeters(d['PK inici'], d['PK final'])} m<extra></extra>`),
+                textposition: 'outside'
             };
 
             const traceVia2 = {
                 x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via2.map(d => d['PK inici']),
-                base: via2.map(d => d['PK inici']),
-                width: 0.5,
+                y: via2.map(d => (parseFloat(d['PK final']) - parseFloat(d['PK inici']))),
+                base: via2.map(d => parseFloat(d['PK inici'])),
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
+                width: 0.5,
                 offset: 0.5,
                 marker: {
                     color: 'rgba(255, 127, 14, 1)'
                 },
                 hoverinfo: 'text',
-                hovertemplate: via2.map(d => `${getLengthInMeters(d['PK inici'], d['PK final'])} m<extra></extra>`)
+                hovertemplate: via2.map(d => `${getLengthInMeters(d['PK inici'], d['PK final'])} m<extra></extra>`),
+                textposition: 'outside'
             };
 
             // Añadir líneas y etiquetas para las estaciones
@@ -222,7 +224,7 @@
                     title: 'PK',
                     titlefont: {
                         size: 20,
-                        color: 'black',
+                                               color: 'black',
                         family: 'Arial, sans-serif',
                         weight: 'bold'
                     },
@@ -235,7 +237,7 @@
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
-                                        r: 180,
+                    r: 180,
                     t: 80,
                     b: 150
                 },
