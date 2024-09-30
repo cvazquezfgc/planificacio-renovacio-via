@@ -124,6 +124,14 @@
             const via1 = groupConsecutiveSegments(via1Data);
             const via2 = groupConsecutiveSegments(via2Data);
 
+            // Obtener el rango dinámico de PKs
+            const pkMin = Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici'])));
+            const pkMax = Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final'])));
+            const pkRange = [];
+            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
+                pkRange.push(pk);
+            }
+
             // Crear datos para las barras de "Vía 1" y "Vía 2"
             const traceVia1 = {
                 x: via1.map(d => d.PREVISIO),
@@ -197,8 +205,8 @@
                 type: 'line',
                 x0: year,
                 x1: year,
-                y0: Math.min(...resumData.map(d => parseFloat(d['PK inici']))),
-                y1: Math.max(...resumData.map(d => parseFloat(d['PK final']))),
+                y0: pkMin,
+                y1: pkMax,
                 line: {
                     color: 'lightgray',
                     width: 0.8,
@@ -208,10 +216,10 @@
 
             const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
                 type: 'rect',
-                x0: year,
+                               x0: year,
                 x1: year + 1,
-                                y0: Math.min(...resumData.map(d => parseFloat(d['PK inici']))),
-                y1: Math.max(...resumData.map(d => parseFloat(d['PK final']))),
+                y0: pkMin,
+                y1: pkMax,
                 fillcolor: 'rgba(211, 211, 211, 0.3)',
                 layer: 'below',
                 line: {
@@ -220,13 +228,6 @@
             }));
 
             // Añadir líneas horizontales para los PKs
-            const pkRange = [];
-            const pkMin = Math.floor(Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici']))));
-            const pkMax = Math.ceil(Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final']))));
-            for (let pk = pkMin; pk <= pkMax; pk++) {
-                pkRange.push(pk);
-            }
-
             const pkLines = pkRange.map(pk => ({
                 type: 'line',
                 x0: 1998,
@@ -270,7 +271,7 @@
                     },
                     tickvals: pkRange,
                     ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [pkMax, pkMin],
+                    range: [Math.ceil(pkMax), Math.floor(pkMin)],  // Ajuste dinámico del eje vertical
                     autorange: 'reversed'
                 },
                 shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
