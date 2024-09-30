@@ -88,39 +88,40 @@
                 pkRange.push(pk);
             }
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2" (Vía 1 en la mitad izquierda, Vía 2 en la mitad derecha)
+            // Calcular la longitud en metros para las etiquetas de hover
+            const getLengthInMeters = (pkInicio, pkFinal) => (pkFinal - pkInicio) * 1000;
+
+            // Crear datos para las barras de "Vía 1" y "Vía 2"
             const traceVia1 = {
                 x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via1.map(d => (d['PK final'] - d['PK inici']) * 1000), // Longitud en metros
+                y: via1.map(d => d['PK inici']),
                 base: via1.map(d => d['PK inici']),
+                width: 0.5,
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                width: 0.5,
                 offset: 0.0,
                 marker: {
                     color: 'rgba(31, 119, 180, 1)'
                 },
                 hoverinfo: 'text',
-                hovertemplate: '%{y:.0f} m<extra></extra>',
-                textposition: 'outside'
+                hovertemplate: via1.map(d => `${getLengthInMeters(d['PK inici'], d['PK final'])} m<extra></extra>`)
             };
 
             const traceVia2 = {
                 x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
-                y: via2.map(d => (d['PK final'] - d['PK inici']) * 1000), // Longitud en metros
+                y: via2.map(d => d['PK inici']),
                 base: via2.map(d => d['PK inici']),
+                width: 0.5,
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                width: 0.5,
                 offset: 0.5,
                 marker: {
                     color: 'rgba(255, 127, 14, 1)'
                 },
                 hoverinfo: 'text',
-                hovertemplate: '%{y:.0f} m<extra></extra>',
-                textposition: 'outside'
+                hovertemplate: via2.map(d => `${getLengthInMeters(d['PK inici'], d['PK final'])} m<extra></extra>`)
             };
 
             // Añadir líneas y etiquetas para las estaciones
@@ -230,12 +231,11 @@
                     range: [pkMax, pkMin],
                     autorange: 'reversed'
                 },
-               
                 shapes: [...shadedYears, ...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
                 margin: {
                     l: 120,
-                    r: 180,
+                                        r: 180,
                     t: 80,
                     b: 150
                 },
@@ -295,3 +295,4 @@
     </script>
 </body>
 </html>
+
