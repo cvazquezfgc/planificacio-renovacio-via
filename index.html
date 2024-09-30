@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gráfico de Rehabilitación de Vía</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,6 +38,7 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
+                console.log(`Datos cargados de ${url}:`, data); // Mostrar datos cargados
                 return data;
             } catch (error) {
                 console.error(`Error cargando datos de ${url}:`, error);
@@ -47,14 +47,10 @@
 
         async function drawPlot(tram) {
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-            const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-
-            // Cargar los datos desde los archivos JSON
             const resumData = await loadData(resumUrl);
-            const estacionsData = await loadData(estacionsUrl);
 
             // Verificar si los datos están cargados correctamente
-            if (!resumData || !estacionsData) {
+            if (!resumData) {
                 console.error('Los datos no pudieron ser cargados.');
                 return;
             }
@@ -65,125 +61,43 @@
 
             if (via1.length === 0 && via2.length === 0) {
                 console.error(`No se encontraron datos para el tramo ${tram}.`);
+                Plotly.newPlot('plot', [], { title: `No hay datos disponibles para el tramo ${tram}` });
                 return;
             }
 
-            // Calcular el rango de PKs automáticamente en función del tramo
-            const pkMin = Math.min(...resumData.filter(d => d.TRAM && d.TRAM.trim() === tram).map(d => d['PK inici']));
-            const pkMax = Math.max(...resumData.filter(d => d.TRAM && d.TRAM.trim() === tram).map(d => d['PK final']));
-
-            // Crear etiquetas del eje Y (PK)
-            const pkRange = [];
-            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
-                pkRange.push(pk);
-            }
-
-            // Configuración del rango de colores usando la paleta RdYlGn
-            const colorScale = chroma.scale('RdYlGn').domain([2000, 2065]);
-
-            // Preparar datos para las barras de "Vía 1" y "Vía 2"
-            const createTrace = (viaData, viaName, offset) => {
-                return {
-                    x: viaData.map(d => d['PREVISIÓ REHABILITACIÓ'] + offset),
-                    y: viaData.map(d => d['PK final'] - d['PK inici']),
-                    base: viaData.map(d => d['PK inici']),
-                    type: 'bar',
-                    name: viaName,
-                    width: 0.4,
-                    marker: {
-                        color: viaData.map(d => colorScale(d['PREVISIÓ REHABILITACIÓ']).hex()),
-                    },
-                    orientation: 'v'
-                };
+            // Crear datos de ejemplo simplificados para la visualización
+            const traceVia1 = {
+                x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                y: via1.map(d => d['PK final'] - d['PK inici']),
+                base: via1.map(d => d['PK inici']),
+                type: 'bar',
+                name: 'Vía 1',
+                orientation: 'v'
             };
 
-            // Crear las trazas para las dos vías
-            const traceVia1 = createTrace(via1, 'Vía 1', -0.2); // Vía 1
-            const traceVia2 = createTrace(via2, 'Vía 2', 0.2);  // Vía 2
+            const traceVia2 = {
+                x: via2.map(d => d['PREVISIÓ REHABILITACIÓ']),
+                y: via2.map(d => d['PK final'] - d['PK inici']),
+                base: via2.map(d => d['PK inici']),
+                type: 'bar',
+                name: 'Vía 2',
+                orientation: 'v'
+            };
 
-            // Añadir líneas de estaciones como líneas continuas
-            const stationLines = estacionsData
-                .filter(d => d['Tram'] && d['Tram'].trim() === tram)
-                .map(d => ({
-                    type: 'line',
-                    x0: 1998,
-                    x1: 2068, // Extender hasta el rombo de la estación
-                    y0: d['PK'],
-                    y1: d['PK'],
-                    line: {
-                        color: 'gray', // Gris para las líneas de las estaciones
-                        width: 1,
-                        dash: 'solid'
-                    }
-                }));
-
-            // Crear un marcador para las estaciones en forma de rombo
-            const stationAnnotations = estacionsData
-                .filter(d => d['Tram'] && d['Tram'].trim() === tram)
-                .map(d => ({
-                    x: 2068,
-                    y: d['PK'],
-                    text: `<b>${d['Abreviatura']}</b>`,
-                    showarrow: false,
-                    font: {
-                        color: 'black',
-                        size: 14,
-                        family: 'Arial, sans-serif'
-                    },
-                    xanchor: 'center',
-                    yanchor: 'middle',
-                    bgcolor: 'white',
-                    bordercolor: 'gray',
-                    borderwidth: 2,
-                    borderpad: 5,
-                    opacity: 1
-                }));
-
-            // Configuración de la gráfica
+            // Configuración simple para el gráfico
             const layout = {
                 title: `Espai-temps previsió rehabilitació del tram ${tram}`,
-                titlefont: {
-                    family: 'Arial, sans-serif',
-                    size: 18,
-                    color: 'black'
-                },
                 xaxis: {
                     title: 'Any previsió rehabilitació',
-                    titlefont: {
-                        size: 20,
-                        color: 'black',
-                        family: 'Arial, sans-serif',
-                        weight: 'bold'
-                    },
-                    tickangle: -45,
-                    range: [1998, 2069], // Ajustar rango para incluir etiquetas
-                    tickvals: Array.from({ length: 14 }, (_, i) => 2000 + i * 5), // Mostrar solo cada 5 años
-                    dtick: 5
+                    tickangle: -45
                 },
                 yaxis: {
-                    title: 'PK',
-                    titlefont: {
-                        size: 20,
-                        color: 'black',
-                        family: 'Arial, sans-serif',
-                        weight: 'bold'
-                    },
-                    tickvals: pkRange,
-                    ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [pkMax, pkMin]
-                },
-                shapes: [...shadedAreas, ...stationLines],
-                annotations: stationAnnotations,
-                margin: {
-                    l: 120,
-                    r: 180,
-                    t: 80,
-                    b: 150
+                    title: 'PK'
                 },
                 showlegend: true
             };
 
-            // Dibujar la gráfica
+            // Dibujar la gráfica con los datos simplificados
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
@@ -192,6 +106,11 @@
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
             const tramSelector = document.getElementById('tramSelector');
+
+            if (!resumData) {
+                console.error('Error al cargar los datos para llenar el selector.');
+                return;
+            }
 
             // Obtener todos los tramos únicos
             const trams = [...new Set(resumData.map(d => d.TRAM.trim()))];
@@ -210,8 +129,13 @@
             });
 
             // Dibujar el gráfico inicialmente para el primer tramo
-            drawPlot(trams[0]);
+            if (trams.length > 0) {
+                drawPlot(trams[0]);
+            } else {
+                console.error('No se encontraron tramos disponibles en los datos.');
+            }
         }
+
         // Inicializar la página
         init();
     </script>
