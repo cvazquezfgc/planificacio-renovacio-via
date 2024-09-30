@@ -172,6 +172,7 @@ async function drawPlot(tram, resumData) {
         });
     }
 
+    // Añadir líneas y sombreado para los años
     for (let year = 1998; year <= 2068; year++) {
         shapes.push({
             type: 'line',
@@ -202,6 +203,7 @@ async function drawPlot(tram, resumData) {
         }
     }
 
+    // Añadir la línea roja y sombreado para 2025
     shapes.push({
         type: 'line',
         x0: 2025,
@@ -228,6 +230,7 @@ async function drawPlot(tram, resumData) {
         }
     });
 
+    // Configuración del gráfico
     const layout = {
         title: `Espai-temps previsió rehabilitació del tram ${tram}`,
         titlefont: {
@@ -256,21 +259,21 @@ async function drawPlot(tram, resumData) {
                 weight: 'bold'
             },
             tickvals: pkRange(pkMin, pkMax),
-            ticktext: pkRange(pkMin, pkMax).map(pk => `${Math.floor(pk)}+${Math.round((pk % 1) * 1000).toString().padStart(3, '0')}`),
-            range: [pkMax, pkMin],
+                        ticktext: pkRange(pkMin, pkMax).map(pk => `${Math.floor(pk)}+${String((pk % 1).toFixed(3)).slice(2)}`), // Formato PK xx+xxx
+            range: [pkMax, pkMin], // Para invertir el eje y mostrar el PK 0 arriba
             autorange: 'reversed'
         },
         shapes: shapes,
         annotations: stationAnnotations,
         margin: {
-            l: 160,
+            l: 120,
             r: 180,
             t: 80,
             b: 150
         },
-                showlegend: true,
-        hovermode: 'closest', // Configurar para que sólo se muestre el hover de la barra más cercana
-        barmode: 'overlay' // Para superponer las barras correctamente
+        showlegend: true,
+        hovermode: 'closest', // Configurar para que solo se muestre el hover de la barra más cercana
+        barmode: 'overlay' // Superponer las barras correctamente
     };
 
     // Dibujar el gráfico con las barras y la configuración de layout
