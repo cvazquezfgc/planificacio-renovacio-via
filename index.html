@@ -38,7 +38,6 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log(`Datos cargados de ${url}:`, data); // Mostrar datos cargados
                 return data;
             } catch (error) {
                 console.error(`Error cargando datos de ${url}:`, error);
@@ -47,24 +46,20 @@
 
         async function drawPlot(tram) {
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-            const resumData = await loadData(resumUrl);
+            const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
 
-            // Verificar si los datos están cargados correctamente
-            if (!resumData) {
+            const resumData = await loadData(resumUrl);
+            const estacionsData = await loadData(estacionsUrl);
+
+            if (!resumData || !estacionsData) {
                 console.error('Los datos no pudieron ser cargados.');
                 return;
             }
 
-            // Imprimir un ejemplo de los datos cargados para verificar los campos
-            console.log('Ejemplo de datos cargados:', resumData[0]);
-
-            // Filtrar los datos específicos para el tramo seleccionado (convertir d.Via a número)
-            console.log(`Tramo seleccionado: ${tram}`);
+            // Filtrar los datos específicos para el tramo seleccionado
             const via1 = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
             const via2 = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-
-            console.log(`Datos filtrados para el tramo ${tram}: Vía 1:`, via1);
-            console.log(`Datos filtrados para el tramo ${tram}: Vía 2:`, via2);
+            const estaciones = estacionsData.filter(d => d.Tram === tram);
 
             if (via1.length === 0 && via2.length === 0) {
                 console.error(`No se encontraron datos para el tramo ${tram}.`);
@@ -72,7 +67,15 @@
                 return;
             }
 
-            // Crear datos de ejemplo simplificados para la visualización
+            // Calcular el rango de PKs
+            const pkMin = Math.min(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK inici'])));
+            const pkMax = Math.max(...resumData.filter(d => d.TRAM === tram).map(d => parseFloat(d['PK final'])));
+            const pkRange = [];
+            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
+                pkRange.push(pk);
+            }
+
+            // Crear datos para las barras de "Vía 1" y "Vía 2"
             const traceVia1 = {
                 x: via1.map(d => d['PREVISIÓ REHABILITACIÓ']),
                 y: via1.map(d => d['PK final'] - d['PK inici']),
@@ -91,20 +94,98 @@
                 orientation: 'v'
             };
 
-            // Configuración simple para el gráfico
+            // Añadir líneas y etiquetas para las estaciones
+            const stationLines = estaciones.map(d => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2069,
+                y0: parseFloat(d['PK']),
+                y1: parseFloat(d['PK']),
+                line: {
+                    color: 'gray',
+                    width: 1,
+                    dash: 'solid'
+                }
+            }));
+
+            const stationAnnotations = estaciones.map(d => ({
+                x: 2068,
+                y: parseFloat(d['PK']),
+                text: `<b>${d['Abreviatura']}</b>`,
+                showarrow: false,
+                font: {
+                    color: 'black',
+                    size: 14,
+                    family: 'Arial, sans-serif'
+                },
+                xanchor: 'center',
+                yanchor: 'middle',
+                bgcolor: 'white',
+                bordercolor: 'gray',
+                borderwidth: 2,
+                borderpad: 5,
+                opacity: 1
+            }));
+
+            // Añadir líneas verticales para todos los años
+            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
+                type: 'line',
+                x0: year,
+                x1: year,
+                y0: pkMin,
+                y1: pkMax,
+                line: {
+                    color: year % 5 === 0 ? 'black' : 'lightgray',
+                    width: year % 5 === 0 ? 1.5 : 0.5,
+                    dash: 'dot'
+                }
+            }));
+
+            // Configuración del gráfico
             const layout = {
                 title: `Espai-temps previsió rehabilitació del tram ${tram}`,
+                titlefont: {
+                    family: 'Arial, sans-serif',
+                    size: 18,
+                    color: 'black'
+                },
                 xaxis: {
                     title: 'Any previsió rehabilitació',
-                    tickangle: -45
+                    titlefont: {
+                        size: 20,
+                        color: 'black',
+                        family: 'Arial, sans-serif',
+                        weight: 'bold'
+                    },
+                    tickangle: -45,
+                    range: [1998, 2069],
+                    dtick: 1
                 },
                 yaxis: {
-                    title: 'PK'
+                    title: 'PK',
+                    titlefont: {
+                        size: 20,
+                        color: 'black',
+                        family: 'Arial, sans-serif',
+                        weight: 'bold'
+                    },
+                    tickvals: pkRange,
+                    ticktext: pkRange.map(pk => `${pk}+000`),
+                    range: [pkMax, pkMin], // Invertir el eje
+                    autorange: 'reversed'
+                },
+                shapes: [...stationLines, ...yearLines],
+                annotations: stationAnnotations,
+                margin: {
+                    l: 120,
+                    r: 180,
+                    t: 80,
+                    b: 150
                 },
                 showlegend: true
             };
 
-            // Dibujar la gráfica con los datos simplificados
+            // Dibujar la gráfica con los datos
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
@@ -119,7 +200,7 @@
                 return;
             }
 
-            // Obtener todos los tramos únicos sin normalizar
+            // Obtener todos los tramos únicos
             const trams = [...new Set(resumData.map(d => d.TRAM))];
 
             // Añadir opciones al selector
