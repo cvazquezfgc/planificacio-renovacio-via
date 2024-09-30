@@ -129,95 +129,245 @@
                 return;
             }
 
-            // Filtrar los datos específicos para el tramo seleccionado
-            const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-            const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-            const estaciones = estacionsData.filter(d => d.Tram === tram);
+            let traces = [];
+            let stationAnnotations = [];
+            let shapes = [];
+            let pkMin = Infinity;
+            let pkMax = -Infinity;
+            let yOffset = 0;
 
-            if (via1Data.length === 0 && via2Data.length === 0) {
-                console.error(`No se encontraron datos para el tramo ${tram}.`);
-                Plotly.newPlot('plot', [], { title: `No hay datos disponibles para el tramo ${tram}` });
-                return;
+            if (tram === 'LINIA COMPLETA') {
+                const trams = [...new Set(resumData.map(d => d.TRAM))];
+                trams.forEach((currentTram, index) => {
+                    const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === currentTram);
+                    const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === currentTram);
+                    const estaciones = estacionsData.filter(d => d.Tram === currentTram);
+
+                    if (via1Data.length > 0 || via2Data.length > 0) {
+                        const via1 = groupConsecutiveSegments(via1Data);
+                        const via2 = groupConsecutiveSegments(via2Data);
+
+                        const tramPkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
+                        const tramPkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
+
+                        pkMin = Math.min(pkMin, tramPkMin + yOffset);
+                        pkMax = Math.max(pkMax, tramPkMax + yOffset);
+
+                        // Crear datos para las barras de "Vía 1" y "Vía 2"
+                        traces.push({
+                            x: via1.map(d => d.PREVISIO),
+                            y: via1.map(d => d.PKFinal - d.PKInici),
+                            base: via1.map(d => d.PKInici + yOffset),
+                            type: 'bar',
+                            name: `Vía 1 - ${currentTram}`,
+                            orientation: 'v',
+                            width: 0.5,
+                            offset: 0.0,
+                            marker: {
+                                color: 'rgba(31, 119, 180, 1)'
+                            },
+                            hoverinfo: 'text',
+                            hovertext: via1.map(d => `${Math.round(d.length)} m`),
+                            textposition: 'outside'
+                        });
+
+                        traces.push({
+                            x: via2.map(d => d.PREVISIO),
+                            y: via2.map(d => d.PKFinal - d.PKInici),
+                            base: via2.map(d => d.PKInici + yOffset),
+                            type: 'bar',
+                            name: `Vía 2 - ${currentTram}`,
+                            orientation: 'v',
+                            width: 0.5,
+                            offset: 0.5,
+                            marker: {
+                                color: 'rgba(255, 127, 14, 1)'
+                            },
+                            hoverinfo: 'text',
+                            hovertext: via2.map(d => `${Math.round(d.length)} m`),
+                            textposition: 'outside'
+                        });
+
+                        // Añadir etiquetas y líneas de estaciones
+                        stationAnnotations.push(...estaciones.map(d => ({
+                            x: 2068,
+                            y: parseFloat(d['PK']) + yOffset,
+                            text: `<b>${d['Abreviatura']}</b>`,
+                            showarrow: false,
+                            font: {
+                                color: 'black',
+                                size: 14,
+                                family: 'Arial, sans-serif'
+                            },
+                            xanchor: 'center',
+                            yanchor: 'middle',
+                            bgcolor: 'white',
+                            bordercolor: 'gray',
+                            borderwidth: 2,
+                            borderpad: 5,
+                            opacity: 1
+                        })));
+
+                        shapes.push(...estaciones.map(d => ({
+                            type: 'line',
+                            x0: 1998,
+                            x1: 2069,
+                            y0: parseFloat(d['PK']) + yOffset,
+                            y1: parseFloat(d['PK']) + yOffset,
+                            line: {
+                                color: 'darkgray',
+                                width: 1.5,
+                                layer: 'below'
+                            }
+                        })));
+
+                        // Añadir un bloque de tramo
+                        shapes.push({
+                            type: 'rect',
+                            x0: 1997,
+                            x1: 1998,
+                            y0: yOffset,
+                            y1: yOffset + (tramPkMax - tramPkMin),
+                            fillcolor: 'rgba(200, 200, 200, 0.5)',
+                            line: {
+                                width: 0
+                            },
+                            layer: 'below'
+                        });
+
+                        // Añadir texto del nombre del tramo
+                        stationAnnotations.push({
+                            x: 1997.5,
+                            y: yOffset + (tramPkMax - tramPkMin) / 2,
+                            text: `<b>${currentTram}</b>`,
+                            showarrow: false,
+                            font: {
+                                color: 'black',
+                                                                size: 16,
+                                family: 'Arial, sans-serif'
+                            },
+                            textangle: -90,
+                            xanchor: 'center',
+                            yanchor: 'middle'
+                        });
+
+                        // Actualizar el offset para el siguiente tramo
+                        yOffset += tramPkMax - tramPkMin + 0.5; // Añadir un espacio vertical entre los tramos
+                    }
+                });
+            } else {
+                // Filtrar los datos específicos para el tramo seleccionado
+                const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+                const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+                const estaciones = estacionsData.filter(d => d.Tram === tram);
+
+                if (via1Data.length === 0 && via2Data.length === 0) {
+                    console.error(`No se encontraron datos para el tramo ${tram}.`);
+                    Plotly.newPlot('plot', [], { title: `No hay datos disponibles para el tramo ${tram}` });
+                    return;
+                }
+
+                // Agrupar segmentos consecutivos
+                const via1 = groupConsecutiveSegments(via1Data);
+                const via2 = groupConsecutiveSegments(via2Data);
+
+                pkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
+                pkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
+
+                // Crear datos para las barras de "Vía 1" y "Vía 2"
+                traces.push({
+                    x: via1.map(d => d.PREVISIO),
+                    y: via1.map(d => d.PKFinal - d.PKInici),
+                    base: via1.map(d => d.PKInici),
+                    type: 'bar',
+                    name: 'Vía 1',
+                    orientation: 'v',
+                    width: 0.5,
+                    offset: 0.0,
+                    marker: {
+                        color: 'rgba(31, 119, 180, 1)'
+                    },
+                    hoverinfo: 'text',
+                    hovertext: via1.map(d => `${Math.round(d.length)} m`),
+                    textposition: 'outside'
+                });
+
+                traces.push({
+                    x: via2.map(d => d.PREVISIO),
+                    y: via2.map(d => d.PKFinal - d.PKInici),
+                    base: via2.map(d => d.PKInici),
+                    type: 'bar',
+                    name: 'Vía 2',
+                    orientation: 'v',
+                    width: 0.5,
+                    offset: 0.5,
+                    marker: {
+                        color: 'rgba(255, 127, 14, 1)'
+                    },
+                    hoverinfo: 'text',
+                    hovertext: via2.map(d => `${Math.round(d.length)} m`),
+                    textposition: 'outside'
+                });
+
+                // Añadir etiquetas y líneas de estaciones
+                stationAnnotations.push(...estaciones.map(d => ({
+                    x: 2068,
+                    y: parseFloat(d['PK']),
+                    text: `<b>${d['Abreviatura']}</b>`,
+                    showarrow: false,
+                    font: {
+                        color: 'black',
+                        size: 14,
+                        family: 'Arial, sans-serif'
+                    },
+                    xanchor: 'center',
+                    yanchor: 'middle',
+                    bgcolor: 'white',
+                    bordercolor: 'gray',
+                    borderwidth: 2,
+                    borderpad: 5,
+                    opacity: 1
+                })));
+
+                shapes.push(...estaciones.map(d => ({
+                    type: 'line',
+                    x0: 1998,
+                    x1: 2069,
+                    y0: parseFloat(d['PK']),
+                    y1: parseFloat(d['PK']),
+                    line: {
+                        color: 'darkgray',
+                        width: 1.5,
+                        layer: 'below'
+                    }
+                })));
             }
 
-            // Agrupar segmentos consecutivos
-            const via1 = groupConsecutiveSegments(via1Data);
-            const via2 = groupConsecutiveSegments(via2Data);
-
-            // Obtener el rango dinámico de PKs
-            const pkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
-            const pkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
-            const pkRange = [];
-            for (let pk = Math.floor(pkMin); pk <= Math.ceil(pkMax); pk++) {
-                pkRange.push(pk);
-            }
-
-            // Crear datos para las barras de "Vía 1" y "Vía 2"
-            const traceVia1 = {
-                x: via1.map(d => d.PREVISIO),
-                y: via1.map(d => d.PKFinal - d.PKInici),
-                base: via1.map(d => d.PKInici),
-                type: 'bar',
-                name: 'Vía 1',
-                orientation: 'v',
-                width: 0.5,
-                offset: 0.0,
-                marker: {
-                    color: 'rgba(31, 119, 180, 1)'
-                },
-                hoverinfo: 'text',
-                hovertext: via1.map(d => `${Math.round(d.length)} m`),
-                textposition: 'outside'
-            };
-
-            const traceVia2 = {
-                x: via2.map(d => d.PREVISIO),
-                y: via2.map(d => d.PKFinal - d.PKInici),
-                base: via2.map(d => d.PKInici),
-                type: 'bar',
-                name: 'Vía 2',
-                orientation: 'v',
-                width: 0.5,
-                offset: 0.5,
-                marker: {
-                    color: 'rgba(255, 127, 14, 1)'
-                },
-                hoverinfo: 'text',
-                hovertext: via2.map(d => `${Math.round(d.length)} m`),
-                textposition: 'outside'
-            };
-
-            // Añadir líneas y etiquetas para las estaciones
-            const stationLines = estaciones.map(d => ({
+            // Añadir líneas verticales y sombreado de años
+            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
                 type: 'line',
-                x0: 1998,
-                x1: 2069,
-                y0: parseFloat(d['PK']),
-                y1: parseFloat(d['PK']),
+                x0: year,
+                x1: year,
+                y0: pkMin,
+                y1: pkMax,
                 line: {
-                    color: 'darkgray',
-                    width: 1.5,
+                    color: 'lightgray',
+                    width: 0.8,
                     layer: 'below'
                 }
             }));
 
-            const stationAnnotations = estaciones.map(d => ({
-                x: 2068,
-                y: parseFloat(d['PK']),
-                text: `<b>${d['Abreviatura']}</b>`,
-                showarrow: false,
-                font: {
-                    color: 'black',
-                    size: 14,
-                    family: 'Arial, sans-serif'
-                },
-                xanchor: 'center',
-                yanchor: 'middle',
-                bgcolor: 'white',
-                bordercolor: 'gray',
-                borderwidth: 2,
-                borderpad: 5,
-                opacity: 1
+            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
             }));
 
             // Añadir línea roja vertical en el año 2025
@@ -248,32 +398,7 @@
                 }
             };
 
-            // Añadir líneas verticales y sombreado de años
-            const yearLines = Array.from({ length: 71 }, (_, i) => 1998 + i).map(year => ({
-                type: 'line',
-                x0: year,
-                x1: year,
-                y0: pkMin,
-                y1: pkMax,
-                line: {
-                    color: 'lightgray',
-                    width: 0.8,
-                    layer: 'below'
-                }
-            }));
-
-            const shadedYears = Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0).map(year => ({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            }));
+            shapes.push(...shadedYears, ...yearLines, year2025Line, shadedBefore2025);
 
             // Añadir líneas horizontales para los PKs
             const pkLines = pkRange.map(pk => ({
@@ -289,9 +414,11 @@
                 }
             }));
 
+            shapes.push(...pkLines);
+
             // Configuración del gráfico
             const layout = {
-                title: `Espai-temps previsió rehabilitació del tram ${tram}`,
+                title: tram === 'LINIA COMPLETA' ? `Espai-temps previsió rehabilitació de la línia completa` : `Espai-temps previsió rehabilitació del tram ${tram}`,
                 titlefont: {
                     family: 'Arial, sans-serif',
                     size: 18,
@@ -322,17 +449,10 @@
                     range: [pkMax, pkMin], // Ajuste dinámico del eje vertical desde pkMin hasta pkMax
                     autorange: 'reversed'
                 },
-                shapes: [
-                    ...shadedYears,
-                    ...yearLines,
-                    ...pkLines,
-                    ...stationLines,
-                    year2025Line,
-                    shadedBefore2025
-                ],
+                shapes: shapes,
                 annotations: stationAnnotations,
                 margin: {
-                    l: 120,
+                    l: 160,
                     r: 180,
                     t: 80,
                     b: 150
@@ -342,7 +462,7 @@
             };
 
             // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
-            Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
+            Plotly.newPlot('plot', traces, layout);
         }
 
         // Inicializar la página y eventos
@@ -357,10 +477,21 @@
                 return;
             }
 
+            // Añadir botón para "LINIA COMPLETA"
+            const liniaCompletaButton = document.createElement('button');
+            liniaCompletaButton.className = 'tram-button';
+            liniaCompletaButton.textContent = 'LINIA COMPLETA';
+            liniaCompletaButton.addEventListener('click', () => {
+                document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+                liniaCompletaButton.classList.add('selected');
+                drawPlot('LINIA COMPLETA');
+            });
+            tramButtonsContainer.appendChild(liniaCompletaButton);
+
             // Obtener todos los tramos únicos
             const trams = [...new Set(resumData.map(d => d.TRAM))];
 
-            // Añadir botones al contenedor para cada tramo
+                       // Añadir botones para cada tramo
             trams.forEach(tram => {
                 if (tram) {
                     const button = document.createElement('button');
@@ -380,15 +511,12 @@
                 }
             });
 
-            // Dibujar el gráfico inicialmente para el primer tramo
-            if (trams.length > 0) {
-                document.querySelector('.tram-button').classList.add('selected');
-                drawPlot(trams[0]);
-            } else {
-                console.error('No se encontraron tramos disponibles en los datos.');
-            }
+            // Dibujar el gráfico inicialmente para la "LINIA COMPLETA"
+            liniaCompletaButton.classList.add('selected');
+            drawPlot('LINIA COMPLETA');
         });
     </script>
 </body>
 </html>
+
 
