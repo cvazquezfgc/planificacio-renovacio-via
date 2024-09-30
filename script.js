@@ -1,4 +1,6 @@
-// script.js
+document.addEventListener("DOMContentLoaded", () => {
+    init();
+});
 
 async function loadData(url) {
     try {
@@ -259,7 +261,7 @@ async function drawPlot(tram, resumData) {
                 weight: 'bold'
             },
             tickvals: pkRange(pkMin, pkMax),
-                        ticktext: pkRange(pkMin, pkMax).map(pk => `${Math.floor(pk)}+${String((pk % 1).toFixed(3)).slice(2)}`), // Formato PK xx+xxx
+                      ticktext: pkRange(pkMin, pkMax).map(pk => `${Math.floor(pk)}+${String((pk % 1).toFixed(3)).slice(2)}`), // Formato PK xx+xxx
             range: [pkMax, pkMin], // Para invertir el eje y mostrar el PK 0 arriba
             autorange: 'reversed'
         },
