@@ -23,6 +23,7 @@ async function init() {
     const tramButtonsContainer = document.getElementById('tramButtons');
     const trams = [...new Set(resumData.map(d => d.TRAM))];
 
+    // Añadir el botón para "LINIA COMPLETA"
     const liniaCompletaButton = document.createElement('button');
     liniaCompletaButton.className = 'tram-button';
     liniaCompletaButton.textContent = 'LINIA COMPLETA';
@@ -32,6 +33,7 @@ async function init() {
     });
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
+    // Añadir botones para cada tramo
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
@@ -45,6 +47,7 @@ async function init() {
         }
     });
 
+    // Seleccionar y dibujar la "LINIA COMPLETA" por defecto
     selectTramButton(liniaCompletaButton);
     drawPlot('LINIA COMPLETA', resumData);
 }
@@ -101,14 +104,31 @@ async function drawPlot(tram, resumData) {
     let shapes = [];
     let pkMin = Infinity;
     let pkMax = -Infinity;
-    let yOffset = 0;
 
     if (tram === 'LINIA COMPLETA') {
+        // Concatenar todos los tramos
         const trams = [...new Set(resumData.map(d => d.TRAM))];
         trams.forEach(currentTram => {
-            // Similar lógica a la versión anterior para concatenar los tramos
+            const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === currentTram);
+            const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === currentTram);
+            const estaciones = estacionsData.filter(d => d.Tram === currentTram);
+
+            if (via1Data.length > 0 || via2Data.length > 0) {
+                const via1 = groupConsecutiveSegments(via1Data);
+                const via2 = groupConsecutiveSegments(via2Data);
+
+                const tramPkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
+                const tramPkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
+
+                pkMin = Math.min(pkMin, tramPkMin);
+                pkMax = Math.max(pkMax, tramPkMax);
+
+                // Añadir las barras de Vía 1 y Vía 2
+                addBarTraces(traces, via1, via2, currentTram);
+            }
         });
     } else {
+        // Visualizar un único tramo
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
         const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
         const estaciones = estacionsData.filter(d => d.Tram === tram);
@@ -125,15 +145,67 @@ async function drawPlot(tram, resumData) {
         pkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
         pkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
 
-        // Crear los datos para las barras de "Vía 1" y "Vía 2" y añadir anotaciones y formas similares a la versión anterior
+        // Añadir las barras de Vía 1 y Vía 2
+        addBarTraces(traces, via1, via2, tram);
     }
 
-    // Añadir líneas, sombreado y dibujar el gráfico similar a la versión anterior
+    // Configuración del gráfico
     const layout = {
-        // Configuración del layout
+        title: `Espai-temps previsió rehabilitació del tram ${tram}`,
+        xaxis: {
+            title: 'Any previsió rehabilitació',
+            range: [1998, 2069],
+        },
+        yaxis: {
+            title: 'PK',
+            range: [pkMax, pkMin],
+            autorange: 'reversed'
+        },
+        shapes: shapes,
+        annotations: stationAnnotations,
+        margin: { l: 160, r: 180, t: 80, b: 150 },
+        showlegend: true,
+        hovermode: 'closest'
     };
 
     Plotly.newPlot('plot', traces, layout);
+}
+
+function addBarTraces(traces, via1, via2, tram) {
+    // Añadir las barras de Vía 1 y Vía 2 al array de "traces"
+    traces.push({
+        x: via1.map(d => d.PREVISIO),
+        y: via1.map(d => d.PKFinal - d.PKInici),
+        base: via1.map(d => d.PKInici),
+        type: 'bar',
+        name: `Vía 1 - ${tram}`,
+        width: 0.5,
+        offset: 0.0,
+        orientation: 'v',
+        marker: {
+            color: 'rgba(31, 119, 180, 1)'
+        },
+        hoverinfo: 'text',
+        hovertext: via1.map(d => `${Math.round(d.length)} m`),
+        textposition: 'outside'
+    });
+
+    traces.push({
+        x: via2.map(d => d.PREVISIO),
+        y: via2.map(d => d.PKFinal - d.PKInici),
+        base: via2.map(d => d.PKInici),
+        type: 'bar',
+        name: `Vía 2 - ${tram}`,
+        width: 0.5,
+        offset: 0.5,
+        orientation: 'v',
+        marker: {
+            color: 'rgba(255, 127, 14, 1)'
+        },
+        hoverinfo: 'text',
+        hovertext: via2.map(d => `${Math.round(d.length)} m`),
+        textposition: 'outside'
+    });
 }
 
 document.addEventListener('DOMContentLoaded', init);
