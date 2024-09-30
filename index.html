@@ -210,7 +210,7 @@
                     },
                     tickangle: -45,
                     range: [1998, 2069],
-                    tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
+                                       tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0)
                 },
                 yaxis: {
                     title: 'PK',
@@ -237,11 +237,11 @@
         }
 
         // Inicializar la página y eventos
-        async function init() {
+        document.addEventListener('DOMContentLoaded', async function () {
             // Cargar la lista de tramos y crear los botones de selección
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
             const resumData = await loadData(resumUrl);
-            const tramButtonsContainer = document.getElementById('tramButtonsContainer');
+            const tramButtonsContainer = document.getElementById('tramButtons');
 
             if (!resumData) {
                 console.error('Error al cargar los datos para llenar los botones de tramo.');
@@ -278,10 +278,7 @@
             } else {
                 console.error('No se encontraron tramos disponibles en los datos.');
             }
-        }
-
-        // Inicializar la página
-        init();
+        });
     </script>
 </body>
 </html>
