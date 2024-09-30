@@ -58,10 +58,10 @@
             // Imprimir un ejemplo de los datos cargados para verificar los campos
             console.log('Ejemplo de datos cargados:', resumData[0]);
 
-            // Filtrar los datos específicos para el tramo seleccionado (sin normalización)
+            // Filtrar los datos específicos para el tramo seleccionado (convertir d.Via a número)
             console.log(`Tramo seleccionado: ${tram}`);
-            const via1 = resumData.filter(d => d.Via === 1 && d.TRAM === tram);
-            const via2 = resumData.filter(d => d.Via === 2 && d.TRAM === tram);
+            const via1 = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+            const via2 = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
             console.log(`Datos filtrados para el tramo ${tram}: Vía 1:`, via1);
             console.log(`Datos filtrados para el tramo ${tram}: Vía 2:`, via2);
