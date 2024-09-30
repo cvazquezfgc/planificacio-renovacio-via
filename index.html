@@ -14,20 +14,33 @@
             margin: auto;
             height: 800px;
         }
-        #selector {
-            width: 300px;
+        #tramButtons {
+            width: 90%;
             margin: 20px auto;
             display: flex;
             justify-content: center;
+            gap: 10px;
+        }
+        .tram-button {
+            padding: 10px 15px;
+            background-color: lightgray;
+            border: none;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s;
+        }
+        .tram-button:hover {
+            background-color: #d3d3d3;
+        }
+        .tram-button.selected {
+            background-color: #007bff;
+            color: white;
         }
     </style>
 </head>
 <body>
     <h1>Gráfico de Rehabilitación de Vía</h1>
-    <div id="selector">
-        <label for="tramSelector">Seleccione el Tramo: </label>
-        <select id="tramSelector"></select>
-    </div>
+    <div id="tramButtons"></div>
     <div id="plot"></div>
 
     <script>
@@ -83,10 +96,10 @@
                 type: 'bar',
                 name: 'Vía 1',
                 orientation: 'v',
-                width: 0.5, // Ajuste de ancho para ocupar mitad del año
-                offset: 0.0, // Alineación en la mitad izquierda
+                width: 0.5,
+                offset: 0.0,
                 marker: {
-                    color: 'rgba(31, 119, 180, 1)' // Color para diferenciar claramente
+                    color: 'rgba(31, 119, 180, 1)'
                 }
             };
 
@@ -97,10 +110,10 @@
                 type: 'bar',
                 name: 'Vía 2',
                 orientation: 'v',
-                width: 0.5, // Ajuste de ancho para ocupar mitad del año
-                offset: 0.5, // Alineación en la mitad derecha
+                width: 0.5,
+                offset: 0.5,
                 marker: {
-                    color: 'rgba(255, 127, 14, 1)' // Color para diferenciar claramente
+                    color: 'rgba(255, 127, 14, 1)'
                 }
             };
 
@@ -112,9 +125,9 @@
                 y0: parseFloat(d['PK']),
                 y1: parseFloat(d['PK']),
                 line: {
-                    color: 'darkgray', // Más visible que las líneas de los PKs
+                    color: 'darkgray',
                     width: 1.5,
-                    layer: 'below' // Asegurarse de que las líneas estén debajo de las barras
+                    layer: 'below'
                 }
             }));
 
@@ -147,7 +160,7 @@
                 line: {
                     color: year % 5 === 0 ? 'black' : 'lightgray',
                     width: year % 5 === 0 ? 1.5 : 0.8,
-                    layer: 'below' // Asegurarse de que las líneas estén debajo de las barras
+                    layer: 'below'
                 }
             }));
 
@@ -161,7 +174,7 @@
                 line: {
                     color: 'lightgray',
                     width: 1,
-                    layer: 'below' // Asegurarse de que las líneas estén debajo de las barras
+                    layer: 'below'
                 }
             }));
 
@@ -195,12 +208,12 @@
                     },
                     tickvals: pkRange,
                     ticktext: pkRange.map(pk => `${pk}+000`),
-                    range: [pkMax, pkMin], // Invertir el eje
+                    range: [pkMax, pkMin],
                     autorange: 'reversed'
                 },
                 shapes: [...yearLines, ...pkLines, ...stationLines],
                 annotations: stationAnnotations,
-                               margin: {
+                margin: {
                     l: 120,
                     r: 180,
                     t: 80,
@@ -209,41 +222,47 @@
                 showlegend: true
             };
 
-            // Dibujar la gráfica con los datos, asegurando que las barras estén por encima de todo lo demás
+            // Dibujar la gráfica con los datos
             Plotly.newPlot('plot', [traceVia1, traceVia2], layout);
         }
 
-        // Llenar el selector de tramo y agregar evento
+        // Llenar la fila de botones de tramo y agregar eventos
         async function init() {
             const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-            const resumData = await loadData(resumUrl);
-            const tramSelector = document.getElementById('tramSelector');
+                        const resumData = await loadData(resumUrl);
+            const tramButtonsContainer = document.getElementById('tramButtons');
 
             if (!resumData) {
-                console.error('Error al cargar los datos para llenar el selector.');
+                console.error('Error al cargar los datos para llenar los botones de tramo.');
                 return;
             }
 
             // Obtener todos los tramos únicos
             const trams = [...new Set(resumData.map(d => d.TRAM))];
 
-            // Añadir opciones al selector
+            // Añadir botones al contenedor para cada tramo
             trams.forEach(tram => {
                 if (tram) {
-                    const option = document.createElement('option');
-                    option.value = tram;
-                    option.textContent = tram;
-                    tramSelector.appendChild(option);
-                }
-            });
+                    const button = document.createElement('button');
+                    button.className = 'tram-button';
+                    button.textContent = tram;
+                    button.addEventListener('click', () => {
+                        // Quitar la clase "selected" de todos los botones
+                        document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
 
-            // Agregar evento al selector para dibujar el gráfico del tramo seleccionado
-            tramSelector.addEventListener('change', (e) => {
-                drawPlot(e.target.value);
+                        // Añadir la clase "selected" al botón actual
+                        button.classList.add('selected');
+
+                        // Dibujar el gráfico del tramo seleccionado
+                        drawPlot(tram);
+                    });
+                    tramButtonsContainer.appendChild(button);
+                }
             });
 
             // Dibujar el gráfico inicialmente para el primer tramo
             if (trams.length > 0) {
+                document.querySelector('.tram-button').classList.add('selected');
                 drawPlot(trams[0]);
             } else {
                 console.error('No se encontraron tramos disponibles en los datos.');
@@ -255,4 +274,3 @@
     </script>
 </body>
 </html>
-
