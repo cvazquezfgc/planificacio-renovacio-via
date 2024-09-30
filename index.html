@@ -55,8 +55,8 @@
                 return;
             }
 
-            // Imprimir todos los tramos disponibles en los datos
-            console.log('Tramos disponibles en los datos:', [...new Set(resumData.map(d => d.TRAM))]);
+            // Imprimir un ejemplo de los datos cargados para verificar los campos
+            console.log('Ejemplo de datos cargados:', resumData[0]);
 
             // Filtrar los datos específicos para el tramo seleccionado (sin normalización)
             console.log(`Tramo seleccionado: ${tram}`);
