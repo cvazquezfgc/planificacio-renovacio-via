@@ -80,7 +80,6 @@ async function drawPlot(tram, resumData) {
     let pkMax = -Infinity;
     let yOffset = 0;
 
-    // Agrupar los segmentos y obtener información clave
     function groupConsecutiveSegments(data) {
         const groupedData = [];
         let currentGroup = null;
@@ -114,7 +113,6 @@ async function drawPlot(tram, resumData) {
         return groupedData;
     }
 
-    // Crear las trazas para el gráfico
     function createTracesForVia(viaData, tram, offset, viaName) {
         const via = groupConsecutiveSegments(viaData);
 
@@ -154,9 +152,9 @@ async function drawPlot(tram, resumData) {
                 traces.push(createTracesForVia(via1Data, currentTram, yOffset, 'Vía 1'));
                 traces.push(createTracesForVia(via2Data, currentTram, yOffset, 'Vía 2'));
 
-                // Añadir anotaciones para las estaciones
+                // Añadir anotaciones y líneas de referencia para las estaciones
                 stationAnnotations.push(...estaciones.map(d => ({
-                    x: 2025, // Año por defecto, ajustar según corresponda
+                    x: 2070, // Colocar al extremo derecho del gráfico
                     y: parseFloat(d['PK']) + yOffset,
                     text: `<b>${d['Abreviatura']}</b>`,
                     showarrow: false,
@@ -165,7 +163,7 @@ async function drawPlot(tram, resumData) {
                         size: 14,
                         family: 'Arial, sans-serif'
                     },
-                    xanchor: 'center',
+                    xanchor: 'left',
                     yanchor: 'middle',
                     bgcolor: 'white',
                     bordercolor: 'gray',
@@ -174,7 +172,20 @@ async function drawPlot(tram, resumData) {
                     opacity: 1
                 })));
 
-                // Sombreado y líneas de cada 5 años
+                shapes.push(...estaciones.map(d => ({
+                    type: 'line',
+                    x0: 1998,
+                    x1: 2070,
+                    y0: parseFloat(d['PK']) + yOffset,
+                    y1: parseFloat(d['PK']) + yOffset,
+                    line: {
+                        color: 'darkgray',
+                        width: 1.5,
+                        layer: 'below'
+                    }
+                })));
+
+                // Sombreado y líneas verticales cada 5 años
                 for (let year = 1998; year <= 2068; year++) {
                     if (year % 5 === 0) {
                         shapes.push({
@@ -221,9 +232,9 @@ async function drawPlot(tram, resumData) {
             traces.push(createTracesForVia(via1Data, tram, 0, 'Vía 1'));
             traces.push(createTracesForVia(via2Data, tram, 0, 'Vía 2'));
 
-            // Añadir anotaciones para las estaciones
+            // Añadir anotaciones y líneas de referencia para las estaciones
             stationAnnotations.push(...estaciones.map(d => ({
-                x: 2025,
+                x: 2070,
                 y: parseFloat(d['PK']),
                 text: `<b>${d['Abreviatura']}</b>`,
                 showarrow: false,
@@ -232,13 +243,26 @@ async function drawPlot(tram, resumData) {
                     size: 14,
                     family: 'Arial, sans-serif'
                 },
-                xanchor: 'center',
+                xanchor: 'left',
                 yanchor: 'middle',
                 bgcolor: 'white',
                 bordercolor: 'gray',
                 borderwidth: 2,
                 borderpad: 5,
                 opacity: 1
+            })));
+
+            shapes.push(...estaciones.map(d => ({
+                type: 'line',
+                x0: 1998,
+                x1: 2070,
+                y0: parseFloat(d['PK']),
+                y1: parseFloat(d['PK']),
+                line: {
+                    color: 'darkgray',
+                    width: 1.5,
+                    layer: 'below'
+                }
             })));
         }
     }
@@ -248,12 +272,12 @@ async function drawPlot(tram, resumData) {
         title: tram === 'LINIA COMPLETA' ? `Espai-temps previsió rehabilitació de la línia completa` : `Espai-temps previsió rehabilitació del tram ${tram}`,
         xaxis: {
             title: 'Any previsió rehabilitació',
+            tickvals: Array.from({ length: 71 }, (_, i) => 1998 + i).filter(year => year % 5 === 0),
+            tickangle: -45 // Inclinar etiquetas del eje X a 45 grados
         },
         yaxis: {
             title: 'PK',
             autorange: 'reversed',
-            tickformat: 'd',
-            tickprefix: '',
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
             ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
