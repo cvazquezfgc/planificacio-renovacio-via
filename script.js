@@ -80,6 +80,62 @@ async function drawPlot(tram, resumData) {
     let pkMax = -Infinity;
     let yOffset = 0;
 
+    // Agrupar los segmentos y obtener información clave
+    function groupConsecutiveSegments(data) {
+        const groupedData = [];
+        let currentGroup = null;
+
+        data.forEach(segment => {
+            const pkInici = parseFloat(segment['PK inici']);
+            const pkFinal = parseFloat(segment['PK final']);
+            const previsio = segment['PREVISIÓ REHABILITACIÓ'];
+
+            if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio) {
+                currentGroup.PKFinal = pkFinal;
+                currentGroup.length += (pkFinal - pkInici) * 1000;
+            } else {
+                if (currentGroup) {
+                    groupedData.push(currentGroup);
+                }
+                currentGroup = {
+                    PKInici: pkInici,
+                    PKFinal: pkFinal,
+                    PREVISIO: previsio,
+                    length: (pkFinal - pkInici) * 1000,
+                    via: segment.Via
+                };
+            }
+        });
+
+        if (currentGroup) {
+            groupedData.push(currentGroup);
+        }
+
+        return groupedData;
+    }
+
+    // Crear las trazas para el gráfico
+    function createTracesForVia(viaData, tram, offset, viaName) {
+        const via = groupConsecutiveSegments(viaData);
+
+        return {
+            x: via.map(d => d.PREVISIO),
+            y: via.map(d => d.PKFinal - d.PKInici),
+            base: via.map(d => d.PKInici + offset),
+            type: 'bar',
+            name: `${viaName} - ${tram}`,
+            orientation: 'v',
+            width: 0.5,
+            offset: viaName === 'Vía 1' ? 0.0 : 0.5,
+            marker: {
+                color: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)'
+            },
+            hoverinfo: 'text',
+            hovertext: via.map(d => `${Math.round(d.length)} m`), // Etiquetas hover indicando longitud en metros
+            textposition: 'outside'
+        };
+    }
+
     if (tram === 'LINIA COMPLETA') {
         const trams = [...new Set(resumData.map(d => d.TRAM))];
         trams.forEach(currentTram => {
@@ -88,47 +144,19 @@ async function drawPlot(tram, resumData) {
             const estaciones = estacionsData.filter(d => d.Tram === currentTram);
 
             if (via1Data.length > 0 || via2Data.length > 0) {
-                const via1 = groupConsecutiveSegments(via1Data);
-                const via2 = groupConsecutiveSegments(via2Data);
-
-                const tramPkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
-                const tramPkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
+                const tramPkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+                const tramPkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
 
                 pkMin = Math.min(pkMin, tramPkMin + yOffset);
                 pkMax = Math.max(pkMax, tramPkMax + yOffset);
 
-                // Crear datos para las barras de "Vía 1" y "Vía 2"
-                traces.push({
-                    x: via1.map(d => d.PREVISIO),
-                    y: via1.map(d => d.PKFinal - d.PKInici),
-                    base: via1.map(d => d.PKInici + yOffset),
-                    type: 'bar',
-                    name: `Vía 1 - ${currentTram}`,
-                    orientation: 'v',
-                    width: 0.5,
-                    offset: 0.0,
-                    marker: {
-                        color: 'rgba(31, 119, 180, 1)'
-                    }
-                });
+                // Añadir las trazas para ambas vías
+                traces.push(createTracesForVia(via1Data, currentTram, yOffset, 'Vía 1'));
+                traces.push(createTracesForVia(via2Data, currentTram, yOffset, 'Vía 2'));
 
-                traces.push({
-                    x: via2.map(d => d.PREVISIO),
-                    y: via2.map(d => d.PKFinal - d.PKInici),
-                    base: via2.map(d => d.PKInici + yOffset),
-                    type: 'bar',
-                    name: `Vía 2 - ${currentTram}`,
-                    orientation: 'v',
-                    width: 0.5,
-                    offset: 0.5,
-                    marker: {
-                        color: 'rgba(255, 127, 14, 1)'
-                    }
-                });
-
-                // Añadir anotaciones de estaciones
+                // Añadir anotaciones para las estaciones
                 stationAnnotations.push(...estaciones.map(d => ({
-                    x: 2025, // Puede ajustarse según el gráfico
+                    x: 2025, // Año por defecto, ajustar según corresponda
                     y: parseFloat(d['PK']) + yOffset,
                     text: `<b>${d['Abreviatura']}</b>`,
                     showarrow: false,
@@ -146,55 +174,56 @@ async function drawPlot(tram, resumData) {
                     opacity: 1
                 })));
 
-                // Actualizar el offset para el siguiente tramo
+                // Sombreado y líneas de cada 5 años
+                for (let year = 1998; year <= 2068; year++) {
+                    if (year % 5 === 0) {
+                        shapes.push({
+                            type: 'rect',
+                            x0: year,
+                            x1: year + 1,
+                            y0: pkMin,
+                            y1: pkMax,
+                            fillcolor: 'rgba(211, 211, 211, 0.3)',
+                            layer: 'below',
+                            line: {
+                                width: 0
+                            }
+                        });
+                    }
+
+                    shapes.push({
+                        type: 'line',
+                        x0: year,
+                        x1: year,
+                        y0: pkMin,
+                        y1: pkMax,
+                        line: {
+                            color: 'lightgray',
+                            width: 0.8,
+                            layer: 'below'
+                        }
+                    });
+                }
+
                 yOffset += tramPkMax - tramPkMin + 0.5;
             }
         });
     } else {
-        // Dibujar un tramo específico
+        // Lógica para el tramo específico sigue el mismo patrón
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
         const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
         const estaciones = estacionsData.filter(d => d.Tram === tram);
 
         if (via1Data.length > 0 || via2Data.length > 0) {
-            const via1 = groupConsecutiveSegments(via1Data);
-            const via2 = groupConsecutiveSegments(via2Data);
+            pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+            pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
 
-            pkMin = Math.min(...[...via1, ...via2].map(d => d.PKInici));
-            pkMax = Math.max(...[...via1, ...via2].map(d => d.PKFinal));
+            traces.push(createTracesForVia(via1Data, tram, 0, 'Vía 1'));
+            traces.push(createTracesForVia(via2Data, tram, 0, 'Vía 2'));
 
-            // Crear datos para las barras de "Vía 1" y "Vía 2"
-            traces.push({
-                x: via1.map(d => d.PREVISIO),
-                y: via1.map(d => d.PKFinal - d.PKInici),
-                base: via1.map(d => d.PKInici),
-                type: 'bar',
-                name: 'Vía 1',
-                orientation: 'v',
-                width: 0.5,
-                offset: 0.0,
-                marker: {
-                    color: 'rgba(31, 119, 180, 1)'
-                }
-            });
-
-            traces.push({
-                x: via2.map(d => d.PREVISIO),
-                y: via2.map(d => d.PKFinal - d.PKInici),
-                base: via2.map(d => d.PKInici),
-                type: 'bar',
-                name: 'Vía 2',
-                orientation: 'v',
-                width: 0.5,
-                offset: 0.5,
-                marker: {
-                    color: 'rgba(255, 127, 14, 1)'
-                }
-            });
-
-            // Añadir anotaciones de estaciones
+            // Añadir anotaciones para las estaciones
             stationAnnotations.push(...estaciones.map(d => ({
-                x: 2025, // Puede ajustarse según el gráfico
+                x: 2025,
                 y: parseFloat(d['PK']),
                 text: `<b>${d['Abreviatura']}</b>`,
                 showarrow: false,
@@ -222,7 +251,11 @@ async function drawPlot(tram, resumData) {
         },
         yaxis: {
             title: 'PK',
-            autorange: 'reversed'
+            autorange: 'reversed',
+            tickformat: 'd',
+            tickprefix: '',
+            tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
+            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
         showlegend: true,
         annotations: stationAnnotations,
@@ -235,36 +268,3 @@ async function drawPlot(tram, resumData) {
 
 // Inicializar la página y eventos
 document.addEventListener('DOMContentLoaded', init);
-
-function groupConsecutiveSegments(data) {
-    const groupedData = [];
-    let currentGroup = null;
-
-    data.forEach(segment => {
-        const pkInici = parseFloat(segment['PK inici']);
-        const pkFinal = parseFloat(segment['PK final']);
-        const previsio = segment['PREVISIÓ REHABILITACIÓ'];
-
-        if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio) {
-            currentGroup.PKFinal = pkFinal;
-            currentGroup.length += (pkFinal - pkInici) * 1000;
-        } else {
-            if (currentGroup) {
-                groupedData.push(currentGroup);
-            }
-            currentGroup = {
-                PKInici: pkInici,
-                PKFinal: pkFinal,
-                PREVISIO: previsio,
-                length: (pkFinal - pkInici) * 1000,
-                via: segment.Via
-            };
-        }
-    });
-
-    if (currentGroup) {
-        groupedData.push(currentGroup);
-    }
-
-    return groupedData;
-}
