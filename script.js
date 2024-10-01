@@ -80,6 +80,7 @@ async function drawPlot(tram, resumData) {
     let pkMax = -Infinity;
     let yOffset = 0;
 
+    // Agrupar los segmentos y obtener información clave
     function groupConsecutiveSegments(data) {
         const groupedData = [];
         let currentGroup = null;
@@ -113,6 +114,7 @@ async function drawPlot(tram, resumData) {
         return groupedData;
     }
 
+    // Crear las trazas para el gráfico
     function createTracesForVia(viaData, tram, offset, viaName) {
         const via = groupConsecutiveSegments(viaData);
 
@@ -154,7 +156,7 @@ async function drawPlot(tram, resumData) {
 
                 // Añadir anotaciones y líneas de referencia para las estaciones
                 stationAnnotations.push(...estaciones.map(d => ({
-                    x: 2070, // Colocar al extremo derecho del gráfico
+                    x: 2069, // Colocar al extremo derecho del gráfico
                     y: parseFloat(d['PK']) + yOffset,
                     text: `<b>${d['Abreviatura']}</b>`,
                     showarrow: false,
@@ -175,7 +177,7 @@ async function drawPlot(tram, resumData) {
                 shapes.push(...estaciones.map(d => ({
                     type: 'line',
                     x0: 1998,
-                    x1: 2070,
+                    x1: 2069,
                     y0: parseFloat(d['PK']) + yOffset,
                     y1: parseFloat(d['PK']) + yOffset,
                     line: {
@@ -185,8 +187,23 @@ async function drawPlot(tram, resumData) {
                     }
                 })));
 
-                // Sombreado y líneas verticales cada 5 años
-                for (let year = 1998; year <= 2068; year++) {
+                // Sombreado y líneas verticales cada año y sombreado cada 5 años
+                for (let year = 1998; year <= 2069; year++) {
+                    // Línea vertical para cada año
+                    shapes.push({
+                        type: 'line',
+                        x0: year,
+                        x1: year,
+                        y0: pkMin,
+                        y1: pkMax,
+                        line: {
+                            color: 'lightgray',
+                            width: 0.8,
+                            layer: 'below'
+                        }
+                    });
+
+                    // Sombreado en cada lustro
                     if (year % 5 === 0) {
                         shapes.push({
                             type: 'rect',
@@ -201,70 +218,11 @@ async function drawPlot(tram, resumData) {
                             }
                         });
                     }
-
-                    shapes.push({
-                        type: 'line',
-                        x0: year,
-                        x1: year,
-                        y0: pkMin,
-                        y1: pkMax,
-                        line: {
-                            color: 'lightgray',
-                            width: 0.8,
-                            layer: 'below'
-                        }
-                    });
                 }
 
                 yOffset += tramPkMax - tramPkMin + 0.5;
             }
         });
-    } else {
-        // Lógica para el tramo específico sigue el mismo patrón
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-        const estaciones = estacionsData.filter(d => d.Tram === tram);
-
-        if (via1Data.length > 0 || via2Data.length > 0) {
-            pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-            pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-
-            traces.push(createTracesForVia(via1Data, tram, 0, 'Vía 1'));
-            traces.push(createTracesForVia(via2Data, tram, 0, 'Vía 2'));
-
-            // Añadir anotaciones y líneas de referencia para las estaciones
-            stationAnnotations.push(...estaciones.map(d => ({
-                x: 2070,
-                y: parseFloat(d['PK']),
-                text: `<b>${d['Abreviatura']}</b>`,
-                showarrow: false,
-                font: {
-                    color: 'black',
-                    size: 14,
-                    family: 'Arial, sans-serif'
-                },
-                xanchor: 'left',
-                yanchor: 'middle',
-                bgcolor: 'white',
-                bordercolor: 'gray',
-                borderwidth: 2,
-                borderpad: 5,
-                opacity: 1
-            })));
-
-            shapes.push(...estaciones.map(d => ({
-                type: 'line',
-                x0: 1998,
-                x1: 2070,
-                y0: parseFloat(d['PK']),
-                y1: parseFloat(d['PK']),
-                line: {
-                    color: 'darkgray',
-                    width: 1.5,
-                    layer: 'below'
-                }
-            })));
-        }
     }
 
     // Configuración del gráfico
