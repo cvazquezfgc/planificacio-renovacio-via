@@ -3,6 +3,7 @@ body {
     margin: 0;
     padding: 0;
 }
+
 #header {
     display: flex;
     align-items: center;
@@ -10,19 +11,23 @@ body {
     color: white;
     padding: 10px;
 }
+
 #header img {
     height: 50px;
     margin-right: 15px;
 }
+
 #header h1 {
     margin: 0;
     font-size: 24px;
 }
+
 #plot {
     width: 90%;
     margin: auto;
     height: 800px;
 }
+
 #tramButtons {
     width: 90%;
     margin: 20px auto;
@@ -30,6 +35,7 @@ body {
     justify-content: center;
     gap: 10px;
 }
+
 .tram-button {
     padding: 10px 15px;
     background-color: lightgray;
@@ -38,9 +44,11 @@ body {
     font-family: Arial, sans-serif;
     transition: background-color 0.3s;
 }
+
 .tram-button:hover {
     background-color: #d3d3d3;
 }
+
 .tram-button.selected {
     background-color: #007bff;
     color: white;
