@@ -245,10 +245,10 @@ async function drawPlot(tram, resumData) {
                 text: `<b>${d['Abreviatura']}</b>`,
                 showarrow: false,
                 font: {
-                    color: 'black',
-                    size: 14,
-                    family: 'Arial, sans-serif'
-                },
+                        color: 'black',
+                        size: 14,
+                        family: 'Arial, sans-serif'
+                    },
                 xanchor: 'left',
                 yanchor: 'middle',
                 bgcolor: 'white',
@@ -271,6 +271,7 @@ async function drawPlot(tram, resumData) {
                 }
             })));
 
+            // Añadir líneas y sombreados también para el tramo específico
             addLinesAndShading(pkMin, pkMax);
         }
     }
