@@ -1,152 +1,3 @@
-async function loadData(url) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Error HTTP! Estado: ${response.status}`);
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error(`Error cargando datos de ${url}:`, error);
-        return null;
-    }
-}
-
-async function init() {
-    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-    const resumData = await loadData(resumUrl);
-    if (!resumData) {
-        console.error('No se pudo cargar el resumen de datos.');
-        return;
-    }
-
-    // Obtener los tramos únicos
-    const trams = [...new Set(resumData.map(d => d.TRAM))];
-    if (trams.length === 0) {
-        console.error('No se encontraron tramos en los datos cargados.');
-        return;
-    }
-
-    // Contenedor de botones de tramo
-    const tramButtonsContainer = document.getElementById('tramButtons');
-
-    // Añadir el botón para "LINIA COMPLETA"
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        drawFullLinePlot(trams, resumData);
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Añadir botones para cada tramo
-    trams.forEach(tram => {
-        if (tram) {
-            const button = document.createElement('button');
-            button.className = 'tram-button';
-            button.textContent = tram;
-            button.addEventListener('click', () => {
-                selectTramButton(button);
-                drawSinglePlot(tram, resumData);
-            });
-            tramButtonsContainer.appendChild(button);
-        }
-    });
-
-    // Seleccionar y dibujar "LINIA COMPLETA" por defecto
-    selectTramButton(liniaCompletaButton);
-    drawFullLinePlot(trams, resumData);
-}
-
-function selectTramButton(button) {
-    // Deseleccionar todos los botones
-    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-    // Marcar el botón seleccionado
-    button.classList.add('selected');
-}
-
-async function drawFullLinePlot(trams, resumData) {
-    // Borrar gráficos existentes
-    document.getElementById('plot').innerHTML = '';
-
-    // Cargar los datos de las estaciones una vez
-    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-    const estacionsData = await loadData(estacionsUrl);
-    if (!estacionsData) {
-        console.error('No se pudo cargar los datos de las estaciones.');
-        return;
-    }
-
-    // Obtener pkMin y pkMax global para mantener la misma escala
-    let pkMinGlobal = Infinity;
-    let pkMaxGlobal = -Infinity;
-    trams.forEach(tram => {
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-        if (via1Data.length > 0 || via2Data.length > 0) {
-            const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-            const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-            if (pkMin < pkMinGlobal) pkMinGlobal = pkMin;
-            if (pkMax > pkMaxGlobal) pkMaxGlobal = pkMax;
-        }
-    });
-
-    // Dibujar los gráficos concatenados de cada tramo
-    for (let i = 0; i < trams.length; i++) {
-        const tram = trams[i];
-
-        // Crear un contenedor para cada gráfico
-        const container = document.createElement('div');
-        container.id = `plot-${tram}`;
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.marginBottom = '10px';
-
-        // Crear un contenedor para la etiqueta del tramo
-        const labelContainer = document.createElement('div');
-        labelContainer.style.writingMode = 'vertical-lr'; // Cambiar orientación del texto
-        labelContainer.style.textAlign = 'center';
-        labelContainer.style.marginRight = '10px';
-        labelContainer.style.fontSize = '16px';
-        labelContainer.style.fontWeight = 'bold';
-        labelContainer.style.height = '500px';
-        labelContainer.textContent = tram;
-
-        // Crear un contenedor para el gráfico
-        const plotContainer = document.createElement('div');
-        plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `500px`; // Mantener una altura constante
-        plotContainer.style.flexGrow = '1';
-
-        // Añadir la etiqueta y el gráfico al contenedor principal
-        container.appendChild(labelContainer);
-        container.appendChild(plotContainer);
-
-        // Añadir el contenedor del gráfico al área principal de gráficos
-        document.getElementById('plot').appendChild(container);
-
-        // Llamar a la función para dibujar cada tramo
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === trams.length - 1, pkMinGlobal, pkMaxGlobal);
-    }
-}
-
-async function drawSinglePlot(tram, resumData) {
-    // Borrar gráficos existentes
-    document.getElementById('plot').innerHTML = '';
-
-    // Cargar los datos de las estaciones
-    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-    const estacionsData = await loadData(estacionsUrl);
-    if (!estacionsData) {
-        console.error('No se pudo cargar los datos de las estaciones.');
-        return;
-    }
-
-    // Llamar a la función para dibujar el tramo individual
-    await drawPlot(tram, resumData, estacionsData, 'plot', true);
-}
-
 async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', isLast = true, pkMinGlobal = null, pkMaxGlobal = null) {
     let traces = [];
     let stationAnnotations = [];
@@ -203,7 +54,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
         if (pkMinGlobal !== null) pkMin = pkMinGlobal;
         if (pkMaxGlobal !== null) pkMax = pkMaxGlobal;
 
-        // Crear trazas para las vías sin modificar la posición en x
+        // Crear trazas para las vías
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
@@ -211,7 +62,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
             type: 'bar',
             name: 'Vía 1',
             orientation: 'v',
-            width: 0.5,
+            width: 0.5, // Ancho de la barra que ocupará la mitad del espacio del año
+            offset: -0.25, // Desplazar la barra hacia la mitad izquierda del año
             marker: {
                 color: 'rgba(31, 119, 180, 1)'
             },
@@ -232,7 +84,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
             type: 'bar',
             name: 'Vía 2',
             orientation: 'v',
-            width: 0.5,
+            width: 0.5, // Ancho de la barra que ocupará la mitad del espacio del año
+            offset: 0.25, // Desplazar la barra hacia la mitad derecha del año
             marker: {
                 color: 'rgba(255, 127, 14, 1)'
             },
@@ -324,72 +177,3 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
     // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
 }
-
-// Función para añadir líneas y sombreado
-function addLinesAndShading(pkMin, pkMax) {
-    let shapes = [];
-    for (let year = 1995; year <= 2069; year++) {
-        // Añadir líneas verticales para cada año
-        shapes.push({
-            type: 'line',
-            x0: year,
-            x1: year,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'lightgray',
-                width: 0.8,
-                layer: 'below'
-            }
-        });
-
-        // Añadir sombreado cada 5 años
-        if (year % 5 === 0) {
-            shapes.push({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            });
-        }
-    }
-
-    // Añadir sombreado rojo antes de 2025
-    shapes.push({
-        type: 'rect',
-        x0: 1995,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 0, 0, 0.1)',
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
-
-    // Añadir línea roja en 2025
-    shapes.push({
-        type: 'line',
-        x0: 2025,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'red',
-            width: 2,
-            layer: 'above'
-        }
-    });
-
-    return shapes;
-}
-
-// Inicializar la página y los eventos
-document.addEventListener('DOMContentLoaded', init);
