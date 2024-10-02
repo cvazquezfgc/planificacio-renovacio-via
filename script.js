@@ -116,6 +116,8 @@ async function drawPlot(tram, resumData) {
     function createTracesForVia(viaData, tram, offset, viaName) {
         const via = groupConsecutiveSegments(viaData);
 
+        const color = viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)';
+
         return {
             x: via.map(d => d.PREVISIO),
             y: via.map(d => d.PKFinal - d.PKInici),
@@ -123,12 +125,18 @@ async function drawPlot(tram, resumData) {
             type: 'bar',
             name: `${viaName} - ${tram}`,
             orientation: 'v',
-            width: 0.4, // Ajustar el ancho de la barra para mejor separación
-            hoverinfo: 'text',
-            hovertext: via.map(d => `Año: ${d.PREVISIO}<br>Longitud: ${Math.round(d.length)} m`), // Información detallada en hover
-            textposition: 'outside',
+            width: 0.4,
             marker: {
-                color: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)'
+                color: color
+            },
+            hoverinfo: 'text',
+            hovertext: via.map(d => `Longitud: ${Math.round(d.length)} m`),
+            textposition: 'outside',
+            hoverlabel: {
+                bgcolor: color,
+                font: {
+                    color: 'white'
+                }
             }
         };
     }
@@ -321,15 +329,7 @@ async function drawPlot(tram, resumData) {
         showlegend: true,
         annotations: stationAnnotations,
         shapes: shapes,
-        hovermode: 'x unified', // Asegurar un comportamiento hover por barra individual
-        hoverlabel: {
-            bgcolor: "#FFF",
-            bordercolor: "#333",
-            font: {
-                size: 12,
-                color: "#333"
-            }
-        }
+        hovermode: 'closest' // Asegurar un comportamiento hover individual para cada barra
     };
 
     // Dibujar la gráfica
