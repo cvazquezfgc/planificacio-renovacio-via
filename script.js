@@ -263,7 +263,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         })));
 
         // Añadir líneas y sombreado para los años y la línea roja para 2025
-        shapes.push(...addLinesAndShading(pkMin, pkMax));
+        shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
 
     // Configuración del gráfico
