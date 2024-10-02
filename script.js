@@ -264,8 +264,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
 
         // Añadir líneas y sombreado para los años y la línea roja para 2025
         addLinesAndShading(pkMin, pkMax);
-    }
-
+    
     // Configuración del gráfico
     const layout = {
         title: isLast ? `Espai-temps previsió rehabilitació del tram ${tram}` : '',
