@@ -186,7 +186,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
 
         // Crear trazas para las vías
         traces.push({
-            x: via1.map(d => d.PREVISIO + 0.5), // Añadir offset directamente en la posición x
+            x: via1.map(d => d.PREVISIO + 0.5), // Posicionar la barra entre el año y el siguiente
             y: via1.map(d => d.PKFinal - d.PKInici),
             base: via1.map(d => d.PKInici),
             type: 'bar',
@@ -207,7 +207,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         });
 
         traces.push({
-            x: via2.map(d => d.PREVISIO + 0.5), // Añadir offset directamente en la posición x
+            x: via2.map(d => d.PREVISIO + 0.5), // Posicionar la barra entre el año y el siguiente
             y: via2.map(d => d.PKFinal - d.PKInici),
             base: via2.map(d => d.PKInici),
             type: 'bar',
@@ -286,16 +286,15 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         legend: {
             orientation: 'v',
             x: 1.05,
-            y: 0.5,
             xanchor: 'left',
-            yanchor: 'middle'
+            y: 1.0
         },
         annotations: stationAnnotations,
         shapes: shapes,
         hovermode: 'closest',
         margin: {
             l: 150, // Ajustar margen izquierdo para espacio del identificador del tramo
-            r: 150, // Aumentar margen derecho para evitar que se corten las etiquetas y dar espacio a la leyenda
+            r: 150, // Aumentar margen derecho para la leyenda y evitar que se corten las etiquetas
             t: 20,
             b: isLast ? 50 : 20 // Margen inferior mayor para el último gráfico
         },
