@@ -123,13 +123,13 @@ async function drawPlot(tram, resumData) {
             type: 'bar',
             name: `${viaName} - ${tram}`,
             orientation: 'v',
-            width: 0.5,
-            offset: viaName === 'Vía 1' ? 0.0 : 0.5,
+            width: 0.4, // Ajustar el ancho de la barra para mejor separación
+            hoverinfo: 'text',
+            hovertext: via.map(d => `Año: ${d.PREVISIO}<br>Longitud: ${Math.round(d.length)} m`), // Información detallada en hover
+            textposition: 'outside',
             marker: {
                 color: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)'
-            },
-            hoverinfo: 'x+y+text',
-            hovertext: via.map(d => `${Math.round(d.length)} m`) // Etiquetas hover indicando longitud en metros
+            }
         };
     }
 
@@ -321,7 +321,15 @@ async function drawPlot(tram, resumData) {
         showlegend: true,
         annotations: stationAnnotations,
         shapes: shapes,
-        hovermode: 'closest' // Configurar para que solo se muestre el hover de la barra más cercana
+        hovermode: 'x unified', // Asegurar un comportamiento hover por barra individual
+        hoverlabel: {
+            bgcolor: "#FFF",
+            bordercolor: "#333",
+            font: {
+                size: 12,
+                color: "#333"
+            }
+        }
     };
 
     // Dibujar la gráfica
