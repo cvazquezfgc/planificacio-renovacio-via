@@ -54,7 +54,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
         if (pkMinGlobal !== null) pkMin = pkMinGlobal;
         if (pkMaxGlobal !== null) pkMax = pkMaxGlobal;
 
-        // Crear trazas para las vías
+        // Crear trazas para las vías con colores modificados para la prueba
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
@@ -65,12 +65,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
             width: 0.5, // Ancho de la barra que ocupará la mitad del espacio del año
             offset: -0.25, // Desplazar la barra hacia la mitad izquierda del año
             marker: {
-                color: 'rgba(31, 119, 180, 1)'
+                color: 'rgba(0, 128, 0, 1)' // Cambiado a verde
             },
             hoverinfo: 'text',
             hovertext: via1.map(d => `Longitud: ${Math.round(d.length)} m`),
             hoverlabel: {
-                bgcolor: 'rgba(31, 119, 180, 1)',
+                bgcolor: 'rgba(0, 128, 0, 1)',
                 font: {
                     color: 'white'
                 }
@@ -87,12 +87,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
             width: 0.5, // Ancho de la barra que ocupará la mitad del espacio del año
             offset: 0.25, // Desplazar la barra hacia la mitad derecha del año
             marker: {
-                color: 'rgba(255, 127, 14, 1)'
+                color: 'rgba(128, 0, 128, 1)' // Cambiado a morado
             },
             hoverinfo: 'text',
             hovertext: via2.map(d => `Longitud: ${Math.round(d.length)} m`),
             hoverlabel: {
-                bgcolor: 'rgba(255, 127, 14, 1)',
+                bgcolor: 'rgba(128, 0, 128, 1)',
                 font: {
                     color: 'white'
                 }
