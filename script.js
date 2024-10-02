@@ -96,7 +96,7 @@ async function drawFullLinePlot(trams, resumData) {
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
         labelContainer.style.fontWeight = 'bold';
-        labelContainer.style.height = '500px';
+        labelContainer.style.height = `${(500 / maxLength) * 500}px`; // Ajustar la altura proporcionalmente a la longitud del tramo
         labelContainer.textContent = tram;
 
         // Crear un contenedor para el gráfico
@@ -186,7 +186,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
 
         // Crear trazas para las vías
         traces.push({
-            x: via1.map(d => d.PREVISIO),
+            x: via1.map(d => d.PREVISIO + 0.5), // Añadir offset de 0.5 hacia la derecha
             y: via1.map(d => d.PKFinal - d.PKInici),
             base: via1.map(d => d.PKInici),
             type: 'bar',
@@ -206,8 +206,8 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
             }
         });
 
-        traces.push({
-            x: via2.map(d => d.PREVISIO),
+                traces.push({
+            x: via2.map(d => d.PREVISIO + 0.5), // Añadir offset de 0.5 hacia la derecha
             y: via2.map(d => d.PKFinal - d.PKInici),
             base: via2.map(d => d.PKInici),
             type: 'bar',
@@ -284,17 +284,18 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         },
         showlegend: true,
         legend: {
-            orientation: 'h',
-            x: 0.5,
-            xanchor: 'center',
-            y: 1.1 // Ajustar la leyenda para que no se superponga con el gráfico
+            orientation: 'v',
+            x: 1.05,
+            y: 0.5,
+            xanchor: 'left',
+            yanchor: 'middle'
         },
         annotations: stationAnnotations,
         shapes: shapes,
         hovermode: 'closest',
         margin: {
             l: 150, // Ajustar margen izquierdo para espacio del identificador del tramo
-            r: 50, // Aumentar margen derecho para evitar que se corten las etiquetas
+            r: 150, // Aumentar margen derecho para evitar que se corten las etiquetas y dar espacio a la leyenda
             t: 20,
             b: isLast ? 50 : 20 // Margen inferior mayor para el último gráfico
         },
