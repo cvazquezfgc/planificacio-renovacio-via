@@ -168,20 +168,6 @@ async function drawPlot(tram, resumData) {
             }
         }
 
-        // Añadir línea roja vertical en 2025
-        shapes.push({
-            type: 'line',
-            x0: 2025,
-            x1: 2025,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'red',
-                width: 2,
-                layer: 'above' // Asegurarse de que esté sobre el sombreado
-            }
-        });
-
         // Añadir sombreado tenue rojo antes de 2025
         shapes.push({
             type: 'rect',
@@ -193,6 +179,20 @@ async function drawPlot(tram, resumData) {
             layer: 'below',
             line: {
                 width: 0
+            }
+        });
+
+        // Añadir línea roja vertical en 2025
+        shapes.push({
+            type: 'line',
+            x0: 2025,
+            x1: 2025,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'red',
+                width: 2,
+                layer: 'above' // Asegurarse de que esté sobre el sombreado
             }
         });
     }
