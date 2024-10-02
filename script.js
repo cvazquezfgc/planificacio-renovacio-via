@@ -211,7 +211,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
             type: 'bar',
             name: 'Vía 1',
             orientation: 'v',
-            width: 0.8,
+            width: 0.5,
             marker: {
                 color: 'rgba(31, 119, 180, 1)'
             },
@@ -232,7 +232,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
             type: 'bar',
             name: 'Vía 2',
             orientation: 'v',
-            width: 0.8,
+            width: 0.5,
             marker: {
                 color: 'rgba(255, 127, 14, 1)'
             },
