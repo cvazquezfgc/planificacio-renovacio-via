@@ -167,6 +167,34 @@ async function drawPlot(tram, resumData) {
                 });
             }
         }
+
+        // Añadir línea roja vertical en 2025
+        shapes.push({
+            type: 'line',
+            x0: 2025,
+            x1: 2025,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'red',
+                width: 2,
+                layer: 'above' // Asegurarse de que esté sobre el sombreado
+            }
+        });
+
+        // Añadir sombreado tenue rojo antes de 2025
+        shapes.push({
+            type: 'rect',
+            x0: 1998,
+            x1: 2025,
+            y0: pkMin,
+            y1: pkMax,
+            fillcolor: 'rgba(255, 0, 0, 0.1)',
+            layer: 'below',
+            line: {
+                width: 0
+            }
+        });
     }
 
     if (tram === 'LINIA COMPLETA') {
@@ -245,10 +273,10 @@ async function drawPlot(tram, resumData) {
                 text: `<b>${d['Abreviatura']}</b>`,
                 showarrow: false,
                 font: {
-                        color: 'black',
-                        size: 14,
-                        family: 'Arial, sans-serif'
-                    },
+                    color: 'black',
+                    size: 14,
+                    family: 'Arial, sans-serif'
+                },
                 xanchor: 'left',
                 yanchor: 'middle',
                 bgcolor: 'white',
@@ -271,7 +299,7 @@ async function drawPlot(tram, resumData) {
                 }
             })));
 
-            // Añadir líneas y sombreados también para el tramo específico
+            // Añadir líneas y sombreado también para el tramo específico
             addLinesAndShading(pkMin, pkMax);
         }
     }
