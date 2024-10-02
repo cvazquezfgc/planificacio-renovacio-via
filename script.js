@@ -76,7 +76,7 @@ async function drawFullLinePlot(trams, resumData) {
         container.id = `plot-${tram}`;
         container.style.display = 'flex';
         container.style.alignItems = 'center';
-        container.style.marginBottom = '10px';
+        container.style.marginBottom = '10px'; // Reducir el espacio en blanco entre gráficos
 
         // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
@@ -85,13 +85,13 @@ async function drawFullLinePlot(trams, resumData) {
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
         labelContainer.style.fontWeight = 'bold';
-        labelContainer.style.height = '300px'; // Ajustar altura según sea necesario
+        labelContainer.style.height = '500px'; // Ajustar la altura del contenedor para que se vea el texto en vertical
         labelContainer.textContent = tram;
 
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = '500px';
+        plotContainer.style.height = '500px'; // Altura aumentada del gráfico
         plotContainer.style.flexGrow = '1';
 
         // Agregar la etiqueta y el gráfico al contenedor principal
@@ -245,7 +245,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
 
-                // Añadir las trazas para ambas vías
+        // Añadir las trazas para ambas vías
         traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
         traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
 
@@ -324,4 +324,3 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
 
 // Inicializar la página y eventos
 document.addEventListener('DOMContentLoaded', init);
-
