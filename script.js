@@ -128,14 +128,13 @@ async function drawPlot(tram, resumData) {
             marker: {
                 color: viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)'
             },
-            hoverinfo: 'text',
-            hovertext: via.map(d => `${Math.round(d.length)} m`), // Etiquetas hover indicando longitud en metros
-            textposition: 'outside'
+            hoverinfo: 'x+y+text',
+            hovertext: via.map(d => `${Math.round(d.length)} m`) // Etiquetas hover indicando longitud en metros
         };
     }
 
     function addLinesAndShading(pkMin, pkMax) {
-        // Añadir líneas verticales para cada año y sombreado cada 5 años
+        // Añadir líneas verticales para cada año y sombreado cada 5 años desde 1995
         for (let year = 1995; year <= 2069; year++) {
             // Línea vertical para cada año
             shapes.push({
@@ -192,7 +191,7 @@ async function drawPlot(tram, resumData) {
             line: {
                 color: 'red',
                 width: 2,
-                layer: 'above' // Asegurarse de que esté sobre el sombreado
+                layer: 'above'
             }
         });
     }
@@ -216,7 +215,7 @@ async function drawPlot(tram, resumData) {
                 traces.push(createTracesForVia(via2Data, currentTram, yOffset, 'Vía 2'));
 
                 // Añadir anotaciones y líneas de referencia para las estaciones
-                               stationAnnotations.push(...estaciones.map(d => ({
+                stationAnnotations.push(...estaciones.map(d => ({
                     x: 2069,
                     y: parseFloat(d['PK']) + yOffset,
                     text: `<b>${d['Abreviatura']}</b>`,
@@ -321,7 +320,8 @@ async function drawPlot(tram, resumData) {
         },
         showlegend: true,
         annotations: stationAnnotations,
-        shapes: shapes
+        shapes: shapes,
+        hovermode: 'closest' // Configurar para que solo se muestre el hover de la barra más cercana
     };
 
     // Dibujar la gráfica
@@ -330,7 +330,3 @@ async function drawPlot(tram, resumData) {
 
 // Inicializar la página y eventos
 document.addEventListener('DOMContentLoaded', init);
-
-                    x: 2069,
-                    y: parseFloat(d['PK']) + yOffset,
-                    text: `<b>${d['Abreviatura']}</b>
