@@ -70,13 +70,39 @@ async function drawFullLinePlot(trams, resumData) {
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
+        
+        // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
         container.id = `plot-${tram}`;
-        container.style.height = '400px';
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.marginBottom = '10px';
+
+        // Crear un contenedor para la etiqueta del tramo
+        const labelContainer = document.createElement('div');
+        labelContainer.style.writingMode = 'vertical-rl';
+        labelContainer.style.textAlign = 'center';
+        labelContainer.style.marginRight = '10px';
+        labelContainer.style.fontSize = '16px';
+        labelContainer.style.fontWeight = 'bold';
+        labelContainer.style.height = '300px'; // Ajustar altura según sea necesario
+        labelContainer.textContent = tram;
+
+        // Crear un contenedor para el gráfico
+        const plotContainer = document.createElement('div');
+        plotContainer.id = `plot-${tram}-chart`;
+        plotContainer.style.height = '500px';
+        plotContainer.style.flexGrow = '1';
+
+        // Agregar la etiqueta y el gráfico al contenedor principal
+        container.appendChild(labelContainer);
+        container.appendChild(plotContainer);
+
+        // Agregar el contenedor del gráfico al contenedor general
         document.getElementById('plot').appendChild(container);
 
         // Llamar a la función de dibujo para cada tramo
-        await drawPlot(tram, resumData, container.id, i === trams.length - 1);
+        await drawPlot(tram, resumData, plotContainer.id, i === trams.length - 1);
     }
 }
 
@@ -219,7 +245,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
 
-        // Añadir las trazas para ambas vías
+                // Añadir las trazas para ambas vías
         traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
         traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
 
@@ -276,13 +302,20 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
             ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
-        showlegend: isLast,
+        showlegend: true,
         legend: {
             orientation: 'h'
         },
         annotations: stationAnnotations,
         shapes: shapes,
-        hovermode: 'closest'
+        hovermode: 'closest',
+        margin: {
+            l: 150, // Ajustar margen izquierdo para espacio del identificador del tramo
+            r: 10,
+            t: 20,
+            b: isLast ? 50 : 20 // Margen inferior mayor para el último gráfico
+        },
+        height: 500 // Altura aumentada para cada tramo
     };
 
     // Dibujar la gráfica
@@ -291,3 +324,4 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
 
 // Inicializar la página y eventos
 document.addEventListener('DOMContentLoaded', init);
+
