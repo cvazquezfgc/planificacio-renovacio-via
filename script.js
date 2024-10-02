@@ -206,7 +206,7 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
             }
         });
 
-             traces.push({
+        traces.push({
             x: via2.map(d => d.PREVISIO),
             y: via2.map(d => d.PKFinal - d.PKInici),
             base: via2.map(d => d.PKInici),
@@ -263,8 +263,9 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         })));
 
         // Añadir líneas y sombreado para los años y la línea roja para 2025
-        addLinesAndShading(pkMin, pkMax);
-    
+        shapes.push(...addLinesAndShading(pkMin, pkMax));
+    }
+
     // Configuración del gráfico
     const layout = {
         title: isLast ? `Espai-temps previsió rehabilitació del tram ${tram}` : '',
