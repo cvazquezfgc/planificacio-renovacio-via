@@ -113,32 +113,29 @@ async function drawPlot(tram, resumData) {
         return groupedData;
     }
 
-    function createTracesForVia(viaData, tram, offset, viaName) {
+    function createTracesForVia(viaData, viaName, color) {
         const via = groupConsecutiveSegments(viaData);
 
-        const color = viaName === 'Vía 1' ? 'rgba(31, 119, 180, 1)' : 'rgba(255, 127, 14, 1)';
-
-        return {
-            x: via.map(d => d.PREVISIO),
-            y: via.map(d => d.PKFinal - d.PKInici),
-            base: via.map(d => d.PKInici + offset),
+        return via.map(segment => ({
+            x: [segment.PREVISIO],
+            y: [segment.PKFinal - segment.PKInici],
+            base: segment.PKInici,
             type: 'bar',
-            name: `${viaName} - ${tram}`,
+            name: viaName,
             orientation: 'v',
             width: 0.4,
             marker: {
                 color: color
             },
             hoverinfo: 'text',
-            hovertext: via.map(d => `Longitud: ${Math.round(d.length)} m`),
-            textposition: 'outside',
+            hovertext: `Longitud: ${Math.round(segment.length)} m`,
             hoverlabel: {
                 bgcolor: color,
                 font: {
                     color: 'white'
                 }
             }
-        };
+        }));
     }
 
     function addLinesAndShading(pkMin, pkMax) {
@@ -219,8 +216,8 @@ async function drawPlot(tram, resumData) {
                 pkMax = Math.max(pkMax, tramPkMax + yOffset);
 
                 // Añadir las trazas para ambas vías
-                traces.push(createTracesForVia(via1Data, currentTram, yOffset, 'Vía 1'));
-                traces.push(createTracesForVia(via2Data, currentTram, yOffset, 'Vía 2'));
+                traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
+                traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
 
                 // Añadir anotaciones y líneas de referencia para las estaciones
                 stationAnnotations.push(...estaciones.map(d => ({
@@ -270,8 +267,8 @@ async function drawPlot(tram, resumData) {
             pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
 
             // Añadir las trazas para ambas vías
-            traces.push(createTracesForVia(via1Data, tram, 0, 'Vía 1'));
-            traces.push(createTracesForVia(via2Data, tram, 0, 'Vía 2'));
+            traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
+            traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
 
             // Añadir anotaciones y líneas de referencia para las estaciones
             stationAnnotations.push(...estaciones.map(d => ({
