@@ -48,7 +48,7 @@ async function init() {
             button.textContent = tram;
             button.addEventListener('click', () => {
                 selectTramButton(button);
-                drawPlot(tram, resumData);
+                drawSinglePlot(tram, resumData);
             });
             tramButtonsContainer.appendChild(button);
         }
@@ -70,7 +70,7 @@ async function drawFullLinePlot(trams, resumData) {
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
-        
+
         // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
         container.id = `plot-${tram}`;
@@ -104,6 +104,14 @@ async function drawFullLinePlot(trams, resumData) {
         // Llamar a la función de dibujo para cada tramo
         await drawPlot(tram, resumData, plotContainer.id, i === trams.length - 1);
     }
+}
+
+async function drawSinglePlot(tram, resumData) {
+    // Borrar gráficos existentes
+    document.getElementById('plot').innerHTML = '';
+
+    // Llamar a la función de dibujo para el tramo individual
+    await drawPlot(tram, resumData, 'plot', true);
 }
 
 async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
