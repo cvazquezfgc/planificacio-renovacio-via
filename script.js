@@ -186,14 +186,13 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
 
         // Crear trazas para las vías
         traces.push({
-            x: via1.map(d => d.PREVISIO),
+            x: via1.map(d => d.PREVISIO + 0.5), // Añadir offset directamente en la posición x
             y: via1.map(d => d.PKFinal - d.PKInici),
             base: via1.map(d => d.PKInici),
             type: 'bar',
             name: 'Vía 1',
             orientation: 'v',
             width: 0.4,
-            offset: 0.5, // Aplicar offset de 0.5 para desplazar hacia la derecha
             marker: {
                 color: 'rgba(31, 119, 180, 1)'
             },
@@ -208,14 +207,13 @@ async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
         });
 
         traces.push({
-            x: via2.map(d => d.PREVISIO),
+            x: via2.map(d => d.PREVISIO + 0.5), // Añadir offset directamente en la posición x
             y: via2.map(d => d.PKFinal - d.PKInici),
             base: via2.map(d => d.PKInici),
             type: 'bar',
             name: 'Vía 2',
             orientation: 'v',
             width: 0.4,
-            offset: 0.5, // Aplicar offset de 0.5 para desplazar hacia la derecha
             marker: {
                 color: 'rgba(255, 127, 14, 1)'
             },
