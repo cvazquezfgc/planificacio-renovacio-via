@@ -36,7 +36,7 @@ async function init() {
     liniaCompletaButton.textContent = 'LINIA COMPLETA';
     liniaCompletaButton.addEventListener('click', () => {
         selectTramButton(liniaCompletaButton);
-        drawPlot('LINIA COMPLETA', resumData);
+        drawFullLinePlot(trams, resumData);
     });
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
@@ -56,7 +56,7 @@ async function init() {
 
     // Seleccionar y dibujar la "LINIA COMPLETA" por defecto
     selectTramButton(liniaCompletaButton);
-    drawPlot('LINIA COMPLETA', resumData);
+    drawFullLinePlot(trams, resumData);
 }
 
 function selectTramButton(button) {
@@ -64,7 +64,23 @@ function selectTramButton(button) {
     button.classList.add('selected');
 }
 
-async function drawPlot(tram, resumData) {
+async function drawFullLinePlot(trams, resumData) {
+    // Borrar gráficos existentes
+    document.getElementById('plot').innerHTML = '';
+
+    for (let i = 0; i < trams.length; i++) {
+        const tram = trams[i];
+        const container = document.createElement('div');
+        container.id = `plot-${tram}`;
+        container.style.height = '400px';
+        document.getElementById('plot').appendChild(container);
+
+        // Llamar a la función de dibujo para cada tramo
+        await drawPlot(tram, resumData, container.id, i === trams.length - 1);
+    }
+}
+
+async function drawPlot(tram, resumData, containerId = 'plot', isLast = true) {
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
 
@@ -78,7 +94,6 @@ async function drawPlot(tram, resumData) {
     let shapes = [];
     let pkMin = Infinity;
     let pkMax = -Infinity;
-    let yOffset = 0;
 
     function groupConsecutiveSegments(data) {
         const groupedData = [];
@@ -139,9 +154,7 @@ async function drawPlot(tram, resumData) {
     }
 
     function addLinesAndShading(pkMin, pkMax) {
-        // Añadir líneas verticales para cada año y sombreado cada 5 años desde 1995
         for (let year = 1995; year <= 2069; year++) {
-            // Línea vertical para cada año
             shapes.push({
                 type: 'line',
                 x0: year,
@@ -155,7 +168,6 @@ async function drawPlot(tram, resumData) {
                 }
             });
 
-            // Sombreado en cada lustro
             if (year % 5 === 0) {
                 shapes.push({
                     type: 'rect',
@@ -172,7 +184,6 @@ async function drawPlot(tram, resumData) {
             }
         }
 
-        // Añadir sombreado tenue rojo antes de 2025
         shapes.push({
             type: 'rect',
             x0: 1995,
@@ -186,7 +197,6 @@ async function drawPlot(tram, resumData) {
             }
         });
 
-        // Añadir línea roja vertical en 2025
         shapes.push({
             type: 'line',
             x0: 2025,
@@ -201,121 +211,64 @@ async function drawPlot(tram, resumData) {
         });
     }
 
-    if (tram === 'LINIA COMPLETA') {
-        const trams = [...new Set(resumData.map(d => d.TRAM))];
-        trams.forEach(currentTram => {
-            const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === currentTram);
-            const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === currentTram);
-            const estaciones = estacionsData.filter(d => d.Tram === currentTram);
+    const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+    const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+    const estaciones = estacionsData.filter(d => d.Tram === tram);
 
-            if (via1Data.length > 0 || via2Data.length > 0) {
-                const tramPkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-                const tramPkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+    if (via1Data.length > 0 || via2Data.length > 0) {
+        pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+        pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
 
-                pkMin = Math.min(pkMin, tramPkMin + yOffset);
-                pkMax = Math.max(pkMax, tramPkMax + yOffset);
+        // Añadir las trazas para ambas vías
+        traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
+        traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
 
-                // Añadir las trazas para ambas vías
-                traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
-                traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
+        // Añadir anotaciones y líneas de referencia para las estaciones
+        stationAnnotations.push(...estaciones.map(d => ({
+            x: 2069,
+            y: parseFloat(d['PK']),
+            text: `<b>${d['Abreviatura']}</b>`,
+            showarrow: false,
+            font: {
+                color: 'black',
+                size: 14,
+                family: 'Arial, sans-serif'
+            },
+            xanchor: 'left',
+            yanchor: 'middle',
+            bgcolor: 'white',
+            bordercolor: 'gray',
+            borderwidth: 2,
+            borderpad: 5,
+            opacity: 1
+        })));
 
-                // Añadir anotaciones y líneas de referencia para las estaciones
-                stationAnnotations.push(...estaciones.map(d => ({
-                    x: 2069,
-                    y: parseFloat(d['PK']) + yOffset,
-                    text: `<b>${d['Abreviatura']}</b>`,
-                    showarrow: false,
-                    font: {
-                        color: 'black',
-                        size: 14,
-                        family: 'Arial, sans-serif'
-                    },
-                    xanchor: 'left',
-                    yanchor: 'middle',
-                    bgcolor: 'white',
-                    bordercolor: 'gray',
-                    borderwidth: 2,
-                    borderpad: 5,
-                    opacity: 1
-                })));
-
-                shapes.push(...estaciones.map(d => ({
-                    type: 'line',
-                    x0: 1995,
-                    x1: 2069,
-                    y0: parseFloat(d['PK']) + yOffset,
-                    y1: parseFloat(d['PK']) + yOffset,
-                    line: {
-                        color: 'darkgray',
-                        width: 1.5,
-                        layer: 'below'
-                    }
-                })));
-
-                addLinesAndShading(pkMin, pkMax);
-                yOffset += tramPkMax - tramPkMin + 0.5;
+        shapes.push(...estaciones.map(d => ({
+            type: 'line',
+            x0: 1995,
+            x1: 2069,
+            y0: parseFloat(d['PK']),
+            y1: parseFloat(d['PK']),
+            line: {
+                color: 'darkgray',
+                width: 1.5,
+                layer: 'below'
             }
-        });
-    } else {
-        // Lógica para un tramo específico
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-        const estaciones = estacionsData.filter(d => d.Tram === tram);
+        })));
 
-        if (via1Data.length > 0 || via2Data.length > 0) {
-            pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-            pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-
-            // Añadir las trazas para ambas vías
-            traces = traces.concat(createTracesForVia(via1Data, 'Vía 1', 'rgba(31, 119, 180, 1)'));
-            traces = traces.concat(createTracesForVia(via2Data, 'Vía 2', 'rgba(255, 127, 14, 1)'));
-
-            // Añadir anotaciones y líneas de referencia para las estaciones
-            stationAnnotations.push(...estaciones.map(d => ({
-                x: 2069,
-                y: parseFloat(d['PK']),
-                text: `<b>${d['Abreviatura']}</b>`,
-                showarrow: false,
-                font: {
-                    color: 'black',
-                    size: 14,
-                    family: 'Arial, sans-serif'
-                },
-                xanchor: 'left',
-                yanchor: 'middle',
-                bgcolor: 'white',
-                bordercolor: 'gray',
-                borderwidth: 2,
-                borderpad: 5,
-                opacity: 1
-            })));
-
-            shapes.push(...estaciones.map(d => ({
-                type: 'line',
-                x0: 1995,
-                x1: 2069,
-                y0: parseFloat(d['PK']),
-                y1: parseFloat(d['PK']),
-                line: {
-                    color: 'darkgray',
-                    width: 1.5,
-                    layer: 'below'
-                }
-            })));
-
-            // Añadir líneas y sombreado también para el tramo específico
-            addLinesAndShading(pkMin, pkMax);
-        }
+        // Añadir líneas y sombreado también para el tramo específico
+        addLinesAndShading(pkMin, pkMax);
     }
 
     // Configuración del gráfico
     const layout = {
-        title: tram === 'LINIA COMPLETA' ? `Espai-temps previsió rehabilitació de la línia completa` : `Espai-temps previsió rehabilitació del tram ${tram}`,
+        title: isLast ? `Espai-temps previsió rehabilitació del tram ${tram}` : '',
         xaxis: {
-            title: 'Any previsió rehabilitació',
-            range: [1995, 2069], // Ajustar el rango para incluir el año 1995
+            title: isLast ? 'Any previsió rehabilitació' : '',
+            range: [1995, 2069],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
-            tickangle: -45 // Inclinar etiquetas del eje X a 45 grados
+            tickangle: -45,
+            showticklabels: isLast
         },
         yaxis: {
             title: 'PK',
@@ -323,14 +276,17 @@ async function drawPlot(tram, resumData) {
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
             ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
-        showlegend: true,
+        showlegend: isLast,
+        legend: {
+            orientation: 'h'
+        },
         annotations: stationAnnotations,
         shapes: shapes,
-        hovermode: 'closest' // Asegurar un comportamiento hover individual para cada barra
+        hovermode: 'closest'
     };
 
     // Dibujar la gráfica
-    Plotly.newPlot('plot', traces, layout);
+    Plotly.newPlot(containerId, traces, layout);
 }
 
 // Inicializar la página y eventos
