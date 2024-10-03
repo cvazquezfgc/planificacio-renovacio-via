@@ -1,4 +1,253 @@
-            borderpad: 5,
+// Función para cargar los datos
+async function loadData(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Error HTTP! Estado: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(`Error cargando datos de ${url}:`, error);
+        return null;
+    }
+}
+
+// Función para dibujar gráficos concatenados para LINIA COMPLETA
+async function drawFullLinePlot(trams, resumData) {
+    document.getElementById('plot').innerHTML = '<h2>Espai-temps previsió rehabilitació de la línia completa</h2>';
+
+    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+    const estacionsData = await loadData(estacionsUrl);
+    if (!estacionsData) {
+        console.error('No se pudo cargar los datos de las estaciones.');
+        return;
+    }
+
+    let pkMinGlobal = Infinity;
+    let pkMaxGlobal = -Infinity;
+    trams.forEach(tram => {
+        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+        if (via1Data.length > 0 || via2Data.length > 0) {
+            const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+            const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+            pkMinGlobal = Math.min(pkMin, pkMinGlobal);
+            pkMaxGlobal = Math.max(pkMax, pkMaxGlobal);
+        }
+    });
+
+    for (let i = 0; i < trams.length; i++) {
+        const tram = trams[i];
+
+        const container = document.createElement('div');
+        container.id = `plot-${tram}`;
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.marginBottom = '10px';
+
+        const labelContainer = document.createElement('div');
+        labelContainer.style.writingMode = 'vertical-lr';
+        labelContainer.style.transform = 'rotate(135deg)';
+        labelContainer.style.textAlign = 'center';
+        labelContainer.style.marginRight = '10px';
+        labelContainer.style.fontSize = '16px';
+        labelContainer.style.fontWeight = 'bold';
+        labelContainer.textContent = tram;
+
+        const plotContainer = document.createElement('div');
+        plotContainer.id = `plot-${tram}-chart`;
+        plotContainer.style.height = `${500 + (pkMaxGlobal - pkMinGlobal) * 2}px`; // Ajustar la altura basada en la longitud
+        plotContainer.style.flexGrow = '1';
+
+        container.appendChild(labelContainer);
+        container.appendChild(plotContainer);
+
+        document.getElementById('plot').appendChild(container);
+
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === trams.length - 1, pkMinGlobal, pkMaxGlobal);
+    }
+}
+
+// Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
+async function drawSinglePlot(tram, resumData) {
+    document.getElementById('plot').innerHTML = '';
+
+    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+    const estacionsData = await loadData(estacionsUrl);
+    if (!estacionsData) {
+        console.error('No se pudo cargar los datos de las estaciones.');
+        return;
+    }
+
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 1000); // Ajustar la altura de los gráficos individuales
+
+    // Añadir las tarjetas informativas
+    const totalLength = resumData
+        .filter(d => d.TRAM === tram)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBefore2025 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBetween2025And2030 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const infoContainer = document.createElement('div');
+    infoContainer.style.display = 'flex';
+    infoContainer.style.gap = '20px';
+    infoContainer.style.marginTop = '20px';
+
+    const createCard = (title, value) => {
+        const card = document.createElement('div');
+        card.style.border = '1px solid #ccc';
+        card.style.borderRadius = '8px';
+        card.style.padding = '10px';
+        card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+        card.style.flex = '1';
+
+        const cardTitle = document.createElement('h3');
+        cardTitle.textContent = title;
+        cardTitle.style.margin = '0 0 10px 0';
+
+        const cardValue = document.createElement('p');
+        cardValue.textContent = `${value.toFixed(0)} m`;
+        cardValue.style.fontSize = '18px';
+        cardValue.style.fontWeight = 'bold';
+
+        card.appendChild(cardTitle);
+        card.appendChild(cardValue);
+
+        return card;
+    };
+
+    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO', totalLength));
+    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN < 2025', lengthBefore2025));
+    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN ENTRE 2025 Y 2030', lengthBetween2025And2030));
+
+    document.getElementById('plot').appendChild(infoContainer);
+}
+
+// Función para dibujar un gráfico específico
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
+    let traces = [];
+    let stationAnnotations = [];
+    let shapes = [];
+
+    let pkMin = Infinity;
+    let pkMax = -Infinity;
+
+    function groupConsecutiveSegments(data) {
+        const groupedData = [];
+        let currentGroup = null;
+
+        data.forEach(segment => {
+            const pkInici = parseFloat(segment['PK inici']);
+            const pkFinal = parseFloat(segment['PK final']);
+            const previsio = segment['PREVISIÓ REHABILITACIÓ'];
+
+            if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio && currentGroup.via === segment.Via) {
+                currentGroup.PKFinal = pkFinal;
+                currentGroup.length += (pkFinal - pkInici) * 1000;
+            } else {
+                if (currentGroup) {
+                    groupedData.push(currentGroup);
+                }
+                currentGroup = {
+                    PKInici: pkInici,
+                    PKFinal: pkFinal,
+                    PREVISIO: previsio,
+                    length: (pkFinal - pkInici) * 1000,
+                    via: segment.Via
+                };
+            }
+        });
+
+        if (currentGroup) {
+            groupedData.push(currentGroup);
+        }
+
+        return groupedData;
+    }
+
+    const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+    const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+
+    const via1 = groupConsecutiveSegments(via1Data);
+    const via2 = groupConsecutiveSegments(via2Data);
+
+    if (via1.length > 0 || via2.length > 0) {
+        pkMin = Math.min(...via1.concat(via2).map(d => d.PKInici));
+        pkMax = Math.max(...via1.concat(via2).map(d => d.PKFinal));
+
+        if (pkMinGlobal !== null) pkMin = pkMinGlobal;
+        if (pkMaxGlobal !== null) pkMax = pkMaxGlobal;
+
+        traces.push({
+            x: via1.map(d => d.PREVISIO),
+            y: via1.map(d => d.PKFinal - d.PKInici),
+            base: via1.map(d => d.PKInici),
+            type: 'bar',
+            name: 'Vía 1',
+            orientation: 'v',
+            width: 0.5,
+            offset: 0,
+            marker: {
+                color: 'rgba(31, 119, 180, 1)'
+            },
+            hoverinfo: 'text',
+            hovertext: via1.map(d => `${Math.round(d.length)} m`),
+            hoverlabel: {
+                bgcolor: 'rgba(31, 119, 180, 1)',
+                font: {
+                    color: 'white'
+                }
+            }
+        });
+
+        traces.push({
+            x: via2.map(d => d.PREVISIO),
+            y: via2.map(d => d.PKFinal - d.PKInici),
+            base: via2.map(d => d.PKInici),
+            type: 'bar',
+            name: 'Vía 2',
+            orientation: 'v',
+            width: 0.5,
+            offset: 0.5,
+            marker: {
+                color: 'rgba(255, 127, 14, 1)'
+            },
+            hoverinfo: 'text',
+            hovertext: via2.map(d => `${Math.round(d.length)} m`),
+            hoverlabel: {
+                bgcolor: 'rgba(255, 127, 14, 1)',
+                font: {
+                    color: 'white'
+                }
+            }
+        });
+
+        // Añadir anotaciones y líneas de referencia para las estaciones
+        const estaciones = estacionsData.filter(d => d.Tram === tram);
+
+        stationAnnotations.push(...estaciones.map(d => ({
+            x: 2069,
+            y: parseFloat(d['PK']),
+            text: `<b>${d['Abreviatura']}</b>`,
+            showarrow: false,
+            font: {
+                color: 'black',
+                size: 14,
+                family: 'Arial, sans-serif'
+            },
+            xanchor: 'left',
+            yanchor: 'middle',
+            bgcolor: 'white',
+            bordercolor: 'gray',
+            borderwidth: 2,
+                        borderpad: 5,
             opacity: 1
         })));
 
