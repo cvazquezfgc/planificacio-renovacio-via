@@ -1,8 +1,42 @@
 // Verificar si Plotly está definido y cargado
 if (typeof Plotly === 'undefined') {
     console.error('Plotly no está cargado. Asegúrate de que el script de Plotly está incluido correctamente.');
+    document.body.innerHTML += '<p style="color:red;">Plotly no está cargado correctamente.</p>';
 } else {
     console.log('Plotly se ha cargado correctamente.');
+    document.body.innerHTML += '<p style="color:green;">Plotly está cargado correctamente.</p>';
+
+    // Dibujar un gráfico simple para verificar si funciona
+    const plotContainer = document.createElement('div');
+    plotContainer.id = 'test-plot';
+    document.body.appendChild(plotContainer);
+
+    const data = [
+        {
+            x: [1, 2, 3, 4, 5],
+            y: [10, 20, 30, 40, 50],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Test Plot'
+        }
+    ];
+    const layout = {
+        title: 'Gráfico de prueba inicial',
+        xaxis: {
+            title: 'Eje X'
+        },
+        yaxis: {
+            title: 'Eje Y'
+        }
+    };
+
+    console.log('Intentando dibujar un gráfico simple...');
+    try {
+        Plotly.newPlot('test-plot', data, layout);
+        console.log('Gráfico de prueba dibujado correctamente.');
+    } catch (error) {
+        console.error('Error al intentar dibujar el gráfico de prueba:', error);
+    }
 }
 
 async function loadData(url) {
@@ -115,12 +149,52 @@ async function drawSinglePlot(tram, resumData) {
         }
     };
 
-    console.log(`Dibujando gráfico de prueba para el tramo ${tram}`);
+    console.log(`Intentando dibujar un gráfico de prueba para el tramo ${tram}`);
     try {
         Plotly.newPlot(plotContainer, data, layout);
-        console.log('Gráfico dibujado correctamente.');
+        console.log('Gráfico de prueba dibujado correctamente.');
     } catch (error) {
-        console.error('Error al intentar dibujar el gráfico:', error);
+        console.error('Error al intentar dibujar el gráfico de prueba:', error);
+    }
+}
+
+async function drawFullLinePlot(trams, resumData) {
+    console.log('Dibujando gráficos concatenados para LINIA COMPLETA...');
+    // Borrar gráficos existentes
+    document.getElementById('plot').innerHTML = '';
+
+    if (typeof Plotly === 'undefined') {
+        console.error('Plotly no está definido. No se puede dibujar el gráfico.');
+        return;
+    }
+
+    // Crear un gráfico simple para verificar si se renderiza correctamente
+    const plotContainer = document.getElementById('plot');
+    const data = [
+        {
+            x: [1, 2, 3, 4, 5],
+            y: [20, 30, 40, 50, 60],
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Prueba Completa'
+        }
+    ];
+    const layout = {
+        title: `Gráfico de prueba para LINIA COMPLETA`,
+        xaxis: {
+            title: 'Año'
+        },
+        yaxis: {
+            title: 'Valor'
+        }
+    };
+
+    console.log('Intentando dibujar un gráfico de prueba para LINIA COMPLETA');
+    try {
+        Plotly.newPlot(plotContainer, data, layout);
+        console.log('Gráfico de prueba para LINIA COMPLETA dibujado correctamente.');
+    } catch (error) {
+        console.error('Error al intentar dibujar el gráfico de prueba para LINIA COMPLETA:', error);
     }
 }
 
