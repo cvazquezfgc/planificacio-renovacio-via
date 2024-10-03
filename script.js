@@ -1,4 +1,4 @@
-// Función para cargar los datos desde una URL proporcionada
+// Función para cargar los datos
 async function loadData(url) {
     try {
         const response = await fetch(url);
@@ -48,7 +48,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const labelContainer = document.createElement('div');
         labelContainer.style.writingMode = 'vertical-lr';
-        labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
+        labelContainer.style.transform = 'rotate(270deg)';
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -80,13 +80,10 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    // Añadir título del gráfico
-    const titleElement = document.createElement('h2');
-    titleElement.textContent = `Espai-temps previsió rehabilitació del tram ${tram}`;
-    document.getElementById('plot').appendChild(titleElement);
+    // Ajustar la altura de los gráficos individuales para evitar scroll
+    const adjustedHeight = 600; 
 
-    // Dibujar el gráfico del tramo
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 700); // Ajustar la altura de los gráficos individuales
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, adjustedHeight);
 
     // Añadir las tarjetas informativas
     const totalLength = resumData
