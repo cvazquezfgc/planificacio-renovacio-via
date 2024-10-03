@@ -1,22 +1,11 @@
-// Verificar si Plotly está definido y cargado
-if (typeof Plotly === 'undefined') {
-    console.error('Plotly no está cargado. Asegúrate de que el script de Plotly está incluido correctamente.');
-    document.body.innerHTML += '<p style="color:red;">Plotly no está cargado correctamente.</p>';
-} else {
-    console.log('Plotly se ha cargado correctamente.');
-    document.body.innerHTML += '<p style="color:green;">Plotly está cargado correctamente.</p>';
-}
-
 // Función para cargar los datos
 async function loadData(url) {
-    console.log(`Cargando datos desde: ${url}`);
     try {
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`Error HTTP! Estado: ${response.status}`);
         }
         const data = await response.json();
-        console.log(`Datos cargados exitosamente desde: ${url}`);
         return data;
     } catch (error) {
         console.error(`Error cargando datos de ${url}:`, error);
@@ -26,13 +15,7 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
-    console.log('Dibujando gráficos concatenados para LINIA COMPLETA...');
-    document.getElementById('plot').innerHTML = '';
-
-    if (typeof Plotly === 'undefined') {
-        console.error('Plotly no está definido. No se puede dibujar el gráfico.');
-        return;
-    }
+    document.getElementById('plot').innerHTML = '<h2>Espai-temps previsió rehabilitació de la línia completa</h2>';
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -64,7 +47,7 @@ async function drawFullLinePlot(trams, resumData) {
         container.style.marginBottom = '10px';
 
         const labelContainer = document.createElement('div');
-        labelContainer.style.writingMode = 'vertical-rl';
+        labelContainer.style.writingMode = 'vertical-lr';
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -74,7 +57,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `500px`;
+        plotContainer.style.height = `${500 + (pkMaxGlobal - pkMinGlobal) * 2}px`; // Ajustar la altura basada en la longitud
         plotContainer.style.flexGrow = '1';
 
         container.appendChild(labelContainer);
@@ -82,13 +65,12 @@ async function drawFullLinePlot(trams, resumData) {
 
         document.getElementById('plot').appendChild(container);
 
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === 0, pkMinGlobal, pkMaxGlobal);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i !== 0, pkMinGlobal, pkMaxGlobal);
     }
 }
 
 // Función para dibujar gráficos de tramos individuales
 async function drawSinglePlot(tram, resumData) {
-    console.log(`Dibujando gráfico para el tramo: ${tram}`);
     document.getElementById('plot').innerHTML = '';
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
@@ -98,12 +80,11 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true);
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 800); // Ajustar la altura de los gráficos individuales
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addTitle = true, pkMinGlobal = null, pkMaxGlobal = null) {
-    console.log(`Dibujando gráfico para el tramo: ${tram}`);
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addTitle = true, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
@@ -187,7 +168,18 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             name: 'Vía 2',
             orientation: 'v',
             width: 0.5,
-            offset: 0.25
+            offset: 0.25,
+            marker: {
+                color: 'rgba(255, 127, 14, 1)'
+            },
+            hoverinfo: 'text',
+            hovertext: via2.map(d => `${Math.round(d.length)} m`),
+            hoverlabel: {
+                bgcolor: 'rgba(255, 127, 14, 1)',
+                font: {
+                    color: 'white'
+                }
+            }
         });
 
         // Añadir anotaciones y líneas de referencia para las estaciones
@@ -225,7 +217,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         })));
 
-        // Añadir líneas y sombreado para los años y la línea roja para 2025
+                // Añadir líneas y sombreado para los años y la línea roja para 2025
         shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
 
@@ -262,7 +254,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             t: addTitle ? 80 : 20,
             b: addTitle ? 50 : 20
         },
-        height: 500
+        height: plotHeight // Altura ajustada según el contexto
     };
 
     // Dibujar la gráfica
@@ -337,7 +329,6 @@ function addLinesAndShading(pkMin, pkMax) {
 
 // Inicializar la página y los eventos
 async function init() {
-    console.log('Inicializando la aplicación...');
     const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
     const resumData = await loadData(resumUrl);
     if (!resumData) {
@@ -345,15 +336,11 @@ async function init() {
         return;
     }
 
-    console.log('Datos del resumen:', resumData);
-
     const trams = [...new Set(resumData.map(d => d.TRAM))];
     if (trams.length === 0) {
         console.error('No se encontraron tramos en los datos cargados.');
         return;
     }
-
-    console.log('Tramos encontrados:', trams);
 
     const tramButtonsContainer = document.getElementById('tramButtons');
     if (!tramButtonsContainer) {
@@ -385,8 +372,6 @@ async function init() {
         }
     });
 
-    console.log('Botones de tramos añadidos correctamente.');
-
     // Dibujar el gráfico de "LINIA COMPLETA" por defecto
     selectTramButton(liniaCompletaButton);
     drawFullLinePlot(trams, resumData);
@@ -395,10 +380,10 @@ async function init() {
 function selectTramButton(button) {
     document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
-    console.log(`Botón seleccionado: ${button.textContent}`);
 }
 
+// Ejecutar cuando el contenido del DOM esté cargado
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Contenido DOM cargado, iniciando script...');
     init();
 });
+
