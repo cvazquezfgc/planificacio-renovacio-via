@@ -89,13 +89,13 @@ async function drawFullLinePlot(trams, resumData) {
     document.body.style.overflow = 'auto';
 }
 
-// Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
+// Función para dibujar gráficos de tramos individuales y añadir representación visual de las tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
-    // Añadir el título del gráfico individual
+    // Limpiar el contenedor de gráficos y añadir el título del gráfico
     document.getElementById('plot').innerHTML = `
-        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
+        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
             Espai-temps previsió rehabilitació tram ${tram}
-        </div>`;
+        </h2>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -106,63 +106,106 @@ async function drawSinglePlot(tram, resumData) {
 
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400); // Ajustar la altura de los gráficos individuales
 
-    // Añadir las tarjetas informativas
-    const totalLength = resumData
-        .filter(d => d.TRAM === tram)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthBefore2025 = resumData
-        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthBetween2025And2030 = resumData
-        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
+    // Añadir la representación visual de las tarjetas informativas
     const infoContainer = document.createElement('div');
     infoContainer.style.display = 'flex';
     infoContainer.style.gap = '20px';
     infoContainer.style.marginTop = '20px';
 
-    const createCard = (title, value) => {
-        const card = document.createElement('div');
-        card.style.border = '1px solid #ccc';
-        card.style.borderRadius = '8px';
-        card.style.padding = '10px';
-        card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
-        card.style.flex = '1';
+    const createLineRepresentation = (title, segments, color) => {
+        const representation = document.createElement('div');
+        representation.style.flex = '1';
+        representation.style.textAlign = 'center';
 
-        const cardTitle = document.createElement('h3');
-        cardTitle.textContent = title;
-        cardTitle.style.margin = '0 0 10px 0';
+        const lineTitle = document.createElement('h3');
+        lineTitle.textContent = title;
+        lineTitle.style.marginBottom = '10px';
 
-        const cardValue = document.createElement('p');
-        cardValue.textContent = `${value.toFixed(0)} m`;
-        cardValue.style.fontSize = '18px';
-        cardValue.style.fontWeight = 'bold';
+        const lineContainer = document.createElement('div');
+        lineContainer.style.position = 'relative';
+        lineContainer.style.height = '40px';
+        lineContainer.style.margin = '10px 0';
 
-        card.appendChild(cardTitle);
-        card.appendChild(cardValue);
+        ['Vía 1', 'Vía 2'].forEach((via, index) => {
+            const line = document.createElement('div');
+            line.style.position = 'absolute';
+            line.style.top = `${index * 20}px`;
+            line.style.left = '0';
+            line.style.width = '100%';
+            line.style.height = '10px';
+            line.style.borderRadius = '5px';
+            line.style.backgroundColor = color;
 
-        return card;
+            // Colorear los segmentos si es necesario
+            segments
+                .filter(seg => seg.via === via)
+                .forEach(segment => {
+                    const segmentDiv = document.createElement('div');
+                    segmentDiv.style.position = 'absolute';
+                    segmentDiv.style.left = `${((segment.PKInici / totalLength) * 100).toFixed(2)}%`;
+                                        segmentDiv.style.width = `${(((segment.PKFinal - segment.PKInici) / totalLength) * 100).toFixed(2)}%`;
+                    segmentDiv.style.height = '10px';
+                    segmentDiv.style.borderRadius = '5px';
+                    segmentDiv.style.backgroundColor = segment.color; // Resaltar el segmento con el color correspondiente
+                    line.appendChild(segmentDiv);
+                });
+
+            lineContainer.appendChild(line);
+        });
+
+        representation.appendChild(lineTitle);
+        representation.appendChild(lineContainer);
+
+        return representation;
     };
 
-    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO', totalLength));
-    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN < 2025', lengthBefore2025));
-    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN ENTRE 2025 Y 2030', lengthBetween2025And2030));
+    const totalLength = resumData
+        .filter(d => d.TRAM === tram)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
+    // Crear representaciones para las tres zonas (todas las vías, rehabilitación < 2025, rehabilitación entre 2025 y 2030)
+    const viaSegments = resumData.filter(d => d.TRAM === tram).map(d => ({
+        PKInici: parseFloat(d['PK inici']),
+        PKFinal: parseFloat(d['PK final']),
+        via: `Vía ${d.Via}`,
+        color: 'gray'
+    }));
+
+    const segmentsBefore2025 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
+        .map(d => ({
+            PKInici: parseFloat(d['PK inici']),
+            PKFinal: parseFloat(d['PK final']),
+            via: `Vía ${d.Via}`,
+            color: 'red'
+        }));
+
+    const segmentsBetween2025And2030 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
+        .map(d => ({
+            PKInici: parseFloat(d['PK inici']),
+            PKFinal: parseFloat(d['PK final']),
+            via: `Vía ${d.Via}`,
+            color: 'orange'
+        }));
+
+    // Añadir representaciones gráficas al contenedor
+    infoContainer.appendChild(createLineRepresentation('LONGITUD TOTAL DE VIA DEL TRAMO', viaSegments, 'gray'));
+    infoContainer.appendChild(createLineRepresentation('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN < 2025', segmentsBefore2025, 'gray'));
+    infoContainer.appendChild(createLineRepresentation('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN ENTRE 2025 Y 2030', segmentsBetween2025And2030.concat(segmentsBefore2025), 'gray'));
+
+    // Añadir el contenedor de la información al gráfico principal
     document.getElementById('plot').appendChild(infoContainer);
-
-    // Autoajustar la altura del contenedor para que no haya scroll
-    document.body.style.height = '100vh';
-    document.body.style.overflow = 'hidden';
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
+
+    let pkMin = Infinity;
+    let pkMax = -Infinity;
 
     function groupConsecutiveSegments(data) {
         const groupedData = [];
@@ -204,10 +247,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     const via2 = groupConsecutiveSegments(via2Data);
 
     if (via1.length > 0 || via2.length > 0) {
-        pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
-        pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
+        pkMin = Math.min(...via1.concat(via2).map(d => d.PKInici));
+        pkMax = Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
-        // Crear trazas para las vías
+        if (pkMinGlobal !== null) pkMin = pkMinGlobal;
+        if (pkMaxGlobal !== null) pkMax = pkMaxGlobal;
+
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
@@ -293,7 +338,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     // Configuración del layout del gráfico
     const layout = {
-        title: addHorizontalLabels ? '' : '',
+        title: addHorizontalLabels ? '' : `Espai-temps previsió rehabilitació del tram ${tram}`,
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
@@ -327,8 +372,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         height: plotHeight // Ajustar la altura del gráfico
     };
 
-        // Dibujar la gráfica
-    Plotly.newPlot(containerId, traces, layout);
+    // Dibujar la gráfica
+        Plotly.newPlot(containerId, traces, layout);
 }
 
 // Función para añadir líneas y sombreado
@@ -418,7 +463,24 @@ async function init() {
         return;
     }
 
-    // Añadir botones para cada tramo
+    // Añadir el botón para "LINIA COMPLETA"
+    const liniaCompletaButton = document.createElement('button');
+    liniaCompletaButton.className = 'tram-button';
+    liniaCompletaButton.textContent = 'LINIA COMPLETA';
+    liniaCompletaButton.style.marginLeft = '20px'; // Añadir margen a la derecha para separar del resto de botones
+    liniaCompletaButton.addEventListener('click', () => {
+        selectTramButton(liniaCompletaButton);
+        drawFullLinePlot(trams, resumData);
+    });
+
+    // Crear una línea divisoria entre los botones de tramos y el botón de LINIA COMPLETA
+    const separator = document.createElement('div');
+    separator.style.borderLeft = '2px solid #ccc';
+    separator.style.height = '30px';
+    separator.style.marginLeft = '10px';
+    separator.style.marginRight = '10px';
+
+    // Añadir botones de cada tramo
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
@@ -432,33 +494,19 @@ async function init() {
         }
     });
 
-    // Añadir el botón para "LINIA COMPLETA"
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.style.marginLeft = '20px'; // Añadir un espacio entre el botón de LINIA COMPLETA y el resto de botones
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        drawFullLinePlot(trams, resumData);
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Añadir una línea vertical entre los botones de tramo y el de LINIA COMPLETA
-    const separator = document.createElement('div');
-    separator.style.borderLeft = '1px solid #ccc';
-    separator.style.height = '30px';
-    separator.style.marginLeft = '10px';
-    separator.style.marginRight = '10px';
+    // Añadir la línea divisoria y el botón de LINIA COMPLETA al contenedor de botones
     tramButtonsContainer.appendChild(separator);
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
-    // Dibujar el primer gráfico (por defecto)
-    const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
-    selectTramButton(firstTramButton);
-    drawSinglePlot(trams[0], resumData);
+    // Dibujar el gráfico del primer tramo por defecto
+    const defaultButton = tramButtonsContainer.querySelector('.tram-button');
+    if (defaultButton) {
+        selectTramButton(defaultButton);
+        drawSinglePlot(defaultButton.textContent, resumData);
+    }
 }
 
-// Función para seleccionar un botón de tramo
+// Función para marcar el botón seleccionado
 function selectTramButton(button) {
     document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
@@ -468,3 +516,5 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
+
