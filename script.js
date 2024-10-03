@@ -58,6 +58,7 @@ async function drawFullLinePlot(trams, resumData) {
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
         labelContainer.style.fontWeight = 'bold';
+        labelContainer.style.whiteSpace = 'nowrap'; // Evitar que el texto se divida en varias líneas
         labelContainer.textContent = tram;
 
         // Crear un contenedor para el gráfico
@@ -77,6 +78,11 @@ async function drawFullLinePlot(trams, resumData) {
         const addHorizontalLabels = i === trams.length - 1;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
+
+    // Añadir un espacio en blanco al final de la página para evitar que quede muy ajustada
+    const blankSpace = document.createElement('div');
+    blankSpace.style.height = '100px';
+    document.getElementById('plot').appendChild(blankSpace);
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
     document.body.style.height = 'auto';
@@ -191,7 +197,6 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         return groupedData;
     }
 
-    // Continuaré ajustando los gráficos y configurando cada sección según tus necesidades específicas.
     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
@@ -202,6 +207,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
         pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
+        // Crear trazas para las vías
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
@@ -287,7 +293,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     // Configuración del layout del gráfico
     const layout = {
-        title: '', // Eliminar título individual en gráficos de "LINIA COMPLETA"
+        title: addHorizontalLabels ? '' : '',
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
@@ -307,8 +313,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             orientation: 'v',
             x: 1.05,
             xanchor: 'left',
-            y: 0.5,
-            yanchor: 'middle' // Centrar verticalmente la leyenda
+            y: 1
         },
         annotations: stationAnnotations,
         shapes: shapes,
@@ -319,10 +324,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
-        height: plotHeight // Ajustar la altura del gráfico basada en la longitud del tramo
+        height: plotHeight // Ajustar la altura del gráfico
     };
 
-    // Dibujar la gráfica
+        // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
 }
 
@@ -413,7 +418,7 @@ async function init() {
         return;
     }
 
-    // Añadir botones para cada tramo y el botón de "LINIA COMPLETA"
+    // Añadir botones para cada tramo
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
@@ -427,29 +432,33 @@ async function init() {
         }
     });
 
-    // Añadir una línea separadora y el botón para "LINIA COMPLETA"
-    const separator = document.createElement('div');
-    separator.style.width = '2px';
-    separator.style.height = '30px';
-    separator.style.backgroundColor = 'black';
-    separator.style.margin = '0 15px';
-    tramButtonsContainer.appendChild(separator);
-
+    // Añadir el botón para "LINIA COMPLETA"
     const liniaCompletaButton = document.createElement('button');
     liniaCompletaButton.className = 'tram-button';
     liniaCompletaButton.textContent = 'LINIA COMPLETA';
+    liniaCompletaButton.style.marginLeft = '20px'; // Añadir un espacio entre el botón de LINIA COMPLETA y el resto de botones
     liniaCompletaButton.addEventListener('click', () => {
         selectTramButton(liniaCompletaButton);
         drawFullLinePlot(trams, resumData);
     });
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
-    // Dibujar el gráfico del primer tramo de la lista por defecto
+    // Añadir una línea vertical entre los botones de tramo y el de LINIA COMPLETA
+    const separator = document.createElement('div');
+    separator.style.borderLeft = '1px solid #ccc';
+    separator.style.height = '30px';
+    separator.style.marginLeft = '10px';
+    separator.style.marginRight = '10px';
+    tramButtonsContainer.appendChild(separator);
+    tramButtonsContainer.appendChild(liniaCompletaButton);
+
+    // Dibujar el primer gráfico (por defecto)
     const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
     selectTramButton(firstTramButton);
     drawSinglePlot(trams[0], resumData);
 }
 
+// Función para seleccionar un botón de tramo
 function selectTramButton(button) {
     document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
