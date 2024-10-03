@@ -48,7 +48,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const labelContainer = document.createElement('div');
         labelContainer.style.writingMode = 'vertical-lr';
-        labelContainer.style.transform = 'rotate(135deg)';
+        labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -247,7 +247,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             bgcolor: 'white',
             bordercolor: 'gray',
             borderwidth: 2,
-                        borderpad: 5,
+            borderpad: 5,
             opacity: 1
         })));
 
