@@ -47,7 +47,6 @@ async function drawFullLinePlot(trams, resumData) {
         container.style.marginBottom = '10px';
 
         const labelContainer = document.createElement('div');
-        labelContainer.style.writingMode = 'vertical-lr';
         labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
