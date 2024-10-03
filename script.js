@@ -15,6 +15,7 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
+    // Limpiar el contenedor de gráficos y añadir el título global
     document.getElementById('plot').innerHTML = `
         <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-bottom: 20px;">
             Espai-temps previsió rehabilitació de la línia completa
@@ -27,30 +28,21 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    let pkMinGlobal = Infinity;
-    let pkMaxGlobal = -Infinity;
-
-    // Determinar pkMinGlobal y pkMaxGlobal para mantener la misma escala vertical en todos los gráficos
-    trams.forEach(tram => {
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-        if (via1Data.length > 0 || via2Data.length > 0) {
-            const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-            const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-            pkMinGlobal = Math.min(pkMin, pkMinGlobal);
-            pkMaxGlobal = Math.max(pkMax, pkMaxGlobal);
-        }
-    });
+    // Definir altura unitaria por kilómetro
+    const unitHeightPerKm = 50; // La mitad del alto de los botones de tramo (~50px)
 
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
 
+        // Obtener los datos de Vía 1 y Vía 2 para el tramo actual
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
         const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
-        let pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-        let pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+        // Calcular PK mínimo y máximo del tramo
+        const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+        const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
 
         // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
@@ -71,7 +63,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${(pkMax - pkMin) * 15}px`; // Ajustar la altura proporcional a la longitud, con más zoom
+        plotContainer.style.height = `${tramoHeight}px`; // Ajustar la altura proporcional a la longitud del tramo
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -81,9 +73,9 @@ async function drawFullLinePlot(trams, resumData) {
         // Añadir el contenedor del gráfico al área principal de gráficos
         document.getElementById('plot').appendChild(container);
 
-        // Dibujar el gráfico sin título y con etiquetas de año solo en el primero y el último
-        const addHorizontalLabels = i === 0 || i === trams.length - 1;
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMinGlobal, pkMaxGlobal, false);
+        // Dibujar el gráfico sin título y con etiquetas de año solo en el último gráfico
+        const addHorizontalLabels = i === trams.length - 1;
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
@@ -93,6 +85,7 @@ async function drawFullLinePlot(trams, resumData) {
 
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
+    // Añadir el título del gráfico individual
     document.getElementById('plot').innerHTML = `
         <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
             Espai-temps previsió rehabilitació tram ${tram}
@@ -160,13 +153,10 @@ async function drawSinglePlot(tram, resumData) {
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
-
-    let pkMin = Infinity;
-    let pkMax = -Infinity;
 
     function groupConsecutiveSegments(data) {
         const groupedData = [];
@@ -201,6 +191,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         return groupedData;
     }
 
+    // Continuaré ajustando los gráficos y configurando cada sección según tus necesidades específicas.
     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
@@ -208,11 +199,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     const via2 = groupConsecutiveSegments(via2Data);
 
     if (via1.length > 0 || via2.length > 0) {
-        pkMin = Math.min(...via1.concat(via2).map(d => d.PKInici));
-        pkMax = Math.max(...via1.concat(via2).map(d => d.PKFinal));
-
-        if (pkMinGlobal !== null) pkMin = pkMinGlobal;
-        if (pkMaxGlobal !== null) pkMax = pkMaxGlobal;
+        pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
+        pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
         traces.push({
             x: via1.map(d => d.PREVISIO),
@@ -236,7 +224,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         });
 
-               traces.push({
+        traces.push({
             x: via2.map(d => d.PREVISIO),
             y: via2.map(d => d.PKFinal - d.PKInici),
             base: via2.map(d => d.PKInici),
@@ -331,7 +319,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
-        height: plotHeight // Ajustar la altura del gráfico
+        height: plotHeight // Ajustar la altura del gráfico basada en la longitud del tramo
     };
 
     // Dibujar la gráfica
@@ -458,13 +446,10 @@ async function init() {
 
     // Dibujar el gráfico del primer tramo de la lista por defecto
     const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
-    if (firstTramButton) {
-        selectTramButton(firstTramButton);
-        drawSinglePlot(trams[0], resumData);
-    }
+    selectTramButton(firstTramButton);
+    drawSinglePlot(trams[0], resumData);
 }
 
-// Función para seleccionar un botón de tramo
 function selectTramButton(button) {
     document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
@@ -474,4 +459,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
