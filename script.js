@@ -15,7 +15,10 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
-    document.getElementById('plot').innerHTML = '<h2>Espai-temps previsió rehabilitació de la línia completa</h2>';
+    document.getElementById('plot').innerHTML = `
+        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif;">
+            Espai-temps previsió rehabilitació de la línia completa
+        </h2>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -24,28 +27,23 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    let pkMinGlobal = Infinity;
-    let pkMaxGlobal = -Infinity;
-    trams.forEach(tram => {
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-        if (via1Data.length > 0 || via2Data.length > 0) {
-            const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-            const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-            pkMinGlobal = Math.min(pkMin, pkMinGlobal);
-            pkMaxGlobal = Math.max(pkMax, pkMaxGlobal);
-        }
-    });
-
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
 
+        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+
+        let pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+        let pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+
+        // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
         container.id = `plot-${tram}`;
         container.style.display = 'flex';
         container.style.alignItems = 'center';
         container.style.marginBottom = '10px';
 
+        // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
         labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
         labelContainer.style.textAlign = 'center';
@@ -54,23 +52,29 @@ async function drawFullLinePlot(trams, resumData) {
         labelContainer.style.fontWeight = 'bold';
         labelContainer.textContent = tram;
 
+        // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${500 + (pkMaxGlobal - pkMinGlobal) * 2}px`; // Ajustar la altura basada en la longitud
+        plotContainer.style.height = `${(pkMax - pkMin) * 20}px`; // Ajustar la altura basada en la longitud y aumentar el zoom vertical
         plotContainer.style.flexGrow = '1';
 
+        // Añadir la etiqueta y el gráfico al contenedor principal
         container.appendChild(labelContainer);
         container.appendChild(plotContainer);
 
+        // Añadir el contenedor del gráfico al área principal de gráficos
         document.getElementById('plot').appendChild(container);
 
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === trams.length - 1, pkMinGlobal, pkMaxGlobal);
+        // Llamar a la función para dibujar cada tramo
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax);
     }
 }
 
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
-    document.getElementById('plot').innerHTML = '';
+    document.getElementById('plot').innerHTML = `<h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif;">
+        Espai-temps previsió rehabilitació tram ${tram}
+    </h2>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -79,7 +83,7 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 1000); // Ajustar la altura de los gráficos individuales
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 600); // Ajustar la altura de los gráficos individuales
 
     // Añadir las tarjetas informativas
     const totalLength = resumData
@@ -289,7 +293,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             orientation: 'v',
             x: 1.05,
             xanchor: 'left',
-            y: 1
+            y: 0.5,
+            yanchor: 'middle'
         },
         annotations: stationAnnotations,
         shapes: shapes,
