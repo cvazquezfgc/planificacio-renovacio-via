@@ -48,11 +48,11 @@ async function drawFullLinePlot(trams, resumData) {
 
         const labelContainer = document.createElement('div');
         labelContainer.style.writingMode = 'vertical-lr';
+        labelContainer.style.transform = 'rotate(135deg)';
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
         labelContainer.style.fontWeight = 'bold';
-        labelContainer.style.height = '500px';
         labelContainer.textContent = tram;
 
         const plotContainer = document.createElement('div');
@@ -65,11 +65,11 @@ async function drawFullLinePlot(trams, resumData) {
 
         document.getElementById('plot').appendChild(container);
 
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i !== 0, pkMinGlobal, pkMaxGlobal);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === trams.length - 1, pkMinGlobal, pkMaxGlobal);
     }
 }
 
-// Función para dibujar gráficos de tramos individuales
+// Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = '';
 
@@ -80,11 +80,58 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 800); // Ajustar la altura de los gráficos individuales
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 1000); // Ajustar la altura de los gráficos individuales
+
+    // Añadir las tarjetas informativas
+    const totalLength = resumData
+        .filter(d => d.TRAM === tram)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBefore2025 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBetween2025And2030 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const infoContainer = document.createElement('div');
+    infoContainer.style.display = 'flex';
+    infoContainer.style.gap = '20px';
+    infoContainer.style.marginTop = '20px';
+
+    const createCard = (title, value) => {
+        const card = document.createElement('div');
+        card.style.border = '1px solid #ccc';
+        card.style.borderRadius = '8px';
+        card.style.padding = '10px';
+        card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+        card.style.flex = '1';
+
+        const cardTitle = document.createElement('h3');
+        cardTitle.textContent = title;
+        cardTitle.style.margin = '0 0 10px 0';
+
+        const cardValue = document.createElement('p');
+        cardValue.textContent = `${value.toFixed(0)} m`;
+        cardValue.style.fontSize = '18px';
+        cardValue.style.fontWeight = 'bold';
+
+        card.appendChild(cardTitle);
+        card.appendChild(cardValue);
+
+        return card;
+    };
+
+    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO', totalLength));
+    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN < 2025', lengthBefore2025));
+    infoContainer.appendChild(createCard('LONGITUD TOTAL DE VIA DEL TRAMO CON AÑO DE REHABILITACIÓN ENTRE 2025 Y 2030', lengthBetween2025And2030));
+
+    document.getElementById('plot').appendChild(infoContainer);
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addTitle = true, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
@@ -146,7 +193,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             name: 'Vía 1',
             orientation: 'v',
             width: 0.5,
-            offset: -0.25,
+            offset: 0,
             marker: {
                 color: 'rgba(31, 119, 180, 1)'
             },
@@ -168,7 +215,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             name: 'Vía 2',
             orientation: 'v',
             width: 0.5,
-            offset: 0.25,
+            offset: 0.5,
             marker: {
                 color: 'rgba(255, 127, 14, 1)'
             },
@@ -200,7 +247,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             bgcolor: 'white',
             bordercolor: 'gray',
             borderwidth: 2,
-            borderpad: 5,
+                       borderpad: 5,
             opacity: 1
         })));
 
@@ -217,19 +264,19 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         })));
 
-                // Añadir líneas y sombreado para los años y la línea roja para 2025
+        // Añadir líneas y sombreado para los años y la línea roja para 2025
         shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
 
     // Configuración del layout del gráfico
     const layout = {
-        title: addTitle ? `Espai-temps previsió rehabilitació del tram ${tram}` : '',
+        title: addHorizontalLabels ? '' : `Espai-temps previsió rehabilitació del tram ${tram}`,
         xaxis: {
-            title: addTitle ? 'Any previsió rehabilitació' : '',
+            title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
-            tickangle: -45,
-            showticklabels: addTitle
+            tickangle: addHorizontalLabels ? -45 : 0,
+            showticklabels: addHorizontalLabels
         },
         yaxis: {
             title: 'PK',
@@ -251,10 +298,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         margin: {
             l: 150,
             r: 150,
-            t: addTitle ? 80 : 20,
-            b: addTitle ? 50 : 20
+            t: 20,
+            b: addHorizontalLabels ? 50 : 20
         },
-        height: plotHeight // Altura ajustada según el contexto
+        height: plotHeight // Ajustar la altura del gráfico
     };
 
     // Dibujar la gráfica
