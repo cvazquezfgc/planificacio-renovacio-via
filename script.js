@@ -1,84 +1,81 @@
-async function loadData(url) {
-    console.log(`Cargando datos desde: ${url}`);
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Error HTTP! Estado: ${response.status}`);
+async function drawSinglePlot(tram, resumData) {
+    console.log(`Dibujando gráfico para el tramo: ${tram}`);
+    // Borrar gráficos existentes
+    document.getElementById('plot').innerHTML = '';
+
+    // Cargar los datos de las estaciones
+    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+    const estacionsData = await loadData(estacionsUrl);
+    if (!estacionsData) {
+        console.error('No se pudo cargar los datos de las estaciones.');
+        return;
+    }
+
+    console.log('Datos de estaciones cargados correctamente.');
+
+    // Crear un gráfico simple para verificar si se renderiza correctamente
+    const plotContainer = document.getElementById('plot');
+    const data = [
+        {
+            x: [1995, 2000, 2005, 2010],
+            y: [10, 15, 13, 17],
+            type: 'scatter',
+            name: 'Prueba'
         }
-        const data = await response.json();
-        console.log(`Datos cargados exitosamente desde: ${url}`);
-        return data;
-    } catch (error) {
-        console.error(`Error cargando datos de ${url}:`, error);
-        return null;
-    }
-}
-
-async function init() {
-    console.log('Inicializando la aplicación...');
-    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-    const resumData = await loadData(resumUrl);
-    if (!resumData) {
-        console.error('No se pudo cargar el resumen de datos.');
-        return;
-    }
-
-    // Verificar los datos cargados
-    console.log('Datos del resumen:', resumData);
-
-    // Obtener los tramos únicos
-    const trams = [...new Set(resumData.map(d => d.TRAM))];
-    if (trams.length === 0) {
-        console.error('No se encontraron tramos en los datos cargados.');
-        return;
-    }
-
-    console.log('Tramos encontrados:', trams);
-
-    // Contenedor de botones de tramo
-    const tramButtonsContainer = document.getElementById('tramButtons');
-    if (!tramButtonsContainer) {
-        console.error('No se encontró el contenedor de botones de tramo en el DOM.');
-        return;
-    }
-
-    // Añadir el botón para "LINIA COMPLETA"
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        console.log('Botón "LINIA COMPLETA" clickeado.');
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Añadir botones para cada tramo
-    trams.forEach(tram => {
-        if (tram) {
-            const button = document.createElement('button');
-            button.className = 'tram-button';
-            button.textContent = tram;
-            button.addEventListener('click', () => {
-                selectTramButton(button);
-                console.log(`Botón de tramo "${tram}" clickeado.`);
-            });
-            tramButtonsContainer.appendChild(button);
+    ];
+    const layout = {
+        title: `Gráfico de prueba para el tramo ${tram}`,
+        xaxis: {
+            title: 'Año',
+            range: [1995, 2015]
+        },
+        yaxis: {
+            title: 'Valor'
+        },
+        margin: {
+            l: 50,
+            r: 50,
+            t: 80, // Incrementar el margen superior para evitar que se corte el título
+            b: 50
         }
-    });
+    };
 
-    console.log('Botones de tramos añadidos correctamente.');
+    console.log(`Dibujando gráfico de prueba para el tramo ${tram}`);
+    Plotly.newPlot(plotContainer, data, layout);
 }
 
-function selectTramButton(button) {
-    // Deseleccionar todos los botones
-    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-    // Marcar el botón seleccionado
-    button.classList.add('selected');
-    console.log(`Botón seleccionado: ${button.textContent}`);
-}
+async function drawFullLinePlot(trams, resumData) {
+    console.log('Dibujando gráficos concatenados para LINIA COMPLETA...');
+    // Borrar gráficos existentes
+    document.getElementById('plot').innerHTML = '';
 
-// Inicializar la página y los eventos
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Contenido DOM cargado, iniciando script...');
-    init();
-});
+    // Crear un gráfico simple para "LINIA COMPLETA"
+    const plotContainer = document.getElementById('plot');
+    const data = [
+        {
+            x: [1995, 2000, 2005, 2010],
+            y: [20, 25, 23, 27],
+            type: 'scatter',
+            name: 'Prueba Completa'
+        }
+    ];
+    const layout = {
+        title: `Gráfico de prueba para LINIA COMPLETA`,
+        xaxis: {
+            title: 'Año',
+            range: [1995, 2015]
+        },
+        yaxis: {
+            title: 'Valor'
+        },
+        margin: {
+            l: 50,
+            r: 50,
+            t: 80,
+            b: 50
+        }
+    };
+
+    console.log(`Dibujando gráfico de prueba para LINIA COMPLETA`);
+    Plotly.newPlot(plotContainer, data, layout);
+}
