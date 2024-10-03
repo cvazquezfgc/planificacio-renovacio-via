@@ -16,7 +16,7 @@ async function loadData(url) {
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = `
-        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif;">
+        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-bottom: 20px;">
             Espai-temps previsió rehabilitació de la línia completa
         </h2>`;
 
@@ -57,7 +57,7 @@ async function drawFullLinePlot(trams, resumData) {
         container.id = `plot-${tram}`;
         container.style.display = 'flex';
         container.style.alignItems = 'center';
-        container.style.marginBottom = '10px';
+        container.style.marginBottom = '20px';
 
         // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
@@ -71,7 +71,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${(pkMax - pkMin) * 10}px`; // Ajustar la altura proporcional a la longitud, con más zoom
+        plotContainer.style.height = `${(pkMax - pkMin) * 15}px`; // Ajustar la altura proporcional a la longitud, con más zoom
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -94,9 +94,9 @@ async function drawFullLinePlot(trams, resumData) {
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = `
-        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-top: 20px;">
+        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
             Espai-temps previsió rehabilitació tram ${tram}
-        </h2>`;
+        </div>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -236,7 +236,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         });
 
-        traces.push({
+               traces.push({
             x: via2.map(d => d.PREVISIO),
             y: via2.map(d => d.PKFinal - d.PKInici),
             base: via2.map(d => d.PKInici),
@@ -439,7 +439,7 @@ async function init() {
         }
     });
 
-        // Añadir una línea separadora y el botón para "LINIA COMPLETA"
+    // Añadir una línea separadora y el botón para "LINIA COMPLETA"
     const separator = document.createElement('div');
     separator.style.width = '2px';
     separator.style.height = '30px';
@@ -474,3 +474,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
