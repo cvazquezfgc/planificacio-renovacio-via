@@ -83,8 +83,12 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Dibujar el gráfico sin título y con etiquetas de año solo en el primero y el último
         const addHorizontalLabels = i === 0 || i === trams.length - 1;
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMinGlobal, pkMaxGlobal);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMinGlobal, pkMaxGlobal, false);
     }
+
+    // Habilitar desplazamiento en la página LINIA COMPLETA
+    document.body.style.height = 'auto';
+    document.body.style.overflow = 'auto';
 }
 
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
@@ -150,9 +154,8 @@ async function drawSinglePlot(tram, resumData) {
 
     document.getElementById('plot').appendChild(infoContainer);
 
-    // Ajustar la altura de la página para que se adapte a la ventana visible
+    // Autoajustar la altura del contenedor para que no haya scroll
     document.body.style.height = '100vh';
-    document.documentElement.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
 
@@ -296,7 +299,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     // Configuración del layout del gráfico
     const layout = {
-        title: addHorizontalLabels ? '' : `Espai-temps previsió rehabilitació del tram ${tram}`,
+        title: '', // Eliminar título individual en gráficos de "LINIA COMPLETA"
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
@@ -317,7 +320,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             x: 1.05,
             xanchor: 'left',
             y: 0.5,
-            valign: 'middle'
+            yanchor: 'middle' // Centrar verticalmente la leyenda
         },
         annotations: stationAnnotations,
         shapes: shapes,
@@ -380,7 +383,6 @@ function addLinesAndShading(pkMin, pkMax) {
         fillcolor: 'rgba(255, 0, 0, 0.1)',
         layer: 'below',
         line: {
-           
             width: 0
         }
     });
@@ -437,7 +439,7 @@ async function init() {
         }
     });
 
-    // Añadir una línea separadora y el botón para "LINIA COMPLETA"
+        // Añadir una línea separadora y el botón para "LINIA COMPLETA"
     const separator = document.createElement('div');
     separator.style.width = '2px';
     separator.style.height = '30px';
