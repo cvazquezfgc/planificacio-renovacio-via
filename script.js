@@ -71,7 +71,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${(pkMax - pkMin) * 20}px`; // Ajustar la altura proporcional a la longitud
+        plotContainer.style.height = `${(pkMax - pkMin) * 10}px`; // Ajustar la altura proporcional a la longitud, con más zoom
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -89,9 +89,10 @@ async function drawFullLinePlot(trams, resumData) {
 
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
-    document.getElementById('plot').innerHTML = `<h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif;">
-        Espai-temps previsió rehabilitació tram ${tram}
-    </h2>`;
+    document.getElementById('plot').innerHTML = `
+        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-top: 20px;">
+            Espai-temps previsió rehabilitació tram ${tram}
+        </h2>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -100,7 +101,7 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 600); // Ajustar la altura de los gráficos individuales
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400); // Ajustar la altura de los gráficos individuales
 
     // Añadir las tarjetas informativas
     const totalLength = resumData
@@ -152,6 +153,7 @@ async function drawSinglePlot(tram, resumData) {
     // Ajustar la altura de la página para que se adapte a la ventana visible
     document.body.style.height = '100vh';
     document.documentElement.style.height = '100vh';
+    document.body.style.overflow = 'hidden';
 }
 
 // Función para dibujar un gráfico específico
@@ -223,7 +225,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             },
             hoverinfo: 'text',
             hovertext: via1.map(d => `${Math.round(d.length)} m`),
-                       hoverlabel: {
+            hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
                     color: 'white'
@@ -378,6 +380,7 @@ function addLinesAndShading(pkMin, pkMax) {
         fillcolor: 'rgba(255, 0, 0, 0.1)',
         layer: 'below',
         line: {
+           
             width: 0
         }
     });
@@ -420,17 +423,7 @@ async function init() {
         return;
     }
 
-    // Añadir el botón para "LINIA COMPLETA"
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        drawFullLinePlot(trams, resumData);
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Añadir botones para cada tramo
+    // Añadir botones para cada tramo y el botón de "LINIA COMPLETA"
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
@@ -444,11 +437,32 @@ async function init() {
         }
     });
 
-    // Dibujar el gráfico de "LINIA COMPLETA" por defecto
-    selectTramButton(liniaCompletaButton);
-    drawFullLinePlot(trams, resumData);
+    // Añadir una línea separadora y el botón para "LINIA COMPLETA"
+    const separator = document.createElement('div');
+    separator.style.width = '2px';
+    separator.style.height = '30px';
+    separator.style.backgroundColor = 'black';
+    separator.style.margin = '0 15px';
+    tramButtonsContainer.appendChild(separator);
+
+    const liniaCompletaButton = document.createElement('button');
+    liniaCompletaButton.className = 'tram-button';
+    liniaCompletaButton.textContent = 'LINIA COMPLETA';
+    liniaCompletaButton.addEventListener('click', () => {
+        selectTramButton(liniaCompletaButton);
+        drawFullLinePlot(trams, resumData);
+    });
+    tramButtonsContainer.appendChild(liniaCompletaButton);
+
+    // Dibujar el gráfico del primer tramo de la lista por defecto
+    const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
+    if (firstTramButton) {
+        selectTramButton(firstTramButton);
+        drawSinglePlot(trams[0], resumData);
+    }
 }
 
+// Función para seleccionar un botón de tramo
 function selectTramButton(button) {
     document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
     button.classList.add('selected');
@@ -458,4 +472,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
