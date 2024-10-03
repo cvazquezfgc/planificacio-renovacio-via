@@ -199,7 +199,7 @@ function addLinesAndShading(pkMin, pkMax) {
         fillcolor: 'rgba(255, 0, 0, 0.1)',
         layer: 'below',
         line: {
-                            width: 0
+                               width: 0
             }
         }
     });
@@ -459,3 +459,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
