@@ -154,73 +154,6 @@ async function drawSinglePlot(tram, resumData) {
     document.documentElement.style.height = '100vh';
 }
 
-// Función para añadir líneas y sombreado
-function addLinesAndShading(pkMin, pkMax) {
-    let shapes = [];
-    for (let year = 1995; year <= 2069; year++) {
-        // Añadir líneas verticales para cada año
-        shapes.push({
-            type: 'line',
-            x0: year,
-            x1: year,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'lightgray',
-                width: 0.8,
-                layer: 'below'
-            }
-        });
-
-        // Añadir sombreado cada 5 años
-        if (year % 5 === 0) {
-            shapes.push({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            });
-        }
-    }
-
-    // Añadir sombreado rojo antes de 2025
-    shapes.push({
-        type: 'rect',
-        x0: 1995,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 0, 0, 0.1)',
-        layer: 'below',
-        line: {
-                               width: 0
-            }
-        }
-    });
-
-    // Añadir línea roja en 2025
-    shapes.push({
-        type: 'line',
-        x0: 2025,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'red',
-            width: 2,
-            layer: 'above'
-        }
-    });
-
-    return shapes;
-}
-
 // Función para dibujar un gráfico específico
 async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMinGlobal = null, pkMaxGlobal = null, plotHeight = 500) {
     let traces = [];
@@ -290,7 +223,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             },
             hoverinfo: 'text',
             hovertext: via1.map(d => `${Math.round(d.length)} m`),
-            hoverlabel: {
+                       hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
                     color: 'white'
@@ -382,7 +315,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             x: 1.05,
             xanchor: 'left',
             y: 0.5,
-            yanchor: 'middle'
+            valign: 'middle'
         },
         annotations: stationAnnotations,
         shapes: shapes,
@@ -398,6 +331,72 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
+}
+
+// Función para añadir líneas y sombreado
+function addLinesAndShading(pkMin, pkMax) {
+    let shapes = [];
+    for (let year = 1995; year <= 2069; year++) {
+        // Añadir líneas verticales para cada año
+        shapes.push({
+            type: 'line',
+            x0: year,
+            x1: year,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'lightgray',
+                width: 0.8,
+                layer: 'below'
+            }
+        });
+
+        // Añadir sombreado cada 5 años
+        if (year % 5 === 0) {
+            shapes.push({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            });
+        }
+    }
+
+    // Añadir sombreado rojo antes de 2025
+    shapes.push({
+        type: 'rect',
+        x0: 1995,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 0, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    // Añadir línea roja en 2025
+    shapes.push({
+        type: 'line',
+        x0: 2025,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'red',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    return shapes;
 }
 
 // Inicializar la página y los eventos
