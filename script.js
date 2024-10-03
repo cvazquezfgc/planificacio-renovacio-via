@@ -45,6 +45,7 @@ async function init() {
     liniaCompletaButton.addEventListener('click', () => {
         selectTramButton(liniaCompletaButton);
         console.log('Botón "LINIA COMPLETA" clickeado');
+        drawSimplePlot(); // Dibujar un gráfico de prueba al hacer clic
     });
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
@@ -57,6 +58,7 @@ async function init() {
             button.addEventListener('click', () => {
                 selectTramButton(button);
                 console.log(`Botón de tramo "${tram}" clickeado`);
+                drawSimplePlot(); // Dibujar un gráfico de prueba al hacer clic
             });
             tramButtonsContainer.appendChild(button);
         }
@@ -65,12 +67,30 @@ async function init() {
     console.log('Botones de tramos añadidos correctamente.');
 }
 
+// Función para seleccionar un botón de tramo
 function selectTramButton(button) {
     // Deseleccionar todos los botones
     document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
     // Marcar el botón seleccionado
     button.classList.add('selected');
     console.log(`Botón seleccionado: ${button.textContent}`);
+}
+
+// Función para dibujar un gráfico de prueba simple
+function drawSimplePlot() {
+    console.log('Dibujando un gráfico simple de prueba...');
+    const plotContainer = document.getElementById('plot');
+    const data = [
+        {
+            x: [1, 2, 3, 4, 5],
+            y: [10, 15, 13, 17, 21],
+            type: 'scatter'
+        }
+    ];
+    const layout = {
+        title: 'Gráfico de prueba'
+    };
+    Plotly.newPlot(plotContainer, data, layout);
 }
 
 // Inicializar la página y los eventos
