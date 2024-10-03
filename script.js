@@ -1,81 +1,3 @@
-async function loadData(url) {
-    console.log(`Cargando datos desde: ${url}`);
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Error HTTP! Estado: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log(`Datos cargados exitosamente desde: ${url}`);
-        return data;
-    } catch (error) {
-        console.error(`Error cargando datos de ${url}:`, error);
-        return null;
-    }
-}
-
-async function init() {
-    console.log('Inicializando la aplicación...');
-    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-    const resumData = await loadData(resumUrl);
-    if (!resumData) {
-        console.error('No se pudo cargar el resumen de datos.');
-        return;
-    }
-
-    // Verificar los datos cargados
-    console.log('Datos del resumen:', resumData);
-
-    // Obtener los tramos únicos
-    const trams = [...new Set(resumData.map(d => d.TRAM))];
-    if (trams.length === 0) {
-        console.error('No se encontraron tramos en los datos cargados.');
-        return;
-    }
-
-    console.log('Tramos encontrados:', trams);
-
-    // Contenedor de botones de tramo
-    const tramButtonsContainer = document.getElementById('tramButtons');
-
-    // Añadir el botón para "LINIA COMPLETA"
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        drawFullLinePlot(trams, resumData);
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Añadir botones para cada tramo
-    trams.forEach(tram => {
-        if (tram) {
-            const button = document.createElement('button');
-            button.className = 'tram-button';
-            button.textContent = tram;
-            button.addEventListener('click', () => {
-                selectTramButton(button);
-                drawSinglePlot(tram, resumData);
-            });
-            tramButtonsContainer.appendChild(button);
-        }
-    });
-
-    console.log('Botones de tramos añadidos correctamente.');
-    // Dibujar el gráfico de "LINIA COMPLETA" por defecto
-    selectTramButton(liniaCompletaButton);
-    drawFullLinePlot(trams, resumData);
-}
-
-function selectTramButton(button) {
-    // Deseleccionar todos los botones
-    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-    // Marcar el botón seleccionado
-    button.classList.add('selected');
-    console.log(`Botón seleccionado: ${button.textContent}`);
-}
-
 async function drawFullLinePlot(trams, resumData) {
     console.log('Dibujando gráficos concatenados para LINIA COMPLETA...');
     // Borrar gráficos existentes
@@ -116,7 +38,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
-        labelContainer.style.writingMode = 'vertical-lr'; // Cambiar orientación del texto
+        labelContainer.style.writingMode = 'vertical-rl'; // Cambiar orientación del texto (de abajo hacia arriba)
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -138,28 +60,11 @@ async function drawFullLinePlot(trams, resumData) {
         document.getElementById('plot').appendChild(container);
 
         // Llamar a la función para dibujar cada tramo
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === trams.length - 1, pkMinGlobal, pkMaxGlobal);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, i === 0, pkMinGlobal, pkMaxGlobal);
     }
 }
 
-async function drawSinglePlot(tram, resumData) {
-    console.log(`Dibujando gráfico para el tramo: ${tram}`);
-    // Borrar gráficos existentes
-    document.getElementById('plot').innerHTML = '';
-
-    // Cargar los datos de las estaciones
-    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-    const estacionsData = await loadData(estacionsUrl);
-    if (!estacionsData) {
-        console.error('No se pudo cargar los datos de las estaciones.');
-        return;
-    }
-
-    // Llamar a la función para dibujar el tramo individual
-    await drawPlot(tram, resumData, estacionsData, 'plot', true);
-}
-
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', isLast = true, pkMinGlobal = null, pkMaxGlobal = null) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addTitle = true, pkMinGlobal = null, pkMaxGlobal = null) {
     console.log(`Dibujando gráfico para el tramo: ${tram}`);
     let traces = [];
     let stationAnnotations = [];
@@ -230,7 +135,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
                 color: 'rgba(31, 119, 180, 1)'
             },
             hoverinfo: 'text',
-            hovertext: via1.map(d => `Longitud: ${Math.round(d.length)} m`),
+            hovertext: via1.map(d => `${Math.round(d.length)} m`), // Solo mostrar valor en metros
             hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
@@ -252,8 +157,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
                 color: 'rgba(255, 127, 14, 1)'
             },
             hoverinfo: 'text',
-            hovertext: via2.map(d => `Longitud: ${Math.round(d.length)} m`),
-                   hoverlabel: {
+            hovertext: via2.map(d => `${Math.round(d.length)} m`), // Solo mostrar valor en metros
+            hoverlabel: {
                 bgcolor: 'rgba(255, 127, 14, 1)',
                 font: {
                     color: 'white'
@@ -302,13 +207,13 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
 
     // Configuración del layout del gráfico
     const layout = {
-        title: isLast ? `Espai-temps previsió rehabilitació del tram ${tram}` : '',
+        title: addTitle ? `Espai-temps previsió rehabilitació del tram ${tram}` : '',
         xaxis: {
-            title: isLast ? 'Any previsió rehabilitació' : '',
+            title: addTitle ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
             tickangle: -45,
-            showticklabels: isLast
+            showticklabels: addTitle
         },
         yaxis: {
             title: 'PK',
@@ -328,10 +233,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
         shapes: shapes,
         hovermode: 'closest',
         margin: {
-            l: 150, // Ajustar margen izquierdo para el espacio de la etiqueta del tramo
-            r: 150, // Aumentar margen derecho para evitar que las etiquetas se corten
-            t: 20,
-            b: isLast ? 50 : 20 // Mayor margen inferior para el último gráfico
+            l: 150,
+            r: 150,
+            t: 60, // Incrementar el margen superior para evitar que se corte el título
+            b: addTitle ? 50 : 20 // Mayor margen inferior para el último gráfico
         },
         height: 500 // Altura para cada tramo
     };
@@ -339,76 +244,3 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', is
     // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
 }
-
-// Función para añadir líneas y sombreado
-function addLinesAndShading(pkMin, pkMax) {
-    let shapes = [];
-    for (let year = 1995; year <= 2069; year++) {
-        // Añadir líneas verticales para cada año
-        shapes.push({
-            type: 'line',
-            x0: year,
-            x1: year,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'lightgray',
-                width: 0.8,
-                layer: 'below'
-            }
-        });
-
-        // Añadir sombreado cada 5 años
-        if (year % 5 === 0) {
-            shapes.push({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            });
-        }
-    }
-
-    // Añadir sombreado rojo antes de 2025
-    shapes.push({
-        type: 'rect',
-        x0: 1995,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 0, 0, 0.1)',
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
-
-    // Añadir línea roja en 2025
-    shapes.push({
-        type: 'line',
-        x0: 2025,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'red',
-            width: 2,
-            layer: 'above'
-        }
-    });
-
-    return shapes;
-}
-
-// Inicializar la página y los eventos
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Contenido DOM cargado, iniciando script...');
-    init();
-});
-
