@@ -1,3 +1,81 @@
+async function loadData(url) {
+    console.log(`Cargando datos desde: ${url}`);
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Error HTTP! Estado: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(`Datos cargados exitosamente desde: ${url}`);
+        return data;
+    } catch (error) {
+        console.error(`Error cargando datos de ${url}:`, error);
+        return null;
+    }
+}
+
+async function init() {
+    console.log('Inicializando la aplicación...');
+    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+    const resumData = await loadData(resumUrl);
+    if (!resumData) {
+        console.error('No se pudo cargar el resumen de datos.');
+        return;
+    }
+
+    // Verificar los datos cargados
+    console.log('Datos del resumen:', resumData);
+
+    // Obtener los tramos únicos
+    const trams = [...new Set(resumData.map(d => d.TRAM))];
+    if (trams.length === 0) {
+        console.error('No se encontraron tramos en los datos cargados.');
+        return;
+    }
+
+    console.log('Tramos encontrados:', trams);
+
+    // Contenedor de botones de tramo
+    const tramButtonsContainer = document.getElementById('tramButtons');
+
+    // Añadir el botón para "LINIA COMPLETA"
+    const liniaCompletaButton = document.createElement('button');
+    liniaCompletaButton.className = 'tram-button';
+    liniaCompletaButton.textContent = 'LINIA COMPLETA';
+    liniaCompletaButton.addEventListener('click', () => {
+        selectTramButton(liniaCompletaButton);
+        drawFullLinePlot(trams, resumData);
+    });
+    tramButtonsContainer.appendChild(liniaCompletaButton);
+
+    // Añadir botones para cada tramo
+    trams.forEach(tram => {
+        if (tram) {
+            const button = document.createElement('button');
+            button.className = 'tram-button';
+            button.textContent = tram;
+            button.addEventListener('click', () => {
+                selectTramButton(button);
+                drawSinglePlot(tram, resumData);
+            });
+            tramButtonsContainer.appendChild(button);
+        }
+    });
+
+    console.log('Botones de tramos añadidos correctamente.');
+    // Dibujar el gráfico de "LINIA COMPLETA" por defecto
+    selectTramButton(liniaCompletaButton);
+    drawFullLinePlot(trams, resumData);
+}
+
+function selectTramButton(button) {
+    // Deseleccionar todos los botones
+    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+    // Marcar el botón seleccionado
+    button.classList.add('selected');
+    console.log(`Botón seleccionado: ${button.textContent}`);
+}
+
 async function drawFullLinePlot(trams, resumData) {
     console.log('Dibujando gráficos concatenados para LINIA COMPLETA...');
     // Borrar gráficos existentes
@@ -20,8 +98,8 @@ async function drawFullLinePlot(trams, resumData) {
         if (via1Data.length > 0 || via2Data.length > 0) {
             const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
             const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-            if (pkMin < pkMinGlobal) pkMinGlobal = pkMin;
-            if (pkMax > pkMaxGlobal) pkMaxGlobal = pkMax;
+            pkMinGlobal = Math.min(pkMin, pkMinGlobal);
+            pkMaxGlobal = Math.max(pkMax, pkMaxGlobal);
         }
     });
 
@@ -64,146 +142,32 @@ async function drawFullLinePlot(trams, resumData) {
     }
 }
 
+async function drawSinglePlot(tram, resumData) {
+    console.log(`Dibujando gráfico para el tramo: ${tram}`);
+    // Borrar gráficos existentes
+    document.getElementById('plot').innerHTML = '';
+
+    // Cargar los datos de las estaciones
+    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+    const estacionsData = await loadData(estacionsUrl);
+    if (!estacionsData) {
+        console.error('No se pudo cargar los datos de las estaciones.');
+        return;
+    }
+
+    // Llamar a la función para dibujar el tramo individual
+    await drawPlot(tram, resumData, estacionsData, 'plot', true);
+}
+
 async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addTitle = true, pkMinGlobal = null, pkMaxGlobal = null) {
     console.log(`Dibujando gráfico para el tramo: ${tram}`);
-    let traces = [];
-    let stationAnnotations = [];
-    let shapes = [];
-
-    let pkMin = Infinity;
-    let pkMax = -Infinity;
-
-    function groupConsecutiveSegments(data) {
-        const groupedData = [];
-        let currentGroup = null;
-
-        data.forEach(segment => {
-            const pkInici = parseFloat(segment['PK inici']);
-            const pkFinal = parseFloat(segment['PK final']);
-            const previsio = segment['PREVISIÓ REHABILITACIÓ'];
-
-            if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio && currentGroup.via === segment.Via) {
-                currentGroup.PKFinal = pkFinal;
-                currentGroup.length += (pkFinal - pkInici) * 1000;
-            } else {
-                if (currentGroup) {
-                    groupedData.push(currentGroup);
-                }
-                currentGroup = {
-                    PKInici: pkInici,
-                    PKFinal: pkFinal,
-                    PREVISIO: previsio,
-                    length: (pkFinal - pkInici) * 1000,
-                    via: segment.Via
-                };
-            }
-        });
-
-        if (currentGroup) {
-            groupedData.push(currentGroup);
-        }
-
-        return groupedData;
-    }
-
-    const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-    const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-
-    // Agrupar todas las barras para "Vía 1" y "Vía 2" en una única traza para cada vía
-    const via1 = groupConsecutiveSegments(via1Data);
-    const via2 = groupConsecutiveSegments(via2Data);
-
-    if (via1.length > 0 || via2.length > 0) {
-        pkMin = Math.min(...via1.concat(via2).map(d => d.PKInici));
-        pkMax = Math.max(...via1.concat(via2).map(d => d.PKFinal));
-
-        // Ajustar pkMin y pkMax si se proporcionan valores globales
-        if (pkMinGlobal !== null) pkMin = pkMinGlobal;
-        if (pkMaxGlobal !== null) pkMax = pkMaxGlobal;
-
-        // Crear trazas para las vías
-        traces.push({
-            x: via1.map(d => d.PREVISIO),
-            y: via1.map(d => d.PKFinal - d.PKInici),
-            base: via1.map(d => d.PKInici),
-            type: 'bar',
-            name: 'Vía 1',
-            orientation: 'v',
-            width: 0.5, // Ancho de la barra que ocupará la mitad del espacio del año
-            offset: -0.25, // Desplazar la barra hacia la mitad izquierda del año
-            marker: {
-                color: 'rgba(31, 119, 180, 1)'
-            },
-            hoverinfo: 'text',
-            hovertext: via1.map(d => `${Math.round(d.length)} m`), // Solo mostrar valor en metros
-            hoverlabel: {
-                bgcolor: 'rgba(31, 119, 180, 1)',
-                font: {
-                    color: 'white'
-                }
-            }
-        });
-
-        traces.push({
-            x: via2.map(d => d.PREVISIO),
-            y: via2.map(d => d.PKFinal - d.PKInici),
-            base: via2.map(d => d.PKInici),
-            type: 'bar',
-            name: 'Vía 2',
-            orientation: 'v',
-            width: 0.5, // Ancho de la barra que ocupará la mitad del espacio del año
-            offset: 0.25, // Desplazar la barra hacia la mitad derecha del año
-            marker: {
-                color: 'rgba(255, 127, 14, 1)'
-            },
-            hoverinfo: 'text',
-            hovertext: via2.map(d => `${Math.round(d.length)} m`), // Solo mostrar valor en metros
-            hoverlabel: {
-                bgcolor: 'rgba(255, 127, 14, 1)',
-                font: {
-                    color: 'white'
-                }
-            }
-        });
-
-        // Añadir anotaciones y líneas de referencia para las estaciones
-        const estaciones = estacionsData.filter(d => d.Tram === tram);
-
-        stationAnnotations.push(...estaciones.map(d => ({
-            x: 2069,
-            y: parseFloat(d['PK']),
-            text: `<b>${d['Abreviatura']}</b>`,
-            showarrow: false,
-            font: {
-                color: 'black',
-                size: 14,
-                family: 'Arial, sans-serif'
-            },
-            xanchor: 'left',
-            yanchor: 'middle',
-            bgcolor: 'white',
-            bordercolor: 'gray',
-            borderwidth: 2,
-            borderpad: 5,
-            opacity: 1
-        })));
-
-        shapes.push(...estaciones.map(d => ({
-            type: 'line',
-            x0: 1995,
-            x1: 2069,
-            y0: parseFloat(d['PK']),
-            y1: parseFloat(d['PK']),
-            line: {
-                color: 'darkgray',
-                width: 1.5,
-                layer: 'below'
-            }
-        })));
-
-        // Añadir líneas y sombreado para los años y la línea roja para 2025
-        shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
-    }
+    // Añadir traza de ejemplo
+    const traces = [{
+        x: [1995, 2000, 2005, 2010],
+        y: [10, 15, 13, 17],
+        type: 'scatter',
+        name: 'Ejemplo'
+    }];
 
     // Configuración del layout del gráfico
     const layout = {
@@ -213,34 +177,29 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             range: [1995, 2070],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
             tickangle: -45,
-            showticklabels: addTitle
+            showticklabels: true
         },
         yaxis: {
             title: 'PK',
             autorange: 'reversed',
-            range: [pkMax, pkMin], // Asegurar una escala consistente
-            tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
-            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
+            range: [0, 20], // Rango de ejemplo
         },
         showlegend: true,
-        legend: {
-            orientation: 'v',
-            x: 1.05,
-            xanchor: 'left',
-            y: 1
-        },
-        annotations: stationAnnotations,
-        shapes: shapes,
-        hovermode: 'closest',
         margin: {
             l: 150,
             r: 150,
-            t: 60, // Incrementar el margen superior para evitar que se corte el título
-            b: addTitle ? 50 : 20 // Mayor margen inferior para el último gráfico
+            t: 80, // Incrementar el margen superior para evitar que se corte el título
+            b: 50
         },
         height: 500 // Altura para cada tramo
     };
 
-    // Dibujar la gráfica
+    // Dibujar la gráfica de ejemplo
     Plotly.newPlot(containerId, traces, layout);
 }
+
+// Inicializar la página y los eventos
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Contenido DOM cargado, iniciando script...');
+    init();
+});
