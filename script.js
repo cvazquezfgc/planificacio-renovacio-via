@@ -212,9 +212,9 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         yaxis: {
             title: 'PK',
             autorange: 'reversed',
-                        range: [pkMax, pkMin],
+            range: [pkMax, pkMin],
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
-            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
+                        ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
         showlegend: true,
         legend: {
@@ -455,3 +455,7 @@ async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').appendChild(infoContainer);
 }
 
+// Ejecutar cuando el contenido del DOM esté cargado
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+});
