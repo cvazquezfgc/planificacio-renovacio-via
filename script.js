@@ -29,7 +29,7 @@ async function drawFullLinePlot(trams, resumData) {
     }
 
     // Definir altura unitaria por kilómetro
-    const unitHeightPerKm = 50; // La mitad del alto de los botones de tramo (~50px)
+    const unitHeightPerKm = 50;
 
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
@@ -53,7 +53,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
-        labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
+        labelContainer.style.transform = 'rotate(270deg)';
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -63,7 +63,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`; // Ajustar la altura proporcional a la longitud del tramo
+        plotContainer.style.height = `${tramoHeight}px`;
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -74,7 +74,7 @@ async function drawFullLinePlot(trams, resumData) {
         document.getElementById('plot').appendChild(container);
 
         // Dibujar el gráfico sin ninguna configuración específica para el último gráfico
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax, tramoHeight);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax, tramoHeight, true);
     }
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
@@ -83,7 +83,7 @@ async function drawFullLinePlot(trams, resumData) {
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500, isFullLinePlot = false) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
@@ -207,15 +207,18 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     const layout = {
         title: '', // Eliminar título individual en gráficos de "LINIA COMPLETA"
         xaxis: {
-            title: '', // No agregar etiquetas horizontales para evitar problemas en el último gráfico
+            title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
-            showticklabels: false // No mostrar etiquetas en el eje x
+            tickangle: addHorizontalLabels ? -45 : 0,
+            showticklabels: addHorizontalLabels
         },
         yaxis: {
             title: 'PK',
             autorange: 'reversed',
-            range: [pkMax, pkMin]
+            range: [pkMax, pkMin],
+            tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
+            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
         showlegend: true,
         legend: {
@@ -232,7 +235,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             l: 150,
             r: 150,
             t: 20,
-            b: 20
+            b: addHorizontalLabels ? 50 : 20
         },
         height: plotHeight // Ajustar la altura del gráfico basada en la longitud del tramo
     };
