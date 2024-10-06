@@ -31,6 +31,10 @@ async function drawFullLinePlot(trams, resumData) {
     // Definir altura unitaria por kilómetro
     const unitHeightPerKm = 20;
 
+    // Calcular PK mínimo y máximo global para todos los gráficos concatenados
+    const pkMinGlobal = Math.min(...resumData.map(d => parseFloat(d['PK inici'])));
+    const pkMaxGlobal = Math.max(...resumData.map(d => parseFloat(d['PK final'])));
+
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -74,7 +78,7 @@ async function drawFullLinePlot(trams, resumData) {
         document.getElementById('plot').appendChild(container);
 
         // Dibujar el gráfico usando el PK específico del tramo para mantener la escala adecuada
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax, tramoHeight, true);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMinGlobal, pkMaxGlobal, tramoHeight, true);
     }
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
@@ -240,7 +244,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         height: plotHeight // Ajustar la altura del gráfico basada en la longitud del tramo
     };
 
-    // Dibujar la gráfica
+        // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
 }
 
@@ -326,7 +330,9 @@ async function init() {
     }
 
     const tramButtonsContainer = document.getElementById('tramButtons');
-    if (!tramButtonsContainer) {
+    if (tramButtonsContainer) {
+        tramButtonsContainer.innerHTML = ''; // Limpiar los botones previos si ya existen
+    } else {
         console.error('No se encontró el contenedor de botones de tramo en el DOM.');
         return;
     }
@@ -437,7 +443,7 @@ async function drawSinglePlot(tram, resumData) {
 
         const cardTitle = document.createElement('h3');
         cardTitle.textContent = title;
-                cardTitle.style.margin = '0 0 10px 0';
+        cardTitle.style.margin = '0 0 10px 0';
 
         const formattedValue = value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         const cardValue = document.createElement('p');
@@ -451,7 +457,6 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
-    // Crear las tarjetas de información para el tramo individual
     const totalCard = createCard('Longitud total', totalLength);
     const before2025Card = createCard('Rehabilitació abans de 2025', lengthBefore2025, 'darkred', 'darkred');
     const percentageBefore2025 = ((lengthBefore2025 / totalLength) * 100).toFixed(0);
@@ -461,7 +466,6 @@ async function drawSinglePlot(tram, resumData) {
     const percentageBetween2025And2030 = ((lengthBetween2025And2030 / totalLength) * 100).toFixed(0);
     between2025And2030Card.querySelector('p').innerHTML += ` (${percentageBetween2025And2030}%)`;
 
-    // Añadir las tarjetas informativas al contenedor principal de 'plot'
     infoContainer.appendChild(totalCard);
     infoContainer.appendChild(before2025Card);
     infoContainer.appendChild(between2025And2030Card);
