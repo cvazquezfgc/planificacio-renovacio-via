@@ -39,6 +39,8 @@ async function drawFullLinePlot(trams, resumData) {
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
         const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
+        if (via1Data.length === 0 && via2Data.length === 0) continue;
+
         // Calcular PK mínimo y máximo del tramo
         const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
@@ -131,7 +133,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 color: 'rgba(31, 119, 180, 1)'
             },
             hoverinfo: 'text',
-                        hovertext: via1Data.map(d => `${Math.round((d['PK final'] - d['PK inici']) * 1000)} m`)
+            hovertext: via1Data.map(d => `${Math.round((d['PK final'] - d['PK inici']) * 1000)} m`)
         });
 
         traces.push({
@@ -365,4 +367,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
