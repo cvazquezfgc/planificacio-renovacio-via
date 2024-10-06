@@ -206,10 +206,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     // Configuración del layout del gráfico
     const layout = {
         title: '', // Eliminar título individual en gráficos de "LINIA COMPLETA"
-        xaxis: {
+               xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
-                       tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
+            tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
             tickangle: addHorizontalLabels ? -45 : 0,
             showticklabels: addHorizontalLabels
         },
@@ -408,19 +408,6 @@ async function drawSinglePlot(tram, resumData) {
 
     await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400);
 
-    // Calcular las longitudes totales para las tarjetas informativas
-    const totalLength = resumData
-        .filter(d => d.TRAM === tram)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthBefore2025 = resumData
-        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthBetween2025And2030 = resumData
-        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
     // Limpiar contenedor de tarjetas antes de añadir nuevas
     const infoContainer = document.createElement('div');
     infoContainer.style.display = 'flex';
@@ -453,6 +440,20 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
+    // Calcular las longitudes totales para las tarjetas informativas
+    const totalLength = resumData
+        .filter(d => d.TRAM === tram)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBefore2025 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBetween2025And2030 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    // Crear las tarjetas informativas
     const totalCard = createCard('Longitud total', totalLength);
     const before2025Card = createCard('Rehabilitació abans de 2025', lengthBefore2025, 'darkred', 'darkred');
     const percentageBefore2025 = ((lengthBefore2025 / totalLength) * 100).toFixed(0);
@@ -466,10 +467,13 @@ async function drawSinglePlot(tram, resumData) {
     infoContainer.appendChild(before2025Card);
     infoContainer.appendChild(between2025And2030Card);
     document.getElementById('plot').appendChild(infoContainer);
+
+    // Ajustar la altura del body para evitar desplazamiento en los gráficos individuales
+    document.body.style.height = '100vh';
+    document.body.style.overflow = 'hidden';
 }
 
 // Ejecutar cuando el contenido del DOM esté cargado
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
