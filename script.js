@@ -29,11 +29,7 @@ async function drawFullLinePlot(trams, resumData) {
     }
 
     // Definir altura unitaria por kilómetro
-    const unitHeightPerKm = 20;
-
-    // Calcular PK mínimo y máximo global para todos los gráficos concatenados
-    const pkMinGlobal = Math.min(...resumData.map(d => parseFloat(d['PK inici'])));
-    const pkMaxGlobal = Math.max(...resumData.map(d => parseFloat(d['PK final'])));
+    const unitHeightPerKm = 50;
 
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
@@ -78,7 +74,7 @@ async function drawFullLinePlot(trams, resumData) {
         document.getElementById('plot').appendChild(container);
 
         // Dibujar el gráfico usando el PK específico del tramo para mantener la escala adecuada
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMinGlobal, pkMaxGlobal, tramoHeight, true);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax, tramoHeight, false);
     }
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
@@ -213,7 +209,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
-            tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
+                       tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
             tickangle: addHorizontalLabels ? -45 : 0,
             showticklabels: addHorizontalLabels
         },
@@ -244,7 +240,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         height: plotHeight // Ajustar la altura del gráfico basada en la longitud del tramo
     };
 
-        // Dibujar la gráfica
+    // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
 }
 
@@ -425,7 +421,7 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    // Crear las tarjetas informativas
+    // Limpiar contenedor de tarjetas antes de añadir nuevas
     const infoContainer = document.createElement('div');
     infoContainer.style.display = 'flex';
     infoContainer.style.gap = '20px';
