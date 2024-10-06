@@ -184,6 +184,12 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.overflow = 'hidden';
 }
 
+// Función para dibujar un gráfico específico
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
+    // Implementación del gráfico aquí
+    console.log(`Dibujando gráfico para el tramo: ${tram}`);
+}
+
 // Inicializar la página y los eventos
 async function init() {
     const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
