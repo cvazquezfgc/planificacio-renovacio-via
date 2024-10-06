@@ -29,16 +29,20 @@ async function drawFullLinePlot(trams, resumData) {
     }
 
     // Definir altura unitaria por kilómetro
-    const unitHeightPerKm = 50;
-
-    // Calcular PK mínimo y máximo global para todos los gráficos concatenados
-    const pkMinGlobal = Math.min(...resumData.map(d => parseFloat(d['PK inici'])));
-    const pkMaxGlobal = Math.max(...resumData.map(d => parseFloat(d['PK final'])));
-    const globalHeight = (pkMaxGlobal - pkMinGlobal) * unitHeightPerKm;
+    const unitHeightPerKm = 20;
 
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
+
+        // Obtener los datos de Vía 1 y Vía 2 para el tramo actual
+        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+
+        // Calcular PK mínimo y máximo del tramo
+        const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+        const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
 
         // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
@@ -59,7 +63,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${globalHeight}px`;
+        plotContainer.style.height = `${tramoHeight}px`;
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -69,8 +73,8 @@ async function drawFullLinePlot(trams, resumData) {
         // Añadir el contenedor del gráfico al área principal de gráficos
         document.getElementById('plot').appendChild(container);
 
-        // Dibujar el gráfico con la escala global para mantener consistencia en todos los tramos
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMinGlobal, pkMaxGlobal, globalHeight, true);
+        // Dibujar el gráfico usando el PK específico del tramo para mantener la escala adecuada
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax, tramoHeight, true);
     }
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
@@ -214,7 +218,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             autorange: 'reversed',
             range: [pkMax, pkMin],
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
-                        ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
+            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
         showlegend: true,
         legend: {
@@ -380,10 +384,18 @@ async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = '';
 
     // Añadir el título del gráfico individual
-    document.getElementById('plot').innerHTML = `
-        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
-            Espai-temps previsió rehabilitació tram ${tram}
-        </div>`;
+    const titleContainer = document.createElement('div');
+    titleContainer.style.textAlign = 'center';
+    titleContainer.style.fontSize = '24px';
+    titleContainer.style.fontFamily = 'Arial, sans-serif';
+    titleContainer.style.margin = '20px 0';
+    titleContainer.textContent = `Espai-temps previsió rehabilitació tram ${tram}`;
+    document.getElementById('plot').appendChild(titleContainer);
+
+    const plotContainer = document.createElement('div');
+    plotContainer.id = 'plot-individual-chart';
+    plotContainer.style.height = '400px';
+    document.getElementById('plot').appendChild(plotContainer);
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -392,7 +404,7 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400); // Ajustar la altura de los gráficos individuales
+    await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400);
 
     // Calcular las longitudes totales para las tarjetas informativas
     const totalLength = resumData
@@ -425,7 +437,7 @@ async function drawSinglePlot(tram, resumData) {
 
         const cardTitle = document.createElement('h3');
         cardTitle.textContent = title;
-        cardTitle.style.margin = '0 0 10px 0';
+                cardTitle.style.margin = '0 0 10px 0';
 
         const formattedValue = value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         const cardValue = document.createElement('p');
@@ -439,6 +451,7 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
+    // Crear las tarjetas de información para el tramo individual
     const totalCard = createCard('Longitud total', totalLength);
     const before2025Card = createCard('Rehabilitació abans de 2025', lengthBefore2025, 'darkred', 'darkred');
     const percentageBefore2025 = ((lengthBefore2025 / totalLength) * 100).toFixed(0);
@@ -448,10 +461,10 @@ async function drawSinglePlot(tram, resumData) {
     const percentageBetween2025And2030 = ((lengthBetween2025And2030 / totalLength) * 100).toFixed(0);
     between2025And2030Card.querySelector('p').innerHTML += ` (${percentageBetween2025And2030}%)`;
 
+    // Añadir las tarjetas informativas al contenedor principal de 'plot'
     infoContainer.appendChild(totalCard);
     infoContainer.appendChild(before2025Card);
     infoContainer.appendChild(between2025And2030Card);
-
     document.getElementById('plot').appendChild(infoContainer);
 }
 
@@ -459,3 +472,4 @@ async function drawSinglePlot(tram, resumData) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
