@@ -31,18 +31,14 @@ async function drawFullLinePlot(trams, resumData) {
     // Definir altura unitaria por kilómetro
     const unitHeightPerKm = 50;
 
+    // Calcular PK mínimo y máximo global para todos los gráficos concatenados
+    const pkMinGlobal = Math.min(...resumData.map(d => parseFloat(d['PK inici'])));
+    const pkMaxGlobal = Math.max(...resumData.map(d => parseFloat(d['PK final'])));
+    const globalHeight = (pkMaxGlobal - pkMinGlobal) * unitHeightPerKm;
+
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
-
-        // Obtener los datos de Vía 1 y Vía 2 para el tramo actual
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-
-        // Calcular PK mínimo y máximo del tramo
-        const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-        const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
 
         // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
@@ -63,7 +59,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`;
+        plotContainer.style.height = `${globalHeight}px`;
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -73,8 +69,8 @@ async function drawFullLinePlot(trams, resumData) {
         // Añadir el contenedor del gráfico al área principal de gráficos
         document.getElementById('plot').appendChild(container);
 
-        // Dibujar el gráfico sin ninguna configuración específica para el último gráfico
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMin, pkMax, tramoHeight, true);
+        // Dibujar el gráfico con la escala global para mantener consistencia en todos los tramos
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, false, pkMinGlobal, pkMaxGlobal, globalHeight, true);
     }
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
@@ -216,7 +212,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         yaxis: {
             title: 'PK',
             autorange: 'reversed',
-            range: [pkMax, pkMin],
+                        range: [pkMax, pkMin],
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
             ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
         },
@@ -377,3 +373,85 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
+// Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
+async function drawSinglePlot(tram, resumData) {
+    // Limpiar el contenedor antes de dibujar el gráfico individual
+    document.getElementById('plot').innerHTML = '';
+
+    // Añadir el título del gráfico individual
+    document.getElementById('plot').innerHTML = `
+        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
+            Espai-temps previsió rehabilitació tram ${tram}
+        </div>`;
+
+    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+    const estacionsData = await loadData(estacionsUrl);
+    if (!estacionsData) {
+        console.error('No se pudo cargar los datos de las estaciones.');
+        return;
+    }
+
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400); // Ajustar la altura de los gráficos individuales
+
+    // Calcular las longitudes totales para las tarjetas informativas
+    const totalLength = resumData
+        .filter(d => d.TRAM === tram)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBefore2025 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    const lengthBetween2025And2030 = resumData
+        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
+        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+    // Crear las tarjetas informativas
+    const infoContainer = document.createElement('div');
+    infoContainer.style.display = 'flex';
+    infoContainer.style.gap = '20px';
+    infoContainer.style.marginTop = '20px';
+
+    const createCard = (title, value, color = 'black', borderColor = '#ccc') => {
+        const card = document.createElement('div');
+        card.style.border = `1px solid ${borderColor}`;
+        card.style.borderRadius = '8px';
+        card.style.padding = '10px';
+        card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
+        card.style.flex = '1';
+        card.style.textAlign = 'center';
+        card.style.color = color;
+
+        const cardTitle = document.createElement('h3');
+        cardTitle.textContent = title;
+        cardTitle.style.margin = '0 0 10px 0';
+
+        const formattedValue = value.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const cardValue = document.createElement('p');
+        cardValue.innerHTML = `${formattedValue} m`;
+        cardValue.style.fontSize = '20px';
+        cardValue.style.fontWeight = 'bold';
+
+        card.appendChild(cardTitle);
+        card.appendChild(cardValue);
+
+        return card;
+    };
+
+    const totalCard = createCard('Longitud total', totalLength);
+    const before2025Card = createCard('Rehabilitació abans de 2025', lengthBefore2025, 'darkred', 'darkred');
+    const percentageBefore2025 = ((lengthBefore2025 / totalLength) * 100).toFixed(0);
+    before2025Card.querySelector('p').innerHTML += ` (${percentageBefore2025}%)`;
+
+    const between2025And2030Card = createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'darkorange', 'darkorange');
+    const percentageBetween2025And2030 = ((lengthBetween2025And2030 / totalLength) * 100).toFixed(0);
+    between2025And2030Card.querySelector('p').innerHTML += ` (${percentageBetween2025And2030}%)`;
+
+    infoContainer.appendChild(totalCard);
+    infoContainer.appendChild(before2025Card);
+    infoContainer.appendChild(between2025And2030Card);
+
+    document.getElementById('plot').appendChild(infoContainer);
+}
+
