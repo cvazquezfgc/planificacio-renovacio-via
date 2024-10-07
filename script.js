@@ -87,7 +87,7 @@ async function drawFullLinePlot(trams, resumData) {
 async function drawSinglePlot(tram, resumData) {
     // Añadir el título del gráfico individual
     document.getElementById('plot').innerHTML = `
-        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-bottom: 20px;">
+        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
             Espai-temps previsió rehabilitació tram ${tram}
         </div>`;
 
@@ -113,16 +113,14 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    const formatNumber = (num) => num.toLocaleString('es-ES', { maximumFractionDigits: 0 });
-
     const infoContainer = document.createElement('div');
     infoContainer.style.display = 'flex';
     infoContainer.style.gap = '20px';
     infoContainer.style.marginTop = '20px';
 
-    const createCard = (title, value, color) => {
+    const createCard = (title, value, borderColor, textColor) => {
         const card = document.createElement('div');
-        card.style.border = `1px solid ${color}`;
+        card.style.border = `2px solid ${borderColor}`;
         card.style.borderRadius = '8px';
         card.style.padding = '10px';
         card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
@@ -132,12 +130,13 @@ async function drawSinglePlot(tram, resumData) {
         const cardTitle = document.createElement('h3');
         cardTitle.textContent = title;
         cardTitle.style.margin = '0 0 10px 0';
-        cardTitle.style.color = color;
+        cardTitle.style.color = textColor;
 
         const cardValue = document.createElement('p');
-        cardValue.textContent = `${formatNumber(value)} m (${Math.round((value / totalLength) * 100)}%)`;
-        cardValue.style.fontSize = '20px';
+        cardValue.textContent = `${value.toLocaleString('es-ES')} m (${((value / totalLength) * 100).toFixed(0)}%)`;
+        cardValue.style.fontSize = '22px';
         cardValue.style.fontWeight = 'bold';
+        cardValue.style.margin = '0';
 
         card.appendChild(cardTitle);
         card.appendChild(cardValue);
@@ -145,9 +144,9 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
-    infoContainer.appendChild(createCard('Longitud total', totalLength, '#000'));
-    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red'));
-    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, '#FF8C00'));
+    infoContainer.appendChild(createCard('Longitud total', totalLength, '#ccc', 'black'));
+    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red', 'red'));
+    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, '#FF8C00', '#FF8C00'));
 
     document.getElementById('plot').appendChild(infoContainer);
 
@@ -185,6 +184,9 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                     length: (pkFinal - pkInici) * 1000,
                     via: segment.Via
                 };
+            }
+        });
+
         if (currentGroup) {
             groupedData.push(currentGroup);
         }
@@ -192,6 +194,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         return groupedData;
     }
 
+    // Obtener los datos agrupados para Vía 1 y Vía 2
     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
@@ -202,6 +205,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
         pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
+        // Crear las trazas para Vía 1 y Vía 2
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
@@ -215,7 +219,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 color: 'rgba(31, 119, 180, 1)'
             },
             hoverinfo: 'text',
-            hovertext: via1.map(d => `${Math.round(d.length).toLocaleString('es-ES')} m`),
+            hovertext: via1.map(d => `${Math.round(d.length)} m`),
             hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
@@ -234,10 +238,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             width: 0.5,
             offset: 0.5,
             marker: {
-                color: 'rgba(135, 206, 250, 1)' // Azul más claro para Vía 2
+                color: 'rgba(135, 206, 250, 1)' // Cambiar el color a un azul más claro para Vía 2
             },
             hoverinfo: 'text',
-            hovertext: via2.map(d => `${Math.round(d.length).toLocaleString('es-ES')} m`),
+            hovertext: via2.map(d => `${Math.round(d.length)} m`),
             hoverlabel: {
                 bgcolor: 'rgba(135, 206, 250, 1)',
                 font: {
@@ -361,7 +365,7 @@ function addLinesAndShading(pkMin, pkMax) {
         }
     }
 
-    // Añadir sombreado rojo antes de 2025
+       // Añadir sombreado rojo antes de 2025
     shapes.push({
         type: 'rect',
         x0: 1995,
@@ -440,7 +444,7 @@ async function init() {
     liniaCompletaButton.textContent = 'LINIA COMPLETA';
     liniaCompletaButton.addEventListener('click', () => {
         selectTramButton(liniaCompletaButton);
-               drawFullLinePlot(trams, resumData);
+        drawFullLinePlot(trams, resumData);
     });
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
@@ -459,4 +463,5 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
 
