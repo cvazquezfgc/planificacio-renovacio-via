@@ -185,9 +185,6 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                     length: (pkFinal - pkInici) * 1000,
                     via: segment.Via
                 };
-           
-        });
-
         if (currentGroup) {
             groupedData.push(currentGroup);
         }
