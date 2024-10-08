@@ -166,7 +166,7 @@ async function drawSinglePlot(tram, resumData) {
         cardTitle.style.margin = '0 0 10px 0';
 
         const cardValue = document.createElement('p');
-        cardValue.textContent = `${value.toLocaleString('es-ES')} m`;
+        cardValue.textContent = `${value.toLocaleString('de-DE')} m`;
         cardValue.style.fontSize = '18px';
         cardValue.style.fontWeight = 'bold';
 
