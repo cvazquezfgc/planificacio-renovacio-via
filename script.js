@@ -15,6 +15,7 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
+    // Limpiar el contenedor de gráficos y añadir el título global
     document.getElementById('plot').innerHTML = `
         <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-bottom: 20px;">
             Espai-temps previsió rehabilitació de la línia completa
@@ -27,23 +28,11 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 50; // Unidad de altura fija por kilómetro
-    let pkMinGlobal = Infinity;
-    let pkMaxGlobal = -Infinity;
-
-    trams.forEach(tram => {
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-        if (via1Data.length > 0 || via2Data.length > 0) {
-            const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-            const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-            pkMinGlobal = Math.min(pkMin, pkMinGlobal);
-            pkMaxGlobal = Math.max(pkMax, pkMaxGlobal);
-        }
-    });
+    // Definir altura unitaria por kilómetro
+    const unitHeightPerKm = 50; 
 
     // Dibujar los gráficos concatenados de cada tramo, excepto GR-TB
-    for (let i = 0; i < trams.length - 1; i++) {
+    for (let i = 0; i < trams.length - 1; i++) { 
         const tram = trams[i];
 
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
@@ -69,7 +58,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`;
+        plotContainer.style.height = `${tramoHeight}px`; 
         plotContainer.style.flexGrow = '1';
 
         container.appendChild(labelContainer);
@@ -77,14 +66,15 @@ async function drawFullLinePlot(trams, resumData) {
 
         document.getElementById('plot').appendChild(container);
 
-        const addHorizontalLabels = i === trams.length - 2; // Añadir etiquetas horizontales solo al penúltimo gráfico
+        const addHorizontalLabels = i === trams.length - 2;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
 
-    // Dibujar GR-TB por separado
+    // Ahora dibujar el último tramo (GR-TB) por separado
     const tram = trams[trams.length - 1];
     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
+
     const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
     const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
     const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
@@ -105,7 +95,7 @@ async function drawFullLinePlot(trams, resumData) {
 
     const plotContainer = document.createElement('div');
     plotContainer.id = `plot-${tram}-chart`;
-    plotContainer.style.height = `${tramoHeight}px`;
+    plotContainer.style.height = `${tramoHeight}px`; 
     plotContainer.style.flexGrow = '1';
 
     container.appendChild(labelContainer);
@@ -115,11 +105,12 @@ async function drawFullLinePlot(trams, resumData) {
 
     await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, pkMin, pkMax, tramoHeight);
 
+    // Habilitar desplazamiento en la página LINIA COMPLETA
     document.body.style.height = 'auto';
     document.body.style.overflow = 'auto';
 }
 
-// Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
+// Función para dibujar gráficos de tramos individuales
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = `
         <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
@@ -159,30 +150,33 @@ async function drawSinglePlot(tram, resumData) {
         card.style.padding = '10px';
         card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
         card.style.flex = '1';
-        card.style.textAlign = 'center';
 
         const cardTitle = document.createElement('h3');
         cardTitle.textContent = title;
         cardTitle.style.margin = '0 0 10px 0';
+        cardTitle.style.textAlign = 'center';
+        cardTitle.style.fontSize = '16px';
 
         const cardValue = document.createElement('p');
-        cardValue.textContent = `${value.toLocaleString('de-DE')} m`;
-        cardValue.style.fontSize = '18px';
+        cardValue.textContent = value.toLocaleString('de-DE');
+        cardValue.style.fontSize = '24px';
         cardValue.style.fontWeight = 'bold';
+        cardValue.style.textAlign = 'center';
 
         card.appendChild(cardTitle);
         card.appendChild(cardValue);
 
-        return card;
+                return card;
     };
 
-    infoContainer.appendChild(createCard('Longitud total', totalLength, 'black'));
-    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red'));
-    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'orange'));
+    // Crear las tarjetas con la información y los colores solicitados
+    infoContainer.appendChild(createCard('Longitud total', totalLength, '#000000'));
+    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', `${lengthBefore2025.toLocaleString('de-DE')} m (${Math.round((lengthBefore2025 / totalLength) * 100)}%)`, '#ff0000'));
+    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', `${lengthBetween2025And2030.toLocaleString('de-DE')} m (${Math.round((lengthBetween2025And2030 / totalLength) * 100)}%)`, '#ff8000'));
 
-    document    .getElementById('plot').appendChild(infoContainer);
+    document.getElementById('plot').appendChild(infoContainer);
 
-    // Autoajustar la altura del contenedor para que no haya scroll
+    // Autoajustar la altura del contenedor para que no haya scroll en tramos individuales
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
@@ -226,6 +220,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         return groupedData;
     }
 
+    // Obtener datos de Vía 1 y Vía 2
     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
@@ -246,10 +241,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             width: 0.5,
             offset: 0,
             marker: {
-                color: 'rgba(31, 119, 180, 1)'
+                color: 'rgba(31, 119, 180, 1)' 
             },
             hoverinfo: 'text',
-            hovertext: via1.map(d => `${Math.round(d.length)} m`),
+            hovertext: via1.map(d => `${Math.round(d.length).toLocaleString('de-DE')} m`),
             hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
@@ -268,12 +263,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             width: 0.5,
             offset: 0.5,
             marker: {
-                color: 'rgba(173, 216, 230, 1)' // Azul claro para Vía 2
+                color: 'rgba(135, 206, 250, 1)' 
             },
             hoverinfo: 'text',
-            hovertext: via2.map(d => `${Math.round(d.length)} m`),
+            hovertext: via2.map(d => `${Math.round(d.length).toLocaleString('de-DE')} m`),
             hoverlabel: {
-                bgcolor: 'rgba(173, 216, 230, 1)',
+                bgcolor: 'rgba(135, 206, 250, 1)',
                 font: {
                     color: 'white'
                 }
@@ -314,11 +309,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         })));
 
+        // Añadir líneas y sombreado para los años y la línea roja para 2025
         shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
 
     const layout = {
-        title: '',
+        title: '', 
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
@@ -439,6 +435,7 @@ async function init() {
         return;
     }
 
+    // Añadir botones para cada tramo y el botón de "LINIA COMPLETA"
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
@@ -484,4 +481,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
