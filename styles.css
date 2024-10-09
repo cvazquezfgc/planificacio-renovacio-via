@@ -48,12 +48,6 @@ h2 {
     margin-bottom: 20px;
 }
 
-#plot h2 {
-    position: relative;
-    z-index: 2; /* Asegurar que el título esté por encima del gráfico */
-    margin-bottom: 10px;
-}
-
 #tramButtons {
     width: 90%;
     margin: 20px auto;
@@ -112,4 +106,9 @@ h2 {
 .orange-border {
     border-color: orange;
     color: orange;
+}
+
+#plotContainer {
+    margin-top: 0;
+    z-index: 1;
 }
