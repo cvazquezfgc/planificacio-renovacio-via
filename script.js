@@ -364,7 +364,7 @@ function addLinesAndShading(pkMin, pkMax) {
     shapes.push({
         type: 'line',
         x0: 2025,
-        x1: 202        5,
+        x1: 2025,
         y0: pkMin,
         y1: pkMax,
         line: {
