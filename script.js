@@ -29,10 +29,10 @@ async function drawFullLinePlot(trams, resumData) {
     }
 
     // Definir altura unitaria por kilómetro
-    const unitHeightPerKm = 50; // La mitad del alto de los botones de tramo (~50px)
+    const unitHeightPerKm = 50;
 
     // Dibujar los gráficos concatenados de cada tramo
-    for (let i = 0; i < trams.length; i++) {
+    for (let i = 0; i < trams.length - 1; i++) { // Se excluye el último tramo
         const tram = trams[i];
 
         // Obtener los datos de Vía 1 y Vía 2 para el tramo actual
@@ -53,7 +53,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
-        labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
+        labelContainer.style.transform = 'rotate(270deg)';
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -63,7 +63,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`; // Ajustar la altura proporcional a la longitud del tramo
+        plotContainer.style.height = `${tramoHeight}px`;
         plotContainer.style.flexGrow = '1';
 
         // Añadir la etiqueta y el gráfico al contenedor principal
@@ -74,9 +74,16 @@ async function drawFullLinePlot(trams, resumData) {
         document.getElementById('plot').appendChild(container);
 
         // Dibujar el gráfico sin título y con etiquetas de año solo en el último gráfico
-        const addHorizontalLabels = i === trams.length - 1;
+        const addHorizontalLabels = i === trams.length - 2;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
+
+    // Añadir el gráfico vacío al final
+    const grTbContainer = document.createElement('div');
+    grTbContainer.id = 'plot-GR-TB';
+    grTbContainer.style.height = '500px';
+    grTbContainer.style.backgroundColor = 'gray'; // Simulación del gráfico vacío
+    document.getElementById('plot').appendChild(grTbContainer);
 
     // Habilitar desplazamiento en la página LINIA COMPLETA
     document.body.style.height = 'auto';
@@ -98,7 +105,7 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400); // Ajustar la altura de los gráficos individuales
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
 
     // Añadir las tarjetas informativas
     const totalLength = resumData
@@ -118,10 +125,9 @@ async function drawSinglePlot(tram, resumData) {
     infoContainer.style.gap = '20px';
     infoContainer.style.marginTop = '20px';
 
-    const createCard = (title, value, color) => {
+    const createCard = (title, value) => {
         const card = document.createElement('div');
-        card.style.border = `1px solid ${color}`;
-        card.style.color = color;
+        card.style.border = '1px solid #ccc';
         card.style.borderRadius = '8px';
         card.style.padding = '10px';
         card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
@@ -130,11 +136,10 @@ async function drawSinglePlot(tram, resumData) {
         const cardTitle = document.createElement('h3');
         cardTitle.textContent = title;
         cardTitle.style.margin = '0 0 10px 0';
-        cardTitle.style.fontSize = '16px'; // Ajuste del tamaño de fuente del título
 
         const cardValue = document.createElement('p');
-        cardValue.textContent = `${value.toLocaleString('de-DE')} m`; // Añadido separador de miles
-        cardValue.style.fontSize = '28px'; // Ajuste del tamaño de fuente del valor
+        cardValue.textContent = `${value.toLocaleString('de-DE')} m`;
+        cardValue.style.fontSize = '24px';
         cardValue.style.fontWeight = 'bold';
 
         card.appendChild(cardTitle);
@@ -143,9 +148,9 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
-    infoContainer.appendChild(createCard('Longitud total', totalLength, 'black'));
-    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red'));
-    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'orange'));
+    infoContainer.appendChild(createCard('Longitud total', totalLength));
+    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025));
+    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030));
 
     document.getElementById('plot').appendChild(infoContainer);
 
@@ -176,14 +181,13 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 if (currentGroup) {
                     groupedData.push(currentGroup);
                 }
-                    currentGroup = {
-                        PKInici: pkInici,
-                        PKFinal: pkFinal,
-                        PREVISIO: previsio,
-                        length: (pkFinal - pkInici) * 1000,
-                        via: segment.Via
-                    };
-                }
+                currentGroup = {
+                    PKInici: pkInici,
+                    PKFinal: pkFinal                    ,
+                    PREVISIO: previsio,
+                    length: (pkFinal - pkInici) * 1000,
+                    via: segment.Via
+                };
             }
         });
 
@@ -217,7 +221,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 color: 'rgba(31, 119, 180, 1)'
             },
             hoverinfo: 'text',
-            hovertext: via1.map(d => `${Math.round(d.length)} m`),
+            hovertext: via1.map(d => `${Math.round(d.length).toLocaleString('de-DE')} m`),
             hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
@@ -236,10 +240,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             width: 0.5,
             offset: 0.5,
             marker: {
-                color: 'rgba(135, 206, 250, 1)' // Color azul más claro para la vía 2
+                color: 'rgba(135, 206, 250, 1)' // Azul claro para Vía 2
             },
             hoverinfo: 'text',
-            hovertext: via2.map(d => `${Math.round(d.length)} m`),
+            hovertext: via2.map(d => `${Math.round(d.length).toLocaleString('de-DE')} m`),
             hoverlabel: {
                 bgcolor: 'rgba(135, 206, 250, 1)',
                 font: {
@@ -439,7 +443,7 @@ async function init() {
 
     const liniaCompletaButton = document.createElement('button');
     liniaCompletaButton.className = 'tram-button';
-        liniaCompletaButton.textContent = 'LINIA COMPLETA';
+    liniaCompletaButton.textContent =     'LINIA COMPLETA';
     liniaCompletaButton.addEventListener('click', () => {
         selectTramButton(liniaCompletaButton);
         drawFullLinePlot(trams, resumData);
@@ -461,4 +465,5 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
 
