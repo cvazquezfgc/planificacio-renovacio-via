@@ -121,8 +121,8 @@ async function drawSinglePlot(tram, resumData) {
 
     const createCard = (title, value, borderClass) => {
         const card = document.createElement('div');
-        card.className = `informative-card ${borderClass}`;
-        card.innerHTML = `<h3>${title}</h3><p>${value.toLocaleString('de-DE')} m</p>`;
+               card.className = `informative-card ${borderClass}`;
+        card.innerHTML = `<h3>${title}</h3><p>${value.toLocaleString('de-DE')} m (${((value / totalLength) * 100).toFixed(0)}%)</p>`;
         return card;
     };
 
@@ -339,7 +339,7 @@ function addLinesAndShading(pkMin, pkMax) {
                 y1: pkMax,
                 fillcolor: 'rgba(211, 211, 211, 0.3)',
                 layer: 'below',
-                                line: {
+                line: {
                     width: 0
                 }
             });
@@ -364,7 +364,7 @@ function addLinesAndShading(pkMin, pkMax) {
     shapes.push({
         type: 'line',
         x0: 2025,
-        x1: 2025,
+        x1: 202        5,
         y0: pkMin,
         y1: pkMax,
         line: {
@@ -444,4 +444,5 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
 
