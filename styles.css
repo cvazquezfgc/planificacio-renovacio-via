@@ -53,3 +53,47 @@ body {
     background-color: #007bff;
     color: white;
 }
+
+/* Ajuste de la posición del título */
+#plot h2 {
+    position: relative;
+    z-index: 2;
+    margin-bottom: 10px;
+}
+
+#plotContainer {
+    margin-top: 0;
+    z-index: 1;
+}
+
+/* Tarjetas informativas */
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card.red {
+    border: 2px solid red;
+    color: red;
+}
+
+.card.orange {
+    border: 2px solid orange;
+    color: orange;
+}
+
+.card-value {
+    font-size: 28px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.card-title {
+    font-size: 12px;
+    font-weight: normal;
+}
