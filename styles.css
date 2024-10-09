@@ -2,6 +2,8 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    height: 100vh; /* para evitar scroll innecesario */
+    overflow: hidden; /* para evitar scroll en tramos individuales */
 }
 
 #header {
@@ -25,7 +27,7 @@ body {
 #plot {
     width: 90%;
     margin: auto;
-    height: 800px;
+    height: calc(100vh - 150px); /* ajusta la altura en función de la pantalla */
 }
 
 #tramButtons {
@@ -54,46 +56,35 @@ body {
     color: white;
 }
 
-/* Ajuste de la posición del título */
-#plot h2 {
-    position: relative;
-    z-index: 2;
-    margin-bottom: 10px;
-}
-
-#plotContainer {
-    margin-top: 0;
-    z-index: 1;
-}
-
-/* Tarjetas informativas */
-.card {
+.informative-card {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    padding: 15px;
-    border-radius: 10px;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid gray;
+    border-radius: 8px;
+    width: 90%;
+    margin: 10px auto;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
-.card.red {
-    border: 2px solid red;
+.informative-card h3 {
+    margin: 0;
+    font-size: 12px; /* Ajuste del tamaño del título */
+}
+
+.informative-card p {
+    margin: 5px 0 0;
+    font-size: 28px; /* Ajuste del tamaño del valor */
+    font-weight: bold;
+}
+
+.red-border {
+    border-color: red;
     color: red;
 }
 
-.card.orange {
-    border: 2px solid orange;
+.orange-border {
+    border-color: orange;
     color: orange;
-}
-
-.card-value {
-    font-size: 28px;
-    font-weight: bold;
-    margin: 10px 0;
-}
-
-.card-title {
-    font-size: 12px;
-    font-weight: normal;
 }
