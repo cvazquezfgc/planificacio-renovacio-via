@@ -15,6 +15,7 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
+    // Limpiar el contenedor de gráficos y añadir el título global
     document.getElementById('plot').innerHTML = `
         <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin-bottom: 20px;">
             Espai-temps previsió rehabilitació de la línia completa
@@ -27,58 +28,68 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 50; // Fija la unidad para calcular la altura proporcional a la longitud del tramo
+    // Definir altura unitaria por kilómetro
+    const unitHeightPerKm = 50; // La mitad del alto de los botones de tramo (~50px)
 
     // Dibujar los gráficos concatenados de cada tramo
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
 
+        // Obtener los datos de Vía 1 y Vía 2 para el tramo actual
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
         const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
+        // Calcular PK mínimo y máximo del tramo
         const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
         const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
 
+        // Crear un contenedor para cada gráfico
         const container = document.createElement('div');
         container.id = `plot-${tram}`;
         container.style.display = 'flex';
         container.style.alignItems = 'center';
         container.style.marginBottom = '20px';
 
+        // Crear un contenedor para la etiqueta del tramo
         const labelContainer = document.createElement('div');
-        labelContainer.style.transform = 'rotate(270deg)';
+        labelContainer.style.transform = 'rotate(270deg)'; // Cambiar orientación del texto a 270 grados
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
         labelContainer.style.fontWeight = 'bold';
         labelContainer.textContent = tram;
 
+        // Crear un contenedor para el gráfico
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`; // Altura proporcional
+        plotContainer.style.height = `${tramoHeight}px`; // Ajustar la altura proporcional a la longitud del tramo
         plotContainer.style.flexGrow = '1';
 
+        // Añadir la etiqueta y el gráfico al contenedor principal
         container.appendChild(labelContainer);
         container.appendChild(plotContainer);
 
+        // Añadir el contenedor del gráfico al área principal de gráficos
         document.getElementById('plot').appendChild(container);
 
+        // Dibujar el gráfico sin título y con etiquetas de año solo en el último gráfico
         const addHorizontalLabels = i === trams.length - 1;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
 
-    // Habilitar scroll en LINIA COMPLETA
-    document.body.style.overflowY = 'scroll';
+    // Habilitar desplazamiento en la página LINIA COMPLETA
+    document.body.style.height = 'auto';
+    document.body.style.overflow = 'auto';
 }
 
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
+    // Añadir el título del gráfico individual
     document.getElementById('plot').innerHTML = `
-        <h2 style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
+        <div style="text-align: center; font-size: 24px; font-family: Arial, sans-serif; margin: 20px 0;">
             Espai-temps previsió rehabilitació tram ${tram}
-        </h2>
-        <div id="plotContainer"></div>`; // Contenedor para el gráfico
+        </div>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -87,7 +98,7 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    await drawPlot(tram, resumData, estacionsData, 'plotContainer', true, null, null, 400); // Ajustar altura del gráfico individual
+    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400); // Ajustar la altura de los gráficos individuales
 
     // Añadir las tarjetas informativas
     const totalLength = resumData
@@ -106,27 +117,25 @@ async function drawSinglePlot(tram, resumData) {
     infoContainer.style.display = 'flex';
     infoContainer.style.gap = '20px';
     infoContainer.style.marginTop = '20px';
-    infoContainer.style.justifyContent = 'center'; // Centrar las tarjetas
 
     const createCard = (title, value, color) => {
         const card = document.createElement('div');
-        card.style.border = `2px solid ${color}`;
+        card.style.border = `1px solid ${color}`;
+        card.style.color = color;
         card.style.borderRadius = '8px';
         card.style.padding = '10px';
         card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
-        card.style.textAlign = 'center';
         card.style.flex = '1';
 
         const cardTitle = document.createElement('h3');
         cardTitle.textContent = title;
         cardTitle.style.margin = '0 0 10px 0';
-        cardTitle.style.fontSize = '12px'; // Tamaño del título
+        cardTitle.style.fontSize = '16px'; // Ajuste del tamaño de fuente del título
 
         const cardValue = document.createElement('p');
-        cardValue.textContent = `${value.toLocaleString('de-DE')} m`;
-        cardValue.style.fontSize = '28px'; // Tamaño del valor
+        cardValue.textContent = `${value.toLocaleString('de-DE')} m`; // Añadido separador de miles
+        cardValue.style.fontSize = '28px'; // Ajuste del tamaño de fuente del valor
         cardValue.style.fontWeight = 'bold';
-        cardValue.style.color = color;
 
         card.appendChild(cardTitle);
         card.appendChild(cardValue);
@@ -134,14 +143,15 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
-    infoContainer.appendChild(createCard('Longitud total', totalLength, '#000')); // Tarjeta 1
-    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red')); // Tarjeta 2
-    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, '#ff8c00')); // Tarjeta 3
+    infoContainer.appendChild(createCard('Longitud total', totalLength, 'black'));
+    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red'));
+    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'orange'));
 
     document.getElementById('plot').appendChild(infoContainer);
 
-    document.body.style.height = '100vh'; // Ajustar la altura para evitar scroll
-    document.body.style.overflow = 'hidden'; // Desactivar scroll
+    // Autoajustar la altura del contenedor para que no haya scroll
+    document.body.style.height = '100vh';
+    document.body.style.overflow = 'hidden';
 }
 
 // Función para dibujar un gráfico específico
@@ -166,13 +176,14 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 if (currentGroup) {
                     groupedData.push(currentGroup);
                 }
-                currentGroup = {
-                    PKInici: pkInici,
-                    PKFinal: pkFinal,
-                    PREVISIO: previsio,
-                    length: (                    PKFinal - pkInici) * 1000,
-                    via: segment.Via
-                };
+                    currentGroup = {
+                        PKInici: pkInici,
+                        PKFinal: pkFinal,
+                        PREVISIO: previsio,
+                        length: (pkFinal - pkInici) * 1000,
+                        via: segment.Via
+                    };
+                }
             }
         });
 
@@ -203,7 +214,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             width: 0.5,
             offset: 0,
             marker: {
-                color: 'rgba(31, 119, 180, 1)' // Cambiar color de vía 1
+                color: 'rgba(31, 119, 180, 1)'
             },
             hoverinfo: 'text',
             hovertext: via1.map(d => `${Math.round(d.length)} m`),
@@ -225,18 +236,19 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             width: 0.5,
             offset: 0.5,
             marker: {
-                color: 'rgba(100, 149, 237)' // Cambiar color de vía 2 a un azul más claro
+                color: 'rgba(135, 206, 250, 1)' // Color azul más claro para la vía 2
             },
             hoverinfo: 'text',
             hovertext: via2.map(d => `${Math.round(d.length)} m`),
             hoverlabel: {
-                bgcolor: 'rgba(100, 149, 237)',
+                bgcolor: 'rgba(135, 206, 250, 1)',
                 font: {
                     color: 'white'
                 }
             }
         });
 
+        // Añadir anotaciones y líneas de referencia para las estaciones
         const estaciones = estacionsData.filter(d => d.Tram === tram);
 
         stationAnnotations.push(...estaciones.map(d => ({
@@ -271,11 +283,13 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         })));
 
+        // Añadir líneas y sombreado para los años y la línea roja para 2025
         shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
 
+    // Configuración del layout del gráfico
     const layout = {
-        title: '',
+        title: '', // Eliminar título individual en gráficos de "LINIA COMPLETA"
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
             range: [1995, 2070],
@@ -296,7 +310,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             x: 1.05,
             xanchor: 'left',
             y: 0.5,
-            yanchor: 'middle'
+            yanchor: 'middle' // Centrar verticalmente la leyenda
         },
         annotations: stationAnnotations,
         shapes: shapes,
@@ -310,6 +324,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         height: plotHeight // Ajustar la altura del gráfico basada en la longitud del tramo
     };
 
+    // Dibujar la gráfica
     Plotly.newPlot(containerId, traces, layout);
 }
 
@@ -317,6 +332,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 function addLinesAndShading(pkMin, pkMax) {
     let shapes = [];
     for (let year = 1995; year <= 2069; year++) {
+        // Añadir líneas verticales para cada año
         shapes.push({
             type: 'line',
             x0: year,
@@ -330,6 +346,7 @@ function addLinesAndShading(pkMin, pkMax) {
             }
         });
 
+        // Añadir sombreado cada 5 años
         if (year % 5 === 0) {
             shapes.push({
                 type: 'rect',
@@ -346,6 +363,7 @@ function addLinesAndShading(pkMin, pkMax) {
         }
     }
 
+    // Añadir sombreado rojo antes de 2025
     shapes.push({
         type: 'rect',
         x0: 1995,
@@ -359,6 +377,7 @@ function addLinesAndShading(pkMin, pkMax) {
         }
     });
 
+    // Añadir línea roja en 2025
     shapes.push({
         type: 'line',
         x0: 2025,
@@ -396,6 +415,7 @@ async function init() {
         return;
     }
 
+    // Añadir botones para cada tramo y el botón de "LINIA COMPLETA"
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
@@ -409,6 +429,7 @@ async function init() {
         }
     });
 
+    // Añadir una línea separadora y el botón para "LINIA COMPLETA"
     const separator = document.createElement('div');
     separator.style.width = '2px';
     separator.style.height = '30px';
@@ -418,13 +439,14 @@ async function init() {
 
     const liniaCompletaButton = document.createElement('button');
     liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
+        liniaCompletaButton.textContent = 'LINIA COMPLETA';
     liniaCompletaButton.addEventListener('click', () => {
         selectTramButton(liniaCompletaButton);
         drawFullLinePlot(trams, resumData);
     });
     tramButtonsContainer.appendChild(liniaCompletaButton);
 
+    // Dibujar el gráfico del primer tramo de la lista por defecto
     const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
     selectTramButton(firstTramButton);
     drawSinglePlot(trams[0], resumData);
