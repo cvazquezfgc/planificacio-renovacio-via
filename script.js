@@ -26,7 +26,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 50; // Asegurarse de que esta unidad es adecuada para todos los tramos
+    const unitHeightPerKm = 62.5; // Incrementar la altura por kilómetro en un 25%
 
     for (let i = 0; i < trams.length; i++) { // Asegurarse de que se dibujen todos los tramos, incluido GR-TB
         const tram = trams[i];
@@ -40,7 +40,6 @@ async function drawFullLinePlot(trams, resumData) {
 
         if (tramoHeight < 150) {
             // Asegurarse de que el gráfico no quede demasiado comprimido
-            // Ajustar un mínimo de altura para evitar compresión
             tramoHeight = 150;
         }
 
@@ -178,7 +177,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     if (via1.length > 0 || via2.length > 0) {
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
-        pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
+                pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
         traces.push({
             x: via1.map(d => d.PREVISIO),
@@ -428,3 +427,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
