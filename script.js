@@ -15,7 +15,6 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
-    // Limpiar cualquier gráfico previo y título anterior
     document.getElementById('plot').innerHTML = '';
     document.getElementById('title-container').innerHTML = `<h2>Espai-temps previsió rehabilitació de la línia completa</h2>`;
 
@@ -26,9 +25,9 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 75; // Incremento del 50% en la altura por kilómetro
+    const unitHeightPerKm = 75;
 
-    for (let i = 0; i < trams.length; i++) { // Asegurarse de que se dibujen todos los tramos, incluido GR-TB
+    for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
 
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
@@ -39,7 +38,6 @@ async function drawFullLinePlot(trams, resumData) {
         let tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
 
         if (tramoHeight < 150) {
-            // Asegurarse de que el gráfico no quede demasiado comprimido
             tramoHeight = 150;
         }
 
@@ -50,7 +48,6 @@ async function drawFullLinePlot(trams, resumData) {
         container.style.marginBottom = '20px';
 
         const labelContainer = document.createElement('div');
-        labelContainer.style.transform = 'rotate(270deg)';
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -66,7 +63,6 @@ async function drawFullLinePlot(trams, resumData) {
         container.appendChild(plotContainer);
         document.getElementById('plot').appendChild(container);
 
-        // Asegurar que cada gráfico concatenado muestre las etiquetas de los años
         const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
@@ -75,9 +71,8 @@ async function drawFullLinePlot(trams, resumData) {
     document.body.style.overflow = 'auto';
 }
 
-// Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
+// Función para dibujar gráficos de tramos individuales y añadir gráficos de quesitos
 async function drawSinglePlot(tram, resumData) {
-    // Limpiar el gráfico anterior y el título
     document.getElementById('plot').innerHTML = '';
     document.getElementById('title-container').innerHTML = `<div id="title">Espai-temps previsió rehabilitació tram ${tram}</div>`;
 
@@ -89,12 +84,6 @@ async function drawSinglePlot(tram, resumData) {
     }
 
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
-
-    // Limpiar las tarjetas informativas previas
-    const infoContainer = document.querySelector('.informative-container');
-    if (infoContainer) {
-        infoContainer.remove();
-    }
 
     const totalLength = resumData
         .filter(d => d.TRAM === tram)
@@ -108,24 +97,93 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    const infoContainerNew = document.createElement('div');
-    infoContainerNew.className = 'informative-container';
-    infoContainerNew.style.display = 'flex';
-    infoContainerNew.style.gap = '20px';
-    infoContainerNew.style.marginTop = '20px';
+    // Crear los gráficos de quesitos
+    const totalLengthPercentageBefore2025 = ((lengthBefore2025 / totalLength) * 100).toFixed(1);
+    const totalLengthPercentageBetween2025And2030 = ((lengthBetween2025And2030 / totalLength) * 100).toFixed(1);
 
-    const createCard = (title, value, borderClass) => {
-        const card = document.createElement('div');
-        card.className = `informative-card ${borderClass}`;
-        card.innerHTML = `<h3>${title}</h3><p>${value.toLocaleString('de-DE')} m</p>`;
-        return card;
+    const plotContainer = document.getElementById('plot');
+
+    const pieContainer = document.createElement('div');
+    pieContainer.style.display = 'flex';
+    pieContainer.style.justifyContent = 'center';
+    pieContainer.style.gap = '40px';
+    pieContainer.style.marginTop = '20px';
+
+    // Gráfico de quesito para < 2025
+    const pieDataBefore2025 = [
+        {
+            values: [lengthBefore2025, totalLength - lengthBefore2025],
+            labels: ['< 2025', ''],
+            marker: {
+                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+            },
+            type: 'pie',
+            textinfo: 'none',
+            hole: 0.5
+        }
+    ];
+
+    const pieLayoutBefore2025 = {
+        height: 300,
+        width: 300,
+        showlegend: false,
+        annotations: [{
+            text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m</b><br>(${totalLengthPercentageBefore2025}%)`,
+            showarrow: false,
+            font: {
+                color: 'red',
+                size: 16
+            },
+            x: 0.5,
+            y: 0.5,
+            xanchor: 'center',
+            yanchor: 'middle'
+        }]
     };
 
-    infoContainerNew.appendChild(createCard('Longitud total', totalLength, ''));
-    infoContainerNew.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red-border'));
-    infoContainerNew.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'orange-border'));
+    const pieChartBefore2025 = document.createElement('div');
+    pieContainer.appendChild(pieChartBefore2025);
 
-    document.getElementById('plot').appendChild(infoContainerNew);
+    Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
+
+    // Gráfico de quesito para 2025-2030
+    const pieDataBetween2025And2030 = [
+        {
+            values: [lengthBetween2025And2030, totalLength - lengthBetween2025And2030],
+            labels: ['2025-2030', ''],
+            marker: {
+                colors: ['rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+            },
+            type: 'pie',
+            textinfo: 'none',
+            hole: 0.5
+        }
+    ];
+
+    const pieLayoutBetween2025And2030 = {
+        height: 300,
+        width: 300,
+        showlegend: false,
+        annotations: [{
+            text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m</b><br>(${totalLengthPercentageBetween2025And2030}%)`,
+            showarrow: false,
+            font: {
+                color: 'orange',
+                size: 16
+            },
+            x: 0.5,
+            y: 0.5,
+            xanchor: 'center',
+            yanchor: 'middle'
+        }]
+    };
+
+    const pieChartBetween2025And2030 = document.createElement('div');
+    pieContainer.appendChild(pieChartBetween2025And2030);
+
+    Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
+
+    plotContainer.appendChild(pieContainer);
 
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
@@ -133,7 +191,7 @@ async function drawSinglePlot(tram, resumData) {
 
 // Función para dibujar un gráfico específico
 async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
-    let traces = [];
+        let traces = [];
     let stationAnnotations = [];
     let shapes = [];
 
@@ -183,7 +241,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
-                        base: via1.map(d => d.PKInici),
+            base: via1.map(d => d.PKInici),
             type: 'bar',
             name: 'Vía 1',
             orientation: 'v',
