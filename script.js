@@ -66,7 +66,8 @@ async function drawFullLinePlot(trams, resumData) {
         container.appendChild(plotContainer);
         document.getElementById('plot').appendChild(container);
 
-        const addHorizontalLabels = i === trams.length - 1;
+        // Asegurar que cada gráfico concatenado muestre las etiquetas de los años
+        const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
     }
 
@@ -182,7 +183,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
-            base: via1.map(d => d.PKInici),
+                        base: via1.map(d => d.PKInici),
             type: 'bar',
             name: 'Vía 1',
             orientation: 'v',
@@ -294,7 +295,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             range: [1995, 2070],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
             tickangle: addHorizontalLabels ? -45 : 0,
-            showticklabels: addHorizontalLabels
+            showticklabels: addHorizontalLabels // Mostrar etiquetas de los años en cada gráfico
         },
         yaxis: {
             title: 'PK',
