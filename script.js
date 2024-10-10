@@ -28,7 +28,7 @@ async function drawFullLinePlot(trams, resumData) {
 
     const unitHeightPerKm = 50; 
 
-    for (let i = 0; i < trams.length - 1; i++) {
+    for (let i = 0; i < trams.length; i++) { // Modificación: Iterar por todos los tramos, incluyendo el último
         const tram = trams[i];
 
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
@@ -174,7 +174,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
         pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
-        traces.push({
+                traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
             base: via1.map(d => d.PKInici),
