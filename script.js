@@ -114,12 +114,6 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.style.gap = '40px';
     pieContainer.style.marginTop = '20px';
 
-    // Título para los gráficos de quesitos
-    const titleContainer = document.createElement('div');
-    titleContainer.style.textAlign = 'center';
-    titleContainer.style.marginBottom = '10px';
-    titleContainer.innerHTML = `<h3 style="font-family: Arial, sans-serif; font-size: 18px;">Longitud a rehabilitar &lt;2025</h3>`;
-
     // Gráfico de quesito para < 2025
     const pieDataBefore2025 = [
         {
@@ -157,12 +151,6 @@ async function drawSinglePlot(tram, resumData) {
     const pieChartBefore2025 = document.createElement('div');
     pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
-
-    // Título para el gráfico de 2025-2030
-    const titleContainerBetween2025And2030 = document.createElement('div');
-    titleContainerBetween2025And2030.style.textAlign = 'center';
-    titleContainerBetween2025And2030.style.marginBottom = '10px';
-    titleContainerBetween2025And2030.innerHTML = `<h3 style="font-family: Arial, sans-serif; font-size: 18px;">Longitud a rehabilitar 2025-2030</h3>`;
 
     // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
@@ -208,10 +196,7 @@ async function drawSinglePlot(tram, resumData) {
     pieChartBetween2025And2030.style.position = 'relative';
     pieChartBetween2025And2030.style.left = '-50px'; // Alinear en el centro del sombreado naranja
 
-    // Añadir títulos a los gráficos de quesitos
-    plotContainer.insertBefore(titleContainer, pieContainer);
-    plotContainer.insertBefore(titleContainerBetween2025And2030, pieChartBetween2025And2030);
-
+    // Añadir los gráficos de quesitos al contenedor de gráficos
     plotContainer.appendChild(pieContainer);
 
     document.body.style.height = '100vh';
