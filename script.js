@@ -15,8 +15,9 @@ async function loadData(url) {
 
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
-    document.getElementById('plot').innerHTML = `
-        <h2>Espai-temps previsió rehabilitació de la línia completa</h2>`;
+    // Limpiar cualquier gráfico previo y título anterior
+    document.getElementById('plot').innerHTML = '';
+    document.getElementById('title-container').innerHTML = `<h2>Espai-temps previsió rehabilitació de la línia completa</h2>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -70,10 +71,9 @@ async function drawFullLinePlot(trams, resumData) {
 
 // Función para dibujar gráficos de tramos individuales y añadir tarjetas informativas
 async function drawSinglePlot(tram, resumData) {
-    document.getElementById('title-container').innerHTML = `
-        <div id="title">
-            Espai-temps previsió rehabilitació tram ${tram}
-        </div>`;
+    // Limpiar el gráfico anterior y el título
+    document.getElementById('plot').innerHTML = '';
+    document.getElementById('title-container').innerHTML = `<div id="title">Espai-temps previsió rehabilitació tram ${tram}</div>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -83,6 +83,12 @@ async function drawSinglePlot(tram, resumData) {
     }
 
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
+
+    // Limpiar las tarjetas informativas previas
+    const infoContainer = document.querySelector('.informative-container');
+    if (infoContainer) {
+        infoContainer.remove();
+    }
 
     const totalLength = resumData
         .filter(d => d.TRAM === tram)
@@ -96,10 +102,11 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    const infoContainer = document.createElement('div');
-    infoContainer.style.display = 'flex';
-    infoContainer.style.gap = '20px';
-    infoContainer.style.marginTop = '20px';
+    const infoContainerNew = document.createElement('div');
+    infoContainerNew.className = 'informative-container';
+    infoContainerNew.style.display = 'flex';
+    infoContainerNew.style.gap = '20px';
+    infoContainerNew.style.marginTop = '20px';
 
     const createCard = (title, value, borderClass) => {
         const card = document.createElement('div');
@@ -108,11 +115,11 @@ async function drawSinglePlot(tram, resumData) {
         return card;
     };
 
-    infoContainer.appendChild(createCard('Longitud total', totalLength, ''));
-    infoContainer.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red-border'));
-    infoContainer.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'orange-border'));
+    infoContainerNew.appendChild(createCard('Longitud total', totalLength, ''));
+    infoContainerNew.appendChild(createCard('Rehabilitació abans de 2025', lengthBefore2025, 'red-border'));
+    infoContainerNew.appendChild(createCard('Rehabilitació entre 2025 i 2030', lengthBetween2025And2030, 'orange-border'));
 
-    document.getElementById('plot').appendChild(infoContainer);
+    document.getElementById('plot').appendChild(infoContainerNew);
 
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
@@ -415,4 +422,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
