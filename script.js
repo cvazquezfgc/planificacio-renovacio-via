@@ -26,9 +26,9 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 50; 
+    const unitHeightPerKm = 50; // Asegurarse de que esta unidad es adecuada para todos los tramos
 
-    for (let i = 0; i < trams.length; i++) { // Modificación: Iterar por todos los tramos, incluyendo el último
+    for (let i = 0; i < trams.length; i++) { // Asegurarse de que se dibujen todos los tramos, incluido GR-TB
         const tram = trams[i];
 
         const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
@@ -36,7 +36,13 @@ async function drawFullLinePlot(trams, resumData) {
 
         const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
+        let tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
+
+        if (tramoHeight < 150) {
+            // Asegurarse de que el gráfico no quede demasiado comprimido
+            // Ajustar un mínimo de altura para evitar compresión
+            tramoHeight = 150;
+        }
 
         const container = document.createElement('div');
         container.id = `plot-${tram}`;
@@ -174,7 +180,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
         pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
-                traces.push({
+        traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
             base: via1.map(d => d.PKInici),
