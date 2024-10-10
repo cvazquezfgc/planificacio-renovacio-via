@@ -17,9 +17,9 @@ async function loadData(url) {
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
-        <h2 style="font-family: Arial, sans-serif; font-size: 24px; text-align: center;">
+        <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
             Espai-temps previsió rehabilitació de la línia completa
-        </h2>`; // Ajustar la fuente y formato
+        </h2>`; // Aseguramos la fuente sin negrita
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -28,7 +28,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 75; // Asegurar la misma escala
+    const unitHeightPerKm = 75; // Aseguramos que todos los gráficos usen la misma escala
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -90,6 +90,8 @@ async function drawSinglePlot(tram, resumData) {
         console.error('No se pudo cargar los datos de las estaciones.');
         return;
     }
+
+    const plotContainer = document.getElementById('plot'); // Definir correctamente el contenedor
 
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
 
@@ -171,7 +173,7 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-                        textinfo: 'none',
+            textinfo: 'none',
             textposition: 'outside',
             direction: 'clockwise',
             rotation: 90 // Para que comience desde las 12 en punto
@@ -214,6 +216,94 @@ async function drawSinglePlot(tram, resumData) {
 
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
+}
+
+// Función para añadir líneas y sombreado
+function addLinesAndShading(pkMin, pkMax) {
+    let shapes = [];
+    for (let year = 1995; year <= 2069; year++) {
+        shapes.push({
+            type: 'line',
+            x0: year,
+            x1: year,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'lightgray',
+                width: 0.8,
+                layer: 'below'
+            }
+        });
+
+        if (year % 5 === 0) {
+            shapes.push({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            });
+        }
+    }
+
+    shapes.push({
+        type: 'rect',
+        x0: 2025,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 165, 0, 0.1)', // Sombreado tenue naranja
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    shapes.push({
+        type: 'line',
+        x0: 2030,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'orange',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    shapes.push({
+        type: 'rect',
+        x0: 1995,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 0, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    shapes.push({
+        type: 'line',
+        x0: 2025,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'red',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    return shapes;
 }
 
 // Función para dibujar un gráfico específico
@@ -385,68 +475,6 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     Plotly.newPlot(containerId, traces, layout);
 }
 
-// Función para añadir líneas y sombreado
-function addLinesAndShading(pkMin, pkMax) {
-    let shapes = [];
-    for (let year = 1995; year <= 2069; year++) {
-        shapes.push({
-            type: 'line',
-            x0: year,
-            x1: year,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'lightgray',
-                width: 0.8,
-                layer: 'below'
-            }
-        });
-
-        if (year % 5 === 0) {
-            shapes.push({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            });
-        }
-    }
-
-    shapes.push({
-        type: 'rect',
-        x0: 1995,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 0, 0, 0.1)',
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
-
-    shapes.push({
-        type: 'line',
-        x0: 2025,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'red',
-            width: 2,
-            layer: 'above'
-        }
-    });
-
-    return shapes;
-}
-
 // Inicializar la página y los eventos
 async function init() {
     const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
@@ -513,4 +541,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
