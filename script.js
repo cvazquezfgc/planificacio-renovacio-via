@@ -16,7 +16,10 @@ async function loadData(url) {
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
-    document.getElementById('title-container').innerHTML = `<h2>Espai-temps previsió rehabilitació de la línia completa</h2>`;
+    document.getElementById('title-container').innerHTML = `
+        <h2 style="font-family: Arial, sans-serif; font-size: 24px; text-align: center;">
+            Espai-temps previsió rehabilitació de la línia completa
+        </h2>`; // Ajustar la fuente y formato
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -25,7 +28,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 75; // Aseguramos que esta escala sea consistente en todos los gráficos
+    const unitHeightPerKm = 75; // Asegurar la misma escala
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -73,10 +76,13 @@ async function drawFullLinePlot(trams, resumData) {
     document.body.style.overflow = 'auto';
 }
 
-// Función para dibujar gráficos de tramos individuales y añadir gráficos de quesitos
+// Función para dibujar gráficos de tramos individuales y ajustar los gráficos de quesitos
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = '';
-    document.getElementById('title-container').innerHTML = `<div id="title">Espai-temps previsió rehabilitació tram ${tram}</div>`;
+    document.getElementById('title-container').innerHTML = `
+        <div id="title">
+            Espai-temps previsió rehabilitació tram ${tram}
+        </div>`;
 
     const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
     const estacionsData = await loadData(estacionsUrl);
@@ -99,17 +105,18 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    // Crear los gráficos de quesitos
-    const totalLengthPercentageBefore2025 = ((lengthBefore2025 / totalLength) * 100).toFixed(1);
-    const totalLengthPercentageBetween2025And2030 = ((lengthBetween2025And2030 / totalLength) * 100).toFixed(1);
-
-    const plotContainer = document.getElementById('plot');
-
+    // Crear los gráficos de quesitos con el diseño solicitado
     const pieContainer = document.createElement('div');
     pieContainer.style.display = 'flex';
     pieContainer.style.justifyContent = 'center';
     pieContainer.style.gap = '40px';
     pieContainer.style.marginTop = '20px';
+
+    // Título para los gráficos de quesitos
+    const titleContainer = document.createElement('div');
+    titleContainer.style.textAlign = 'center';
+    titleContainer.style.marginBottom = '10px';
+    titleContainer.innerHTML = `<h3 style="font-family: Arial, sans-serif; font-size: 18px;">Longitud a rehabilitar &lt;2025</h3>`;
 
     // Gráfico de quesito para < 2025
     const pieDataBefore2025 = [
@@ -132,7 +139,7 @@ async function drawSinglePlot(tram, resumData) {
         width: 300,
         showlegend: false,
         annotations: [{
-            text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m</b><br>(${totalLengthPercentageBefore2025}%)`,
+            text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m</b><br>(${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%)`,
             showarrow: false,
             font: {
                 color: 'red',
@@ -149,6 +156,12 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
+    // Título para el gráfico de 2025-2030
+    const titleContainerBetween2025And2030 = document.createElement('div');
+    titleContainerBetween2025And2030.style.textAlign = 'center';
+    titleContainerBetween2025And2030.style.marginBottom = '10px';
+    titleContainerBetween2025And2030.innerHTML = `<h3 style="font-family: Arial, sans-serif; font-size: 18px;">Longitud a rehabilitar 2025-2030</h3>`;
+
     // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
         {
@@ -158,7 +171,7 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            textinfo: 'none',
+                        textinfo: 'none',
             textposition: 'outside',
             direction: 'clockwise',
             rotation: 90 // Para que comience desde las 12 en punto
@@ -170,13 +183,13 @@ async function drawSinglePlot(tram, resumData) {
         width: 300,
         showlegend: false,
         annotations: [{
-            text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m</b><br>(${totalLengthPercentageBetween2025And2030}%)`,
+            text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m</b><br>(${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%)`,
             showarrow: false,
             font: {
                 color: 'orange',
                 size: 16
             },
-                        x: 0.5,
+            x: 0.5,
             y: 0.5,
             xanchor: 'center',
             yanchor: 'middle'
@@ -192,6 +205,10 @@ async function drawSinglePlot(tram, resumData) {
     pieChartBefore2025.style.left = '-150px'; // Alinear en el centro del sombreado rojo
     pieChartBetween2025And2030.style.position = 'relative';
     pieChartBetween2025And2030.style.left = '-50px'; // Alinear en el centro del sombreado naranja
+
+    // Añadir títulos a los gráficos de quesitos
+    plotContainer.insertBefore(titleContainer, pieContainer);
+    plotContainer.insertBefore(titleContainerBetween2025And2030, pieChartBetween2025And2030);
 
     plotContainer.appendChild(pieContainer);
 
