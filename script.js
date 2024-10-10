@@ -26,7 +26,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 62.5; // Incrementar la altura por kilómetro en un 25%
+    const unitHeightPerKm = 75; // Incremento del 50% en la altura por kilómetro
 
     for (let i = 0; i < trams.length; i++) { // Asegurarse de que se dibujen todos los tramos, incluido GR-TB
         const tram = trams[i];
@@ -177,7 +177,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     if (via1.length > 0 || via2.length > 0) {
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
-                pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
+        pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
         traces.push({
             x: via1.map(d => d.PREVISIO),
@@ -256,6 +256,33 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 layer: 'below'
             }
         })));
+
+        // Añadir sombreado y línea para 2025-2030
+        shapes.push({
+            type: 'rect',
+            x0: 2025,
+            x1: 2030,
+            y0: pkMin,
+            y1: pkMax,
+            fillcolor: 'rgba(255, 165, 0, 0.1)', // Naranja tenue
+            layer: 'below',
+            line: {
+                width: 0
+            }
+        });
+
+        shapes.push({
+            type: 'line',
+            x0: 2030,
+            x1: 2030,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'orange',
+                width: 2,
+                layer: 'above'
+            }
+        });
 
         shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
@@ -427,4 +454,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
