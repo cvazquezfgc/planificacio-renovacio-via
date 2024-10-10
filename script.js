@@ -25,7 +25,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 75;
+    const unitHeightPerKm = 75; // Aseguramos que esta escala sea consistente en todos los gráficos
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -48,6 +48,8 @@ async function drawFullLinePlot(trams, resumData) {
         container.style.marginBottom = '20px';
 
         const labelContainer = document.createElement('div');
+        labelContainer.style.transform = 'rotate(270deg)';
+        labelContainer.style.whiteSpace = 'nowrap'; // Etiqueta en una línea vertical
         labelContainer.style.textAlign = 'center';
         labelContainer.style.marginRight = '10px';
         labelContainer.style.fontSize = '16px';
@@ -119,7 +121,9 @@ async function drawSinglePlot(tram, resumData) {
             },
             type: 'pie',
             textinfo: 'none',
-            hole: 0.5
+            textposition: 'outside',
+            direction: 'clockwise',
+            rotation: 90 // Para que el slice rojo comience desde las 12 en punto
         }
     ];
 
@@ -143,20 +147,21 @@ async function drawSinglePlot(tram, resumData) {
 
     const pieChartBefore2025 = document.createElement('div');
     pieContainer.appendChild(pieChartBefore2025);
-
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
     // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
         {
-            values: [lengthBetween2025And2030, totalLength - lengthBetween2025And2030],
-            labels: ['2025-2030', ''],
+            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
+            labels: ['', '2025-2030', ''],
             marker: {
-                colors: ['rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
             textinfo: 'none',
-            hole: 0.5
+            textposition: 'outside',
+            direction: 'clockwise',
+            rotation: 90 // Para que comience desde las 12 en punto
         }
     ];
 
@@ -171,7 +176,7 @@ async function drawSinglePlot(tram, resumData) {
                 color: 'orange',
                 size: 16
             },
-            x: 0.5,
+                        x: 0.5,
             y: 0.5,
             xanchor: 'center',
             yanchor: 'middle'
@@ -180,8 +185,13 @@ async function drawSinglePlot(tram, resumData) {
 
     const pieChartBetween2025And2030 = document.createElement('div');
     pieContainer.appendChild(pieChartBetween2025And2030);
-
     Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
+
+    // Ajustar la posición horizontal de los gráficos de quesitos
+    pieChartBefore2025.style.position = 'relative';
+    pieChartBefore2025.style.left = '-150px'; // Alinear en el centro del sombreado rojo
+    pieChartBetween2025And2030.style.position = 'relative';
+    pieChartBetween2025And2030.style.left = '-50px'; // Alinear en el centro del sombreado naranja
 
     plotContainer.appendChild(pieContainer);
 
@@ -191,7 +201,7 @@ async function drawSinglePlot(tram, resumData) {
 
 // Función para dibujar un gráfico específico
 async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
-        let traces = [];
+    let traces = [];
     let stationAnnotations = [];
     let shapes = [];
 
@@ -316,33 +326,6 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         })));
 
-        // Añadir sombreado y línea para 2025-2030
-        shapes.push({
-            type: 'rect',
-            x0: 2025,
-            x1: 2030,
-            y0: pkMin,
-            y1: pkMax,
-            fillcolor: 'rgba(255, 165, 0, 0.1)', // Naranja tenue
-            layer: 'below',
-            line: {
-                width: 0
-            }
-        });
-
-        shapes.push({
-            type: 'line',
-            x0: 2030,
-            x1: 2030,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'orange',
-                width: 2,
-                layer: 'above'
-            }
-        });
-
         shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
     }
 
@@ -353,7 +336,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             range: [1995, 2070],
             tickvals: Array.from({ length: 75 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
             tickangle: addHorizontalLabels ? -45 : 0,
-            showticklabels: addHorizontalLabels // Mostrar etiquetas de los años en cada gráfico
+            showticklabels: addHorizontalLabels
         },
         yaxis: {
             title: 'PK',
@@ -513,3 +496,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
