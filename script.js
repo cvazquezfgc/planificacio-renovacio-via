@@ -13,6 +13,136 @@ async function loadData(url) {
     }
 }
 
+// Variables globales
+let resumData = null; // Datos cargados de resum.json
+let trams = [];       // Lista de tramos
+let estacionsData = null; // Datos de estaciones
+
+// Función para mostrar el menú desplegable
+function setupDropdownMenu() {
+    const titleDropdown = document.getElementById('title-dropdown');
+    const dropdownIcon = document.getElementById('dropdown-icon');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+    const headerTitle = document.getElementById('header-title');
+
+    function hideMenuOnClickOutside(event) {
+        if (!titleDropdown.contains(event.target)) {
+            dropdownMenu.style.display = 'none';
+            document.removeEventListener('click', hideMenuOnClickOutside);
+        }
+    }
+
+    function toggleDropdown() {
+        if (dropdownMenu.style.display === 'block') {
+            dropdownMenu.style.display = 'none';
+            document.removeEventListener('click', hideMenuOnClickOutside);
+        } else {
+            dropdownMenu.style.display = 'block';
+            setTimeout(() => {
+                document.addEventListener('click', hideMenuOnClickOutside);
+            }, 0);
+        }
+    }
+
+    titleDropdown.addEventListener('click', toggleDropdown);
+
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', () => {
+            dropdownItems.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            dropdownMenu.style.display = 'none';
+            document.removeEventListener('click', hideMenuOnClickOutside);
+
+            const selectedView = item.getAttribute('data-view');
+            if (selectedView === 'rehabilitacio') {
+                headerTitle.textContent = 'Previsió rehabilitació de via';
+                showRehabilitacioView();
+            } else if (selectedView === 'inventari') {
+                headerTitle.textContent = 'Inventari de via';
+                showInventariView();
+            }
+        });
+    });
+}
+
+// Función para mostrar la vista de rehabilitación
+function showRehabilitacioView() {
+    document.getElementById('plot').style.display = 'block';
+    document.getElementById('title-container').style.display = 'block';
+    document.getElementById('tramButtons').style.display = 'flex';
+    document.getElementById('table-container').style.display = 'none';
+
+    // Restaurar el último tramo seleccionado o seleccionar el primero
+    const selectedButton = document.querySelector('.tram-button.selected');
+    if (selectedButton) {
+        const tram = selectedButton.textContent;
+        drawSinglePlot(tram, resumData);
+    } else {
+        const firstTramButton = document.querySelector('.tram-button');
+        if (firstTramButton) {
+            selectTramButton(firstTramButton);
+            drawSinglePlot(firstTramButton.textContent, resumData);
+        }
+    }
+}
+
+// Función para mostrar la vista de inventario
+async function showInventariView() {
+    document.getElementById('plot').style.display = 'none';
+    document.getElementById('title-container').style.display = 'none';
+    document.getElementById('tramButtons').style.display = 'none';
+    document.getElementById('table-container').style.display = 'block';
+
+    if (!resumData) {
+        const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+        resumData = await loadData(resumUrl);
+        if (!resumData) {
+            console.error('No se pudo cargar el resumen de datos.');
+            return;
+        }
+    }
+
+    renderTable(resumData);
+}
+
+// Función para renderizar la tabla
+function renderTable(data) {
+    const tableContainer = document.getElementById('table-container');
+    tableContainer.innerHTML = ''; // Limpiar contenido previo
+
+    const table = document.createElement('table');
+    table.id = 'data-table';
+
+    // Crear encabezados
+    const headers = Object.keys(data[0]);
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Crear filas de datos
+    const tbody = document.createElement('tbody');
+    data.forEach(rowData => {
+        const row = document.createElement('tr');
+        headers.forEach(headerText => {
+            const cell = document.createElement('td');
+            cell.textContent = rowData[headerText];
+            row.appendChild(cell);
+        });
+        tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+
+    tableContainer.appendChild(table);
+}
+
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
@@ -21,11 +151,13 @@ async function drawFullLinePlot(trams, resumData) {
             Espai-temps previsió rehabilitació de la línia completa
         </h2>`; // Aseguramos la fuente sin negrita
 
-    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-    const estacionsData = await loadData(estacionsUrl);
     if (!estacionsData) {
-        console.error('No se pudo cargar los datos de las estaciones.');
-        return;
+        const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+        estacionsData = await loadData(estacionsUrl);
+        if (!estacionsData) {
+            console.error('No se pudo cargar los datos de las estaciones.');
+            return;
+        }
     }
 
     const unitHeightPerKm = 75; // Unidad de altura por km
@@ -86,11 +218,13 @@ async function drawSinglePlot(tram, resumData) {
             Espai-temps previsió rehabilitació tram ${tram}
         </div>`;
 
-    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-    const estacionsData = await loadData(estacionsUrl);
     if (!estacionsData) {
-        console.error('No se pudo cargar los datos de las estaciones.');
-        return;
+        const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+        estacionsData = await loadData(estacionsUrl);
+        if (!estacionsData) {
+            console.error('No se pudo cargar los datos de las estaciones.');
+            return;
+        }
     }
 
     const plotContainer = document.getElementById('plot');
@@ -474,14 +608,18 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
 // Inicializar la página y los eventos
 async function init() {
+    setupDropdownMenu();
+
+    // Cargar los datos de resumen
     const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-    const resumData = await loadData(resumUrl);
+    resumData = await loadData(resumUrl);
     if (!resumData) {
         console.error('No se pudo cargar el resumen de datos.');
         return;
     }
 
-    const trams = [...new Set(resumData.map(d => d.TRAM))];
+    // Obtener la lista de tramos
+    trams = [...new Set(resumData.map(d => d.TRAM))];
     if (trams.length === 0) {
         console.error('No se encontraron tramos en los datos cargados.');
         return;
@@ -493,6 +631,8 @@ async function init() {
         return;
     }
 
+    // Crear los botones de tramos
+    tramButtonsContainer.innerHTML = ''; // Limpiar botones anteriores
     trams.forEach(tram => {
         if (tram) {
             const button = document.createElement('button');
