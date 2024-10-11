@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    overflow: hidden; /* para evitar scroll innecesario */
+    overflow: hidden; /* para evitar scroll en tramos individuales */
 }
 
 #header {
@@ -12,7 +12,6 @@ body {
     background-color: rgb(77, 83, 88);
     color: white;
     padding: 10px;
-    height: 10vh; /* Ocupa el 10% del alto de la ventana */
 }
 
 #header img {
@@ -22,34 +21,35 @@ body {
 
 #header h1 {
     margin: 0;
-    font-size: 20px;
-    font-weight: normal;
+    font-size: 24px;
 }
 
 #plot {
     width: 90%;
     margin: auto;
-    height: 55vh; /* Ajuste dinámico para ocupar el 55% del alto de la ventana */
+    height: calc(100vh - 150px); /* ajusta la altura en función de la pantalla */
     position: relative;
 }
 
 #title-container {
+    position: relative;
     text-align: center;
-    font-size: 22px;
+    font-size: 24px;
     font-family: Arial, sans-serif;
     margin: 10px 0;
+    z-index: 2; /* Asegurar que el título esté encima del gráfico */
 }
 
 h2 {
     text-align: center;
-    font-size: 22px;
-    margin-bottom: 10px;
-    font-weight: normal;
+    font-size: 24px;
+    font-family: Arial, sans-serif;
+    margin-bottom: 20px;
 }
 
 #tramButtons {
     width: 90%;
-    margin: 10px auto;
+    margin: 20px auto;
     display: flex;
     justify-content: center;
     gap: 10px;
@@ -73,22 +73,36 @@ h2 {
     color: white;
 }
 
-.pie-container {
+.informative-card {
     display: flex;
-    justify-content: center;
-    gap: 50px;
-    margin-top: 10px;
-    height: 30vh; /* Los gráficos de quesitos ocupan el 30% del alto de la ventana */
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid gray;
+    border-radius: 8px;
+    width: 90%;
+    margin: 10px auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
 
-.pie-chart {
-    width: 300px;
-    height: 300px;
+.informative-card h3 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: normal;
 }
 
-hr {
-    border: none;
-    border-top: 1px solid lightgray;
-    margin-top: 10px;
-    margin-bottom: 10px;
+.informative-card p {
+    margin: 5px 0 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.red-border {
+    border-color: red;
+    color: red;
+}
+
+.orange-border {
+    border-color: orange;
+    color: orange;
 }
