@@ -171,7 +171,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-        const unitHeightPerKm = 50;
+    const unitHeightPerKm = 50;
     const labelHeight = 50; // Altura fija para etiquetas de años
 
     for (let i = 0; i < trams.length - 1; i++) {
@@ -203,7 +203,7 @@ async function drawFullLinePlot(trams, resumData) {
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
         plotContainer.style.height = `${tramoHeight}px`;
-        plotContainer.style.flexGrow = '1';
+               plotContainer.style.flexGrow = '1';
 
         container.appendChild(labelContainer);
         container.appendChild(plotContainer);
@@ -413,65 +413,66 @@ function addLinesAndShading(pkMin, pkMax) {
                 fillcolor: 'rgba(211, 211, 211, 0.3)',
                 layer: 'below',
                 line: {
-                                    width: 0
-            }
-        });
+                    width: 0
+                }
+            });
         }
+    }
 
-        shapes.push({
-            type: 'rect',
-            x0: 1995,
-            x1: 2025,
-            y0: pkMin,
-            y1: pkMax,
-            fillcolor: 'rgba(255, 0, 0, 0.1)',
-            layer: 'below',
-            line: {
-                width: 0
-            }
-        });
+    shapes.push({
+        type: 'rect',
+        x0: 1995,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 0, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
 
-        shapes.push({
-            type: 'line',
-            x0: 2025,
-            x1: 2025,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'red',
-                width: 2,
-                layer: 'above'
-            }
-        });
+    shapes.push({
+        type: 'line',
+        x0: 2025,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'red',
+            width: 2,
+            layer: 'above'
+        }
+    });
 
-        shapes.push({
-            type: 'rect',
-            x0: 2025,
-            x1: 2030,
-            y0: pkMin,
-            y1: pkMax,
-            fillcolor: 'rgba(255, 165, 0, 0.1)',
-            layer: 'below',
-            line: {
-                width: 0
-            }
-        });
+    shapes.push({
+        type: 'rect',
+        x0: 2025,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 165, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
 
-        shapes.push({
-            type: 'line',
-            x0: 2030,
-            x1: 2030,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'orange',
-                width: 2,
-                layer: 'above'
-            }
-        });
+    shapes.push({
+        type: 'line',
+        x0: 2030,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'orange',
+            width: 2,
+            layer: 'above'
+        }
+    });
 
-        return shapes;
-   }
+    return shapes;
+}
 
 // Inicializar la página y los eventos
 async function init() {
@@ -539,4 +540,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-}
+
