@@ -13,68 +13,27 @@ async function loadData(url) {
     }
 }
 
-// Función para dibujar gráficos concatenados para LINIA COMPLETA
-async function drawFullLinePlot(trams, resumData) {
-    document.getElementById('plot').innerHTML = '';
-    document.getElementById('title-container').innerHTML = `
-        <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
-            Espai-temps previsió rehabilitació de la línia completa
-        </h2>`; // Aseguramos la fuente sin negrita
+// Función para ajustar el layout dinámicamente según el tamaño de la ventana
+function adjustLayout() {
+    const plot = document.getElementById('plot');
+    const pieContainer = document.querySelector('.pie-container');
+    const windowHeight = window.innerHeight;
 
-    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-    const estacionsData = await loadData(estacionsUrl);
-    if (!estacionsData) {
-        console.error('No se pudo cargar los datos de las estaciones.');
-        return;
+    // Ajustar altura mínima para evitar que los elementos se vuelvan demasiado pequeños
+    if (windowHeight < 600) {
+        document.body.style.overflowY = 'auto'; // Habilitar desplazamiento
+    } else {
+        document.body.style.overflowY = 'hidden'; // Ocultar desplazamiento
     }
 
-    const unitHeightPerKm = 75; // Aseguramos que todos los gráficos usen la misma escala
-
-    for (let i = 0; i < trams.length; i++) {
-        const tram = trams[i];
-
-        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
-        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-
-        const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
-        const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-        let tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
-
-        if (tramoHeight < 150) {
-            tramoHeight = 150;
-        }
-
-        const container = document.createElement('div');
-        container.id = `plot-${tram}`;
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.marginBottom = '20px';
-
-        const labelContainer = document.createElement('div');
-        labelContainer.style.transform = 'rotate(270deg)';
-        labelContainer.style.whiteSpace = 'nowrap'; // Etiqueta en una línea vertical
-        labelContainer.style.textAlign = 'center';
-        labelContainer.style.marginRight = '10px';
-        labelContainer.style.fontSize = '16px';
-        labelContainer.style.fontWeight = 'bold';
-        labelContainer.textContent = tram;
-
-        const plotContainer = document.createElement('div');
-        plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`;
-        plotContainer.style.flexGrow = '1';
-
-        container.appendChild(labelContainer);
-        container.appendChild(plotContainer);
-        document.getElementById('plot').appendChild(container);
-
-        const addHorizontalLabels = true;
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
-    }
-
-    document.body.style.height = 'auto';
-    document.body.style.overflow = 'auto';
+    // Ajustar el alto de los elementos basados en la ventana
+    plot.style.height = `${Math.max(windowHeight * 0.7, 400)}px`; // 70% de la ventana, mínimo 400px
+    pieContainer.style.height = `${Math.max(windowHeight * 0.3, 200)}px`; // 30% de la ventana, mínimo 200px
 }
+
+// Llamar a la función al cargar la página y al redimensionar la ventana
+window.addEventListener('load', adjustLayout);
+window.addEventListener('resize', adjustLayout);
 
 // Función para dibujar gráficos de tramos individuales y ajustar los gráficos de quesitos
 async function drawSinglePlot(tram, resumData) {
@@ -116,10 +75,7 @@ async function drawSinglePlot(tram, resumData) {
 
     // Crear los gráficos de quesitos con el diseño solicitado
     const pieContainer = document.createElement('div');
-    pieContainer.style.display = 'flex';
-    pieContainer.style.justifyContent = 'center';
-    pieContainer.style.gap = '40px';
-    pieContainer.style.marginTop = '10px'; // Subir más cerca del gráfico espacio-tiempo
+    pieContainer.className = 'pie-container';
 
     // Gráfico de quesito para < 2025 (primero el rojo, luego gris)
     const pieDataBefore2025 = [
@@ -213,93 +169,59 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.overflow = 'hidden';
 }
 
+// Función para dibujar gráficos concatenados para LINIA COMPLETA
+async function drawFullLinePlot(trams, resumData) {
+    document.getElementById('plot').innerHTML = `
+        <h2>Espai-temps previsió rehabilitació de la línia completa</h2>`;
 
-// Función para añadir líneas y sombreado
-function addLinesAndShading(pkMin, pkMax) {
-    let shapes = [];
-    for (let year = 1995; year <= 2069; year++) {
-        shapes.push({
-            type: 'line',
-            x0: year,
-            x1: year,
-            y0: pkMin,
-            y1: pkMax,
-            line: {
-                color: 'lightgray',
-                width: 0.8,
-                layer: 'below'
-            }
-        });
-
-        if (year % 5 === 0) {
-            shapes.push({
-                type: 'rect',
-                x0: year,
-                x1: year + 1,
-                y0: pkMin,
-                y1: pkMax,
-                fillcolor: 'rgba(211, 211, 211, 0.3)',
-                layer: 'below',
-                line: {
-                    width: 0
-                }
-            });
-        }
+    const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
+    const estacionsData = await loadData(estacionsUrl);
+    if (!estacionsData) {
+        console.error('No se pudo cargar los datos de las estaciones.');
+        return;
     }
 
-    shapes.push({
-        type: 'rect',
-        x0: 2025,
-        x1: 2030,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 165, 0, 0.1)', // Sombreado tenue naranja
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
+        const unitHeightPerKm = 50; // Ajustar esta variable para mantener la consistencia de altura entre tramos
 
-    shapes.push({
-        type: 'line',
-        x0: 2030,
-        x1: 2030,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'orange',
-            width: 2,
-            layer: 'above'
-        }
-    });
+    for (let i = 0; i < trams.length - 1; i++) {
+        const tram = trams[i];
 
-    shapes.push({
-        type: 'rect',
-        x0: 1995,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 0, 0, 0.1)',
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
+        const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
+        const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
-    shapes.push({
-        type: 'line',
-        x0: 2025,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'red',
-            width: 2,
-            layer: 'above'
-        }
-    });
+        const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
+        const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
+        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
 
-    return shapes;
+        const container = document.createElement('div');
+        container.id = `plot-${tram}`;
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.marginBottom = '20px';
+
+        const labelContainer = document.createElement('div');
+        labelContainer.style.transform = 'rotate(270deg)';
+        labelContainer.style.textAlign = 'center';
+        labelContainer.style.marginRight = '10px';
+        labelContainer.style.fontSize = '16px';
+        labelContainer.style.fontWeight = 'bold';
+        labelContainer.textContent = tram;
+
+        const plotContainer = document.createElement('div');
+        plotContainer.id = `plot-${tram}-chart`;
+        plotContainer.style.height = `${tramoHeight}px`;
+        plotContainer.style.flexGrow = '1';
+
+        container.appendChild(labelContainer);
+        container.appendChild(plotContainer);
+        document.getElementById('plot').appendChild(container);
+
+        const addHorizontalLabels = i === trams.length - 1;
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
+    }
+
+    document.body.style.height = 'auto';
+    document.body.style.overflow = 'auto';
 }
 
 // Función para dibujar un gráfico específico
@@ -469,6 +391,94 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     };
 
     Plotly.newPlot(containerId, traces, layout);
+}
+
+// Función para añadir líneas y sombreado
+function addLinesAndShading(pkMin, pkMax) {
+    let shapes = [];
+    for (let year = 1995; year <= 2069; year++) {
+        shapes.push({
+            type: 'line',
+            x0: year,
+            x1: year,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'lightgray',
+                width: 0.8,
+                layer: 'below'
+            }
+        });
+
+        if (year % 5 === 0) {
+            shapes.push({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            });
+        }
+    }
+
+        shapes.push({
+        type: 'rect',
+        x0: 1995,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 0, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    shapes.push({
+        type: 'line',
+        x0: 2025,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'red',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    shapes.push({
+        type: 'rect',
+        x0: 2025,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 165, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    shapes.push({
+        type: 'line',
+        x0: 2030,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'orange',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    return shapes;
 }
 
 // Inicializar la página y los eventos
