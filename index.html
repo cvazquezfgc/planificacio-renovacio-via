@@ -10,16 +10,26 @@
     <div id="header">
         <div id="header-left">
             <img src="https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/logo%20blanc.png" alt="FGC Logo">
-            <h1>Planificació reposició actius de via</h1>
+            <div id="title-dropdown">
+                <h1 id="header-title">Previsió rehabilitació de via</h1>
+                <div id="dropdown-icon">&#9660;</div> <!-- Triángulo blanco apuntando hacia abajo -->
+                <div id="dropdown-menu">
+                    <div class="dropdown-item selected" data-view="rehabilitacio">Previsió rehabilitació de via</div>
+                    <div class="dropdown-item" data-view="inventari">Inventari de via</div>
+                </div>
+            </div>
         </div>
         <div id="header-right">
             <div id="tramButtons"></div>
         </div>
     </div>
-    <div id="title-container">
-        <h2 id="plot-title"></h2>
+    <div id="content">
+        <div id="title-container">
+            <h2 id="plot-title"></h2>
+        </div>
+        <div id="plot"></div>
+        <div id="table-container" style="display: none;"></div> <!-- Contenedor para la tabla -->
     </div>
-    <div id="plot"></div>
 
     <script src="script.js" defer></script>
 </body>
