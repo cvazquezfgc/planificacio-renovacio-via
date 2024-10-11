@@ -28,7 +28,8 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 75; // Aseguramos que todos los gráficos usen la misma escala
+    const unitHeightPerKm = 75; // Unidad de altura por km
+    const fixedHeightComponents = 100; // Altura fija para componentes como ejes y etiquetas
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -38,10 +39,11 @@ async function drawFullLinePlot(trams, resumData) {
 
         const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-        let tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
+        const tramoLength = pkMax - pkMin;
+        let tramoHeight = fixedHeightComponents + (tramoLength * unitHeightPerKm);
 
-        if (tramoHeight < 150) {
-            tramoHeight = 150;
+        if (tramoHeight < 250) { // Ajuste para tramos muy cortos
+            tramoHeight = 250;
         }
 
         const container = document.createElement('div');
@@ -69,7 +71,7 @@ async function drawFullLinePlot(trams, resumData) {
         document.getElementById('plot').appendChild(container);
 
         const addHorizontalLabels = true;
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents);
     }
 
     document.body.style.height = 'auto';
@@ -302,7 +304,7 @@ function addLinesAndShading(pkMin, pkMax) {
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500, fixedHeightComponents = 100) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
