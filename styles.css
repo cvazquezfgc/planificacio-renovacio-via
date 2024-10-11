@@ -1,42 +1,131 @@
-/* Mantener la barra superior fija */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden; /* para evitar scroll en tramos individuales */
+}
+
 #header {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 10;
+    display: flex;
+    align-items: center;
+    background-color: rgb(77, 83, 88);
+    color: white;
+    padding: 10px;
+}
+
+#header img {
+    height: 50px;
+    margin-right: 15px;
+}
+
+#header h1 {
+    margin: 0;
+    font-size: 20px; /* Reducido para evitar que sobresalga */
+    font-weight: normal;
 }
 
 #plot {
-    margin-top: 80px; /* Espacio debajo de la barra superior */
+    width: 90%;
+    margin: auto;
+    height: calc(100vh - 150px); /* ajusta la altura en función de la pantalla */
+    position: relative;
+}
+
+#title-container {
+    position: relative;
+    text-align: center;
+    font-size: 22px;
+    font-family: Arial, sans-serif;
+    margin: 10px 0;
+    z-index: 2; /* Asegurar que el título esté encima del gráfico */
+}
+
+h2 {
+    text-align: center;
+    font-size: 22px;
+    font-family: Arial, sans-serif;
+    margin-bottom: 10px; /* Reducido el margen inferior */
+    font-weight: normal;
+}
+
+#tramButtons {
+    width: 90%;
+    margin: 10px auto;
     display: flex;
-    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    height: 70vh; /* Usar el 70% del alto de la ventana */
+    gap: 10px;
+}
+
+.tram-button {
+    padding: 10px 15px;
+    background-color: lightgray;
+    border: none;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s;
+}
+
+.tram-button:hover {
+    background-color: #d3d3d3;
+}
+
+.tram-button.selected {
+    background-color: #007bff;
+    color: white;
 }
 
 .pie-container {
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 40px;
-    height: 30vh; /* El 30% del alto de la ventana para los quesitos */
+    gap: 50px; /* Aumentar la separación entre los gráficos de quesitos */
+    margin-top: 20px; /* Añadir un poco más de margen superior */
+    margin-bottom: 50px; /* Más espacio debajo de los gráficos */
 }
 
 hr {
-    width: 100%;
-    border: 1px solid lightgray;
+    border: none;
+    border-top: 1px solid lightgray;
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-/* Configurar un valor mínimo de altura para los elementos */
-body {
-    min-height: 600px; /* Altura mínima antes de habilitar el scroll */
-    overflow-y: auto; /* Habilitar scroll si es necesario */
-}
-
-/* Ajustar tamaño de los gráficos de quesitos */
+/* Ajustes para los gráficos de quesitos */
 .pie-chart {
-    height: 100%; /* Llenar el espacio disponible */
-    width: auto;
-    max-width: 300px; /* Establecer un tamaño máximo */
+    width: 300px;
+    height: 300px;
+}
+
+.informative-card {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid gray;
+    border-radius: 8px;
+    width: 90%;
+    margin: 10px auto;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.informative-card h3 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.informative-card p {
+    margin: 5px 0 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.red-border {
+    border-color: red;
+    color: red;
+}
+
+.orange-border {
+    border-color: orange;
+    color: orange;
 }
