@@ -123,7 +123,7 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Rojo y gris
             },
             type: 'pie',
-            textinfo: 'none',
+            textinfo: 'label+value+percent', // Mostrar valor y porcentaje
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
             direction: 'clockwise', // Relleno en sentido horario
@@ -135,19 +135,7 @@ async function drawSinglePlot(tram, resumData) {
     const pieLayoutBefore2025 = {
         height: 300,
         width: 300,
-        showlegend: false,
-        annotations: [{
-            text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m</b><br>(${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%)`,
-            showarrow: false,
-            font: {
-                color: 'red',
-                size: 16
-            },
-            x: 0.5,
-            y: -0.2, // Etiqueta externa debajo del quesito
-            xanchor: 'center',
-            yanchor: 'middle'
-        }]
+        showlegend: false
     };
 
     const pieChartBefore2025 = document.createElement('div');
@@ -163,7 +151,7 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris, Naranja, Gris
             },
             type: 'pie',
-            textinfo: 'none',
+            textinfo: 'label+value+percent', // Mostrar valor y porcentaje
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
             direction: 'clockwise', // Relleno en sentido horario
@@ -175,19 +163,7 @@ async function drawSinglePlot(tram, resumData) {
     const pieLayoutBetween2025And2030 = {
         height: 300,
         width: 300,
-        showlegend: false,
-        annotations: [{
-            text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m</b><br>(${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%)`,
-            showarrow: false,
-            font: {
-                color: 'orange',
-                size: 16
-            },
-            x: 0.5,
-            y: -0.2, // Etiqueta externa debajo del quesito
-            xanchor: 'center',
-            yanchor: 'middle'
-        }]
+        showlegend: false
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
