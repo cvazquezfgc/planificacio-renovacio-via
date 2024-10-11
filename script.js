@@ -144,7 +144,7 @@ async function drawSinglePlot(tram, resumData) {
                 size: 16
             },
             x: 0.5,
-            y: -0.2,
+            y: -0.2, // Etiqueta externa debajo del quesito
             xanchor: 'center',
             yanchor: 'middle'
         }]
@@ -184,7 +184,7 @@ async function drawSinglePlot(tram, resumData) {
                 size: 16
             },
             x: 0.5,
-            y: -0.2,
+            y: -0.2, // Etiqueta externa debajo del quesito
             xanchor: 'center',
             yanchor: 'middle'
         }]
@@ -203,7 +203,6 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
-
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
