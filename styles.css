@@ -48,7 +48,7 @@ body {
     padding: 10px 15px;
     cursor: pointer;
     font-family: Arial, sans-serif;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .tram-button:hover {
@@ -57,7 +57,7 @@ body {
 
 .tram-button.selected {
     background-color: lightgray;
-    color: darkgray;
+    color: black; /* Texto más oscuro para mejor legibilidad */
 }
 
 #plot {
