@@ -112,30 +112,42 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.style.display = 'flex';
     pieContainer.style.justifyContent = 'center';
     pieContainer.style.gap = '40px';
-    pieContainer.style.marginTop = '20px';
+    pieContainer.style.marginTop = '10px'; // Subir más cerca del gráfico espacio-tiempo
 
     // Gráfico de quesito para < 2025 (primero el rojo, luego gris)
     const pieDataBefore2025 = [
         {
             values: [lengthBefore2025, totalLength - lengthBefore2025], // Fijar el orden
-            labels: ['< 2025', ''],
+            labels: ['', ''],
             marker: {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Rojo y gris
             },
             type: 'pie',
-            textinfo: 'label+value+percent', // Mostrar valor y porcentaje
+            textinfo: 'value+percent', // Solo mostrar valor y porcentaje
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
             direction: 'clockwise', // Relleno en sentido horario
             rotation: 0, // Sin rotación
-            sort: false // No ordenar por tamaño, respetar el orden dado
+            sort: false, // No ordenar por tamaño, respetar el orden dado
+            texttemplate: "%{value:,} m<br>(%{percent})", // Formato con separador de miles
+            textfont: {
+                size: 16,
+                color: ['red', 'rgba(0,0,0,0)'] // Color de las etiquetas (rojo y transparente)
+            }
         }
     ];
 
     const pieLayoutBefore2025 = {
         height: 300,
         width: 300,
-        showlegend: false
+        title: {
+            text: "Longitud a rehabilitar <2025", // Título del gráfico
+            font: {
+                size: 18
+            }
+        },
+        showlegend: false,
+        margin: { t: 50, b: 50 } // Más espacio en blanco por debajo
     };
 
     const pieChartBefore2025 = document.createElement('div');
@@ -146,24 +158,36 @@ async function drawSinglePlot(tram, resumData) {
     const pieDataBetween2025And2030 = [
         {
             values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030], // Fijar el orden
-            labels: ['', '2025-2030', ''],
+            labels: ['', '', ''],
             marker: {
                 colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris, Naranja, Gris
             },
             type: 'pie',
-            textinfo: 'label+value+percent', // Mostrar valor y porcentaje
+            textinfo: 'value+percent', // Solo mostrar valor y porcentaje
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
             direction: 'clockwise', // Relleno en sentido horario
             rotation: 0, // Sin rotación
-            sort: false // No ordenar por tamaño, respetar el orden dado
+            sort: false, // No ordenar por tamaño, respetar el orden dado
+            texttemplate: "%{value:,} m<br>(%{percent})", // Formato con separador de miles
+            textfont: {
+                size: 16,
+                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)'] // Color de las etiquetas (naranja y transparente)
+            }
         }
     ];
 
     const pieLayoutBetween2025And2030 = {
         height: 300,
         width: 300,
-        showlegend: false
+        title: {
+            text: "Longitud a rehabilitar 2025-2030", // Título del gráfico
+            font: {
+                size: 18
+            }
+        },
+        showlegend: false,
+        margin: { t: 50, b: 50 } // Más espacio en blanco por debajo
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
