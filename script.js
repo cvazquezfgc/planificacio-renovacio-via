@@ -126,7 +126,7 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'counterclockwise', // Antihorario
+            direction: 'clockwise', // Antihorario
             rotation: 0 // Sin rotación
         }
     ];
@@ -165,7 +165,7 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'counterclockwise', // Antihorario
+            direction: 'clockwise', // Antihorario
             rotation: 0 // Sin rotación
         }
     ];
