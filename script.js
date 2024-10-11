@@ -68,7 +68,7 @@ function setupDropdownMenu() {
 
 // Función para mostrar la vista de rehabilitación
 function showRehabilitacioView() {
-    document.getElementById('main-content').style.display = 'flex';
+    document.getElementById('plot').style.display = 'block';
     document.getElementById('title-container').style.display = 'block';
     document.getElementById('tramButtons').style.display = 'flex';
     document.getElementById('table-container').style.display = 'none';
@@ -77,7 +77,11 @@ function showRehabilitacioView() {
     const selectedButton = document.querySelector('.tram-button.selected');
     if (selectedButton) {
         const tram = selectedButton.textContent;
-        drawSinglePlot(tram, resumData);
+        if (tram === 'LINIA COMPLETA') {
+            drawFullLinePlot(trams, resumData);
+        } else {
+            drawSinglePlot(tram, resumData);
+        }
     } else {
         const firstTramButton = document.querySelector('.tram-button');
         if (firstTramButton) {
@@ -89,7 +93,7 @@ function showRehabilitacioView() {
 
 // Función para mostrar la vista de inventario
 async function showInventariView() {
-    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('plot').style.display = 'none';
     document.getElementById('title-container').style.display = 'none';
     document.getElementById('tramButtons').style.display = 'none';
     document.getElementById('table-container').style.display = 'block';
@@ -146,7 +150,6 @@ function renderTable(data) {
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
-    document.getElementById('pie-container').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
         <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
             Espai-temps previsió rehabilitació de la línia completa
@@ -179,38 +182,39 @@ async function drawFullLinePlot(trams, resumData) {
             tramoHeight = 250;
         }
 
-        const container = document.createElement('div');
-        container.id = `plot-${tram}`;
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.marginBottom = '20px';
+        // Crear contenedor para el tramo
+        const tramContainer = document.createElement('div');
+        tramContainer.className = 'tram-container';
 
+        // Contenedor para el gráfico y la etiqueta del tramo
+        const plotAndLabelContainer = document.createElement('div');
+        plotAndLabelContainer.className = 'plot-and-label';
+
+        // Etiqueta del tramo
         const labelContainer = document.createElement('div');
-        labelContainer.style.transform = 'rotate(270deg)';
-        labelContainer.style.whiteSpace = 'nowrap'; // Etiqueta en una línea vertical
-        labelContainer.style.textAlign = 'center';
-        labelContainer.style.marginRight = '10px';
-        labelContainer.style.fontSize = '16px';
-        labelContainer.style.fontWeight = 'bold';
-        labelContainer.textContent = tram;
+        labelContainer.className = 'label-container';
+        const label = document.createElement('div');
+        label.textContent = tram;
+        labelContainer.appendChild(label);
 
+        // Contenedor del gráfico
         const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
         plotContainer.id = `plot-${tram}-chart`;
         plotContainer.style.height = `${tramoHeight}px`;
-        plotContainer.style.flexGrow = '1';
 
-        container.appendChild(labelContainer);
-        container.appendChild(plotContainer);
-        document.getElementById('plot').appendChild(container);
+        plotAndLabelContainer.appendChild(labelContainer);
+        plotAndLabelContainer.appendChild(plotContainer);
 
+        // Contenedor de los gráficos de quesitos
+        const piesContainer = document.createElement('div');
+        piesContainer.className = 'pie-charts-container';
+
+        // Añadir el gráfico espacio-tiempo
         const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents);
-    }
 
-    // Crear gráficos de quesitos para cada tramo y agregarlos al pie-container
-    for (let i = 0; i < trams.length; i++) {
-        const tram = trams[i];
-
+        // Calcular datos para los gráficos de quesitos
         const totalLength = resumData
             .filter(d => d.TRAM === tram)
             .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
@@ -222,18 +226,6 @@ async function drawFullLinePlot(trams, resumData) {
         const lengthBetween2025And2030 = resumData
             .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
             .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-        const pieContainer = document.createElement('div');
-        pieContainer.style.marginBottom = '30px';
-
-        const tramTitle = document.createElement('h3');
-        tramTitle.textContent = `Tram ${tram}`;
-        tramTitle.style.textAlign = 'center';
-        tramTitle.style.fontFamily = 'Arial, sans-serif';
-        tramTitle.style.fontSize = '18px';
-        tramTitle.style.marginBottom = '10px';
-
-        pieContainer.appendChild(tramTitle);
 
         // Gráfico de quesito para < 2025
         const pieDataBefore2025 = [
@@ -259,8 +251,8 @@ async function drawFullLinePlot(trams, resumData) {
         ];
 
         const pieLayoutBefore2025 = {
-            height: 300,
-            width: 300,
+            height: 200,
+            width: 200,
             title: {
                 text: "<2025",
                 font: {
@@ -273,7 +265,7 @@ async function drawFullLinePlot(trams, resumData) {
         };
 
         const pieChartBefore2025 = document.createElement('div');
-        pieContainer.appendChild(pieChartBefore2025);
+        piesContainer.appendChild(pieChartBefore2025);
         Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
         // Gráfico de quesito para 2025-2030
@@ -300,8 +292,8 @@ async function drawFullLinePlot(trams, resumData) {
         ];
 
         const pieLayoutBetween2025And2030 = {
-            height: 300,
-            width: 300,
+            height: 200,
+            width: 200,
             title: {
                 text: "2025-2030",
                 font: {
@@ -314,13 +306,16 @@ async function drawFullLinePlot(trams, resumData) {
         };
 
         const pieChartBetween2025And2030 = document.createElement('div');
-        pieContainer.appendChild(pieChartBetween2025And2030);
+        piesContainer.appendChild(pieChartBetween2025And2030);
         Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
 
-        document.getElementById('pie-container').appendChild(pieContainer);
-    }
+        // Añadir contenedores al contenedor principal del tramo
+        tramContainer.appendChild(plotAndLabelContainer);
+        tramContainer.appendChild(piesContainer);
 
-    document.getElementById('pie-container').style.display = 'block';
+        // Añadir el contenedor del tramo al contenedor principal
+        document.getElementById('plot').appendChild(tramContainer);
+    }
 
     document.body.style.height = 'auto';
     document.body.style.overflow = 'auto';
@@ -329,7 +324,6 @@ async function drawFullLinePlot(trams, resumData) {
 // Función para dibujar gráficos de tramos individuales y ajustar los gráficos de quesitos
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = '';
-    document.getElementById('pie-container').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
         <div id="title">
             Espai-temps previsió rehabilitació tram ${tram}
@@ -344,16 +338,20 @@ async function drawSinglePlot(tram, resumData) {
         }
     }
 
-    const plotContainer = document.getElementById('plot');
+    const plotContainer = document.createElement('div');
+    plotContainer.id = 'plot-container-single';
+    plotContainer.style.height = '400px';
 
-    await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
+    document.getElementById('plot').appendChild(plotContainer);
+
+    await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400);
 
     // Añadir una línea horizontal de separación
     const separator = document.createElement('hr');
     separator.style.border = '1px solid lightgray';
     separator.style.marginTop = '20px';
     separator.style.marginBottom = '20px';
-    plotContainer.appendChild(separator);
+    document.getElementById('plot').appendChild(separator);
 
     const totalLength = resumData
         .filter(d => d.TRAM === tram)
@@ -368,14 +366,10 @@ async function drawSinglePlot(tram, resumData) {
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
     // Crear los gráficos de quesitos con el diseño solicitado
-    const pieContainer = document.getElementById('pie-container');
-    pieContainer.innerHTML = '';
-    pieContainer.style.display = 'block';
-
-    const innerPieContainer = document.createElement('div');
-    innerPieContainer.style.display = 'flex';
-    innerPieContainer.style.flexDirection = 'column';
-    innerPieContainer.style.alignItems = 'center';
+    const pieContainer = document.createElement('div');
+    pieContainer.style.display = 'flex';
+    pieContainer.style.flexDirection = 'column';
+    pieContainer.style.alignItems = 'center';
 
     // Gráfico de quesito para < 2025
     const pieDataBefore2025 = [
@@ -415,7 +409,7 @@ async function drawSinglePlot(tram, resumData) {
     };
 
     const pieChartBefore2025 = document.createElement('div');
-    innerPieContainer.appendChild(pieChartBefore2025);
+    pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
     // Gráfico de quesito para 2025-2030
@@ -456,14 +450,16 @@ async function drawSinglePlot(tram, resumData) {
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
-    innerPieContainer.appendChild(pieChartBetween2025And2030);
+    pieContainer.appendChild(pieChartBetween2025And2030);
     Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
 
-    pieContainer.appendChild(innerPieContainer);
+    document.getElementById('plot').appendChild(pieContainer);
 
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
+
+// Resto de funciones (addLinesAndShading, drawPlot, selectTramButton, init) permanecen igual
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
