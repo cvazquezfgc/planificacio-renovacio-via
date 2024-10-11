@@ -124,9 +124,10 @@ async function drawSinglePlot(tram, resumData) {
             },
             type: 'pie',
             textinfo: 'none',
-            textposition: 'outside',
-            direction: 'clockwise',
-            rotation: 90 // Para que el slice rojo comience desde las 12 en punto
+            textposition: 'outside', // Etiquetas externas
+            hoverinfo: 'none', // Desactivar hover
+            direction: 'clockwise', // Relleno en sentido horario
+            rotation: -90 // Comenzar desde el extremo superior
         }
     ];
 
@@ -142,7 +143,7 @@ async function drawSinglePlot(tram, resumData) {
                 size: 16
             },
             x: 0.5,
-            y: 0.5,
+            y: -0.2, // Etiqueta externa debajo del quesito
             xanchor: 'center',
             yanchor: 'middle'
         }]
@@ -162,9 +163,10 @@ async function drawSinglePlot(tram, resumData) {
             },
             type: 'pie',
             textinfo: 'none',
-            textposition: 'outside',
-            direction: 'clockwise',
-            rotation: 90 // Para que comience desde las 12 en punto
+            textposition: 'outside', // Etiquetas externas
+            hoverinfo: 'none', // Desactivar hover
+            direction: 'clockwise', // Relleno en sentido horario
+            rotation: -90 // Comenzar desde el extremo superior
         }
     ];
 
@@ -180,7 +182,7 @@ async function drawSinglePlot(tram, resumData) {
                 size: 16
             },
             x: 0.5,
-            y: 0.5,
+            y: -0.2, // Etiqueta externa debajo del quesito
             xanchor: 'center',
             yanchor: 'middle'
         }]
