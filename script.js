@@ -95,6 +95,13 @@ async function drawSinglePlot(tram, resumData) {
 
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
 
+    // Añadir una línea horizontal de separación
+    const separator = document.createElement('hr');
+    separator.style.border = '1px solid lightgray';
+    separator.style.marginTop = '20px';
+    separator.style.marginBottom = '20px';
+    plotContainer.appendChild(separator);
+
     const totalLength = resumData
         .filter(d => d.TRAM === tram)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
@@ -129,7 +136,7 @@ async function drawSinglePlot(tram, resumData) {
             direction: 'clockwise', // Relleno en sentido horario
             rotation: 0, // Sin rotación
             sort: false, // No ordenar por tamaño, respetar el orden dado
-            texttemplate: "%{value:,} m<br>(%{percent})", // Formato con separador de miles
+            texttemplate: "%{value:,.0f} m<br>(%{percent})", // Formato con separador de miles, valor entero
             textfont: {
                 size: 16,
                 color: ['red', 'rgba(0,0,0,0)'] // Color de las etiquetas (rojo y transparente)
@@ -144,23 +151,24 @@ async function drawSinglePlot(tram, resumData) {
             text: "Longitud a rehabilitar <2025", // Título del gráfico
             font: {
                 size: 18
-            }
+            },
+            y: 0.9 // Acercar título al gráfico
         },
         showlegend: false,
-        margin: { t: 50, b: 50 } // Más espacio en blanco por debajo
+        margin: { t: 40, b: 60 } // Más espacio en blanco por debajo
     };
 
     const pieChartBefore2025 = document.createElement('div');
     pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
-    // Gráfico de quesito para 2025-2030 (gris, luego naranja, y después gris)
+    // Gráfico de quesito para 2025-2030 (gris oscuro, luego naranja, y después gris claro)
     const pieDataBetween2025And2030 = [
         {
             values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030], // Fijar el orden
             labels: ['', '', ''],
             marker: {
-                colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris, Naranja, Gris
+                colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris oscuro, Naranja, Gris claro
             },
             type: 'pie',
             textinfo: 'value+percent', // Solo mostrar valor y porcentaje
@@ -169,7 +177,7 @@ async function drawSinglePlot(tram, resumData) {
             direction: 'clockwise', // Relleno en sentido horario
             rotation: 0, // Sin rotación
             sort: false, // No ordenar por tamaño, respetar el orden dado
-            texttemplate: "%{value:,} m<br>(%{percent})", // Formato con separador de miles
+            texttemplate: "%{value:,.0f} m<br>(%{percent})", // Formato con separador de miles, valor entero
             textfont: {
                 size: 16,
                 color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)'] // Color de las etiquetas (naranja y transparente)
@@ -184,10 +192,11 @@ async function drawSinglePlot(tram, resumData) {
             text: "Longitud a rehabilitar 2025-2030", // Título del gráfico
             font: {
                 size: 18
-            }
+            },
+            y: 0.9 // Acercar título al gráfico
         },
         showlegend: false,
-        margin: { t: 50, b: 50 } // Más espacio en blanco por debajo
+        margin: { t: 40, b: 60 } // Más espacio en blanco por debajo
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
@@ -203,6 +212,7 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
+
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
