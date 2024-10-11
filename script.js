@@ -213,7 +213,6 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.overflow = 'hidden';
 }
 
-
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
     let shapes = [];
@@ -509,7 +508,7 @@ async function init() {
     const separator = document.createElement('div');
     separator.style.width = '2px';
     separator.style.height = '30px';
-    separator.style.backgroundColor = 'black';
+    separator.style.backgroundColor = 'white';
     separator.style.margin = '0 15px';
     tramButtonsContainer.appendChild(separator);
 
