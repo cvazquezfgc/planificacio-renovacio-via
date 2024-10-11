@@ -539,3 +539,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+}
