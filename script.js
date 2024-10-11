@@ -13,29 +13,26 @@ async function loadData(url) {
     }
 }
 
-// Función para ajustar el layout dinámicamente según el tamaño de la ventana
+// Ajuste de layout dinámico basado en el tamaño de la ventana
 function adjustLayout() {
     const plot = document.getElementById('plot');
     const pieContainer = document.querySelector('.pie-container');
     const windowHeight = window.innerHeight;
 
-    // Ajustar altura mínima para evitar que los elementos se vuelvan demasiado pequeños
-    if (windowHeight < 600) {
-        document.body.style.overflowY = 'auto'; // Habilitar desplazamiento
-    } else {
-        document.body.style.overflowY = 'hidden'; // Ocultar desplazamiento
-    }
+    // Ajusta la altura de #plot al 55% del alto de la ventana
+    plot.style.height = `${Math.max(windowHeight * 0.55, 400)}px`;
 
-    // Ajustar el alto de los elementos basados en la ventana
-    plot.style.height = `${Math.max(windowHeight * 0.7, 400)}px`; // 70% de la ventana, mínimo 400px
-    pieContainer.style.height = `${Math.max(windowHeight * 0.3, 200)}px`; // 30% de la ventana, mínimo 200px
+    // Ajusta la altura del contenedor de quesitos al 30% del alto de la ventana
+    if (pieContainer) {
+        pieContainer.style.height = `${Math.max(windowHeight * 0.3, 200)}px`;
+    }
 }
 
 // Llamar a la función al cargar la página y al redimensionar la ventana
 window.addEventListener('load', adjustLayout);
 window.addEventListener('resize', adjustLayout);
 
-// Función para dibujar gráficos de tramos individuales y ajustar los gráficos de quesitos
+// Función para dibujar gráficos de tramos individuales y los gráficos de quesitos
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
@@ -50,16 +47,12 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    const plotContainer = document.getElementById('plot');
-
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
 
     // Añadir una línea horizontal de separación
     const separator = document.createElement('hr');
     separator.style.border = '1px solid lightgray';
-    separator.style.marginTop = '20px';
-    separator.style.marginBottom = '20px';
-    plotContainer.appendChild(separator);
+    document.getElementById('plot').appendChild(separator);
 
     const totalLength = resumData
         .filter(d => d.TRAM === tram)
@@ -73,29 +66,29 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    // Crear los gráficos de quesitos con el diseño solicitado
+    // Crear los gráficos de quesitos
     const pieContainer = document.createElement('div');
     pieContainer.className = 'pie-container';
 
-    // Gráfico de quesito para < 2025 (primero el rojo, luego gris)
+    // Gráfico de quesito para < 2025
     const pieDataBefore2025 = [
         {
-            values: [lengthBefore2025, totalLength - lengthBefore2025], // Fijar el orden
+            values: [lengthBefore2025, totalLength - lengthBefore2025],
             labels: ['', ''],
             marker: {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Rojo y gris
             },
             type: 'pie',
-            textinfo: 'value+percent', // Solo mostrar valor y porcentaje
-            textposition: 'outside', // Etiquetas externas
-            hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Relleno en sentido horario
-            rotation: 0, // Sin rotación
-            sort: false, // No ordenar por tamaño, respetar el orden dado
-            texttemplate: "%{value:,.0f} m<br>(%{percent})", // Formato con separador de miles, valor entero
+            textinfo: 'value+percent',
+            textposition: 'outside',
+            hoverinfo: 'none',
+            direction: 'clockwise',
+            rotation: 0,
+            sort: false,
+            texttemplate: "%{value:,.0f} m<br>(%{percent})",
             textfont: {
                 size: 16,
-                color: ['red', 'rgba(0,0,0,0)'] // Color de las etiquetas (rojo y transparente)
+                color: ['red', 'rgba(0,0,0,0)']
             }
         }
     ];
@@ -104,39 +97,39 @@ async function drawSinglePlot(tram, resumData) {
         height: 300,
         width: 300,
         title: {
-            text: "Longitud a rehabilitar <2025", // Título del gráfico
+            text: "Longitud a rehabilitar <2025",
             font: {
                 size: 18
             },
-            y: 0.9 // Acercar título al gráfico
+            y: 0.9
         },
         showlegend: false,
-        margin: { t: 40, b: 60 } // Más espacio en blanco por debajo
+        margin: { t: 40, b: 60 }
     };
 
     const pieChartBefore2025 = document.createElement('div');
     pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
-    // Gráfico de quesito para 2025-2030 (gris oscuro, luego naranja, y después gris claro)
+    // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
         {
-            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030], // Fijar el orden
+            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
             labels: ['', '', ''],
             marker: {
                 colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris oscuro, Naranja, Gris claro
             },
             type: 'pie',
-            textinfo: 'value+percent', // Solo mostrar valor y porcentaje
-            textposition: 'outside', // Etiquetas externas
-            hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Relleno en sentido horario
-            rotation: 0, // Sin rotación
-            sort: false, // No ordenar por tamaño, respetar el orden dado
-            texttemplate: "%{value:,.0f} m<br>(%{percent})", // Formato con separador de miles, valor entero
+            textinfo: 'value+percent',
+            textposition: 'outside',
+            hoverinfo: 'none',
+            direction: 'clockwise',
+            rotation: 0,
+            sort: false,
+            texttemplate: "%{value:,.0f} m<br>(%{percent})",
             textfont: {
                 size: 16,
-                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)'] // Color de las etiquetas (naranja y transparente)
+                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)']
             }
         }
     ];
@@ -145,14 +138,14 @@ async function drawSinglePlot(tram, resumData) {
         height: 300,
         width: 300,
         title: {
-            text: "Longitud a rehabilitar 2025-2030", // Título del gráfico
+            text: "Longitud a rehabilitar 2025-2030",
             font: {
                 size: 18
             },
-            y: 0.9 // Acercar título al gráfico
+            y: 0.9
         },
         showlegend: false,
-        margin: { t: 40, b: 60 } // Más espacio en blanco por debajo
+        margin: { t: 40, b: 60 }
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
@@ -163,7 +156,7 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.style.justifyContent = 'center';
 
     // Añadir los gráficos de quesitos al contenedor de gráficos
-    plotContainer.appendChild(pieContainer);
+    document.getElementById('plot').appendChild(pieContainer);
 
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
@@ -181,7 +174,7 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-        const unitHeightPerKm = 50; // Ajustar esta variable para mantener la consistencia de altura entre tramos
+    const unitHeightPerKm = 50;
 
     for (let i = 0; i < trams.length - 1; i++) {
         const tram = trams[i];
@@ -210,7 +203,7 @@ async function drawFullLinePlot(trams, resumData) {
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
         plotContainer.style.height = `${tramoHeight}px`;
-        plotContainer.style.flexGrow = '1';
+                plotContainer.style.flexGrow = '1';
 
         container.appendChild(labelContainer);
         container.appendChild(plotContainer);
@@ -426,7 +419,7 @@ function addLinesAndShading(pkMin, pkMax) {
         }
     }
 
-        shapes.push({
+    shapes.push({
         type: 'rect',
         x0: 1995,
         x1: 2025,
@@ -484,6 +477,7 @@ function addLinesAndShading(pkMin, pkMax) {
 // Inicializar la página y los eventos
 async function init() {
     const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+   
     const resumData = await loadData(resumUrl);
     if (!resumData) {
         console.error('No se pudo cargar el resumen de datos.');
@@ -547,3 +541,4 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
