@@ -55,10 +55,11 @@ body {
     position: absolute;
     top: 60px; /* Ajustar según sea necesario */
     left: 65px; /* Ajustar según sea necesario */
-    background-color: white;
-    color: black;
+    background-color: rgb(77, 83, 88);
+    color: white;
     border: 1px solid #ccc;
     z-index: 1000;
+    min-width: 250px; /* Ancho fijo */
 }
 
 #dropdown-menu .dropdown-item {
@@ -69,12 +70,12 @@ body {
 }
 
 #dropdown-menu .dropdown-item:hover {
-    background-color: #f0f0f0;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 #dropdown-menu .dropdown-item.selected {
-    background-color: #007bff;
-    color: white;
+    background-color: lightgray;
+    color: black;
 }
 
 #tramButtons {
@@ -109,18 +110,6 @@ body {
     position: relative;
 }
 
-#plot {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-#table-container {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-}
-
 #title-container {
     position: relative;
     text-align: center;
@@ -137,6 +126,33 @@ h2 {
     margin-bottom: 20px;
 }
 
+#main-content {
+    display: flex;
+    height: calc(100% - 60px); /* Ajustar para considerar el título */
+}
+
+#plot-container {
+    width: 75%;
+    overflow: auto;
+}
+
+#plot {
+    width: 100%;
+    position: relative;
+}
+
+#pie-container {
+    width: 25%;
+    overflow: auto;
+    padding-left: 20px;
+}
+
+#table-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
 /* Estilos para la tabla */
 #data-table {
     width: 100%;
@@ -148,8 +164,13 @@ h2 {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
 }
 
 #data-table th {
     background-color: #f0f0f0;
+}
+
+#data-table td:last-child {
+    white-space: normal; /* Permite que la columna de comentarios tenga texto en varias líneas */
 }
