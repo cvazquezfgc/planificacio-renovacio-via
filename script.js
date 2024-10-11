@@ -91,7 +91,7 @@ async function drawSinglePlot(tram, resumData) {
         return;
     }
 
-    const plotContainer = document.getElementById('plot'); // Definir correctamente el contenedor
+    const plotContainer = document.getElementById('plot');
 
     await drawPlot(tram, resumData, estacionsData, 'plot', true, null, null, 400);
 
@@ -126,8 +126,9 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Antihorario
-            rotation: 0 // Sin rotación
+            direction: 'clockwise', // Relleno en sentido horario
+            rotation: 0, // Sin rotación
+            sort: false // No ordenar por tamaño, respetar el orden dado
         }
     ];
 
@@ -165,8 +166,9 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Antihorario
-            rotation: 0 // Sin rotación
+            direction: 'clockwise', // Relleno en sentido horario
+            rotation: 0, // Sin rotación
+            sort: false // No ordenar por tamaño, respetar el orden dado
         }
     ];
 
@@ -201,6 +203,7 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
+
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
