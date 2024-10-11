@@ -126,8 +126,7 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Relleno en sentido horario
-            rotation: -90 // Comenzar desde el extremo superior
+            direction: 'counterclockwise' // Cambiar dirección del relleno a antihorario
         }
     ];
 
@@ -165,8 +164,7 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Relleno en sentido horario
-            rotation: -90 // Comenzar desde el extremo superior
+            direction: 'counterclockwise' // Cambiar dirección del relleno a antihorario
         }
     ];
 
@@ -192,11 +190,8 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.appendChild(pieChartBetween2025And2030);
     Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
 
-    // Ajustar la posición horizontal de los gráficos de quesitos
-    pieChartBefore2025.style.position = 'relative';
-    pieChartBefore2025.style.left = '-150px'; // Alinear en el centro del sombreado rojo
-    pieChartBetween2025And2030.style.position = 'relative';
-    pieChartBetween2025And2030.style.left = '-50px'; // Alinear en el centro del sombreado naranja
+    // Centrar los gráficos de quesitos en la ventana
+    pieContainer.style.justifyContent = 'center';
 
     // Añadir los gráficos de quesitos al contenedor de gráficos
     plotContainer.appendChild(pieContainer);
