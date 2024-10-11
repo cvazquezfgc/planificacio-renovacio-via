@@ -114,19 +114,20 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.style.gap = '40px';
     pieContainer.style.marginTop = '20px';
 
-    // Gráfico de quesito para < 2025
+    // Gráfico de quesito para < 2025 (primero el rojo, luego gris)
     const pieDataBefore2025 = [
         {
-            values: [lengthBefore2025, totalLength - lengthBefore2025],
+            values: [lengthBefore2025, totalLength - lengthBefore2025], // Fijar el orden
             labels: ['< 2025', ''],
             marker: {
-                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Rojo y gris
             },
             type: 'pie',
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'counterclockwise' // Cambiar dirección del relleno a antihorario
+            direction: 'counterclockwise', // Antihorario
+            rotation: 0 // Sin rotación
         }
     ];
 
@@ -142,7 +143,7 @@ async function drawSinglePlot(tram, resumData) {
                 size: 16
             },
             x: 0.5,
-            y: -0.2, // Etiqueta externa debajo del quesito
+            y: -0.2,
             xanchor: 'center',
             yanchor: 'middle'
         }]
@@ -152,19 +153,20 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
-    // Gráfico de quesito para 2025-2030
+    // Gráfico de quesito para 2025-2030 (gris, luego naranja, y después gris)
     const pieDataBetween2025And2030 = [
         {
-            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
+            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030], // Fijar el orden
             labels: ['', '2025-2030', ''],
             marker: {
-                colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                colors: ['rgba(200, 200, 200, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris, Naranja, Gris
             },
             type: 'pie',
             textinfo: 'none',
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'counterclockwise' // Cambiar dirección del relleno a antihorario
+            direction: 'counterclockwise', // Antihorario
+            rotation: 0 // Sin rotación
         }
     ];
 
@@ -180,7 +182,7 @@ async function drawSinglePlot(tram, resumData) {
                 size: 16
             },
             x: 0.5,
-            y: -0.2, // Etiqueta externa debajo del quesito
+            y: -0.2,
             xanchor: 'center',
             yanchor: 'middle'
         }]
