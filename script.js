@@ -13,7 +13,7 @@ async function loadData(url) {
     }
 }
 
-// Ajuste de layout dinámico basado en el tamaño de la ventana
+// Función para ajustar el layout
 function adjustLayout() {
     const plot = document.getElementById('plot');
     const pieContainer = document.querySelector('.pie-container');
@@ -150,10 +150,7 @@ async function drawSinglePlot(tram, resumData) {
 
     const pieChartBetween2025And2030 = document.createElement('div');
     pieContainer.appendChild(pieChartBetween2025And2030);
-    Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
-
-    // Centrar los gráficos de quesitos en la ventana
-    pieContainer.style.justifyContent = 'center';
+    Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030);
 
     // Añadir los gráficos de quesitos al contenedor de gráficos
     document.getElementById('plot').appendChild(pieContainer);
@@ -174,7 +171,8 @@ async function drawFullLinePlot(trams, resumData) {
         return;
     }
 
-    const unitHeightPerKm = 50;
+        const unitHeightPerKm = 50;
+    const labelHeight = 50; // Altura fija para etiquetas de años
 
     for (let i = 0; i < trams.length - 1; i++) {
         const tram = trams[i];
@@ -184,7 +182,9 @@ async function drawFullLinePlot(trams, resumData) {
 
         const pkMin = Math.min(...via1Data.concat(via2Data).map(d => parseFloat(d['PK inici'])));
         const pkMax = Math.max(...via1Data.concat(via2Data).map(d => parseFloat(d['PK final'])));
-        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm;
+
+        // Calcular la altura proporcional basada en la longitud del tramo
+        const tramoHeight = (pkMax - pkMin) * unitHeightPerKm + labelHeight;
 
         const container = document.createElement('div');
         container.id = `plot-${tram}`;
@@ -203,7 +203,7 @@ async function drawFullLinePlot(trams, resumData) {
         const plotContainer = document.createElement('div');
         plotContainer.id = `plot-${tram}-chart`;
         plotContainer.style.height = `${tramoHeight}px`;
-                plotContainer.style.flexGrow = '1';
+        plotContainer.style.flexGrow = '1';
 
         container.appendChild(labelContainer);
         container.appendChild(plotContainer);
@@ -413,72 +413,70 @@ function addLinesAndShading(pkMin, pkMax) {
                 fillcolor: 'rgba(211, 211, 211, 0.3)',
                 layer: 'below',
                 line: {
-                    width: 0
-                }
-            });
+                                    width: 0
+            }
+        });
         }
-    }
 
-    shapes.push({
-        type: 'rect',
-        x0: 1995,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 0, 0, 0.1)',
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
+        shapes.push({
+            type: 'rect',
+            x0: 1995,
+            x1: 2025,
+            y0: pkMin,
+            y1: pkMax,
+            fillcolor: 'rgba(255, 0, 0, 0.1)',
+            layer: 'below',
+            line: {
+                width: 0
+            }
+        });
 
-    shapes.push({
-        type: 'line',
-        x0: 2025,
-        x1: 2025,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'red',
-            width: 2,
-            layer: 'above'
-        }
-    });
+        shapes.push({
+            type: 'line',
+            x0: 2025,
+            x1: 2025,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'red',
+                width: 2,
+                layer: 'above'
+            }
+        });
 
-    shapes.push({
-        type: 'rect',
-        x0: 2025,
-        x1: 2030,
-        y0: pkMin,
-        y1: pkMax,
-        fillcolor: 'rgba(255, 165, 0, 0.1)',
-        layer: 'below',
-        line: {
-            width: 0
-        }
-    });
+        shapes.push({
+            type: 'rect',
+            x0: 2025,
+            x1: 2030,
+            y0: pkMin,
+            y1: pkMax,
+            fillcolor: 'rgba(255, 165, 0, 0.1)',
+            layer: 'below',
+            line: {
+                width: 0
+            }
+        });
 
-    shapes.push({
-        type: 'line',
-        x0: 2030,
-        x1: 2030,
-        y0: pkMin,
-        y1: pkMax,
-        line: {
-            color: 'orange',
-            width: 2,
-            layer: 'above'
-        }
-    });
+        shapes.push({
+            type: 'line',
+            x0: 2030,
+            x1: 2030,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'orange',
+                width: 2,
+                layer: 'above'
+            }
+        });
 
-    return shapes;
-}
+        return shapes;
+   }
 
 // Inicializar la página y los eventos
 async function init() {
     const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-   
-    const resumData = await loadData(resumUrl);
+        const resumData = await loadData(resumUrl);
     if (!resumData) {
         console.error('No se pudo cargar el resumen de datos.');
         return;
@@ -541,4 +539,3 @@ function selectTramButton(button) {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
