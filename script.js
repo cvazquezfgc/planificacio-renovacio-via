@@ -210,7 +210,14 @@ async function drawFullLinePlot(trams, resumData) {
         const piesContainer = document.createElement('div');
         piesContainer.className = 'pie-charts-container';
 
-        // Añadir el gráfico espacio-tiempo
+        // Añadir contenedores al contenedor principal del tramo
+        tramContainer.appendChild(plotAndLabelContainer);
+        tramContainer.appendChild(piesContainer);
+
+        // Añadir el contenedor del tramo al contenedor principal
+        document.getElementById('plot').appendChild(tramContainer);
+
+        // Ahora que el elemento está en el DOM, podemos llamar a drawPlot
         const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents);
 
@@ -308,13 +315,6 @@ async function drawFullLinePlot(trams, resumData) {
         const pieChartBetween2025And2030 = document.createElement('div');
         piesContainer.appendChild(pieChartBetween2025And2030);
         Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
-
-        // Añadir contenedores al contenedor principal del tramo
-        tramContainer.appendChild(plotAndLabelContainer);
-        tramContainer.appendChild(piesContainer);
-
-        // Añadir el contenedor del tramo al contenedor principal
-        document.getElementById('plot').appendChild(tramContainer);
     }
 
     document.body.style.height = 'auto';
@@ -458,8 +458,6 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
-
-// Resto de funciones (addLinesAndShading, drawPlot, selectTramButton, init) permanecen igual
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
