@@ -162,7 +162,7 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
-    // Gráfico de quesito para 2025-2030 (gris oscuro, luego naranja, y después gris claro)
+    // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
         {
             values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030], // Fijar el orden
@@ -174,13 +174,13 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'value+percent', // Solo mostrar valor y porcentaje
             textposition: 'outside', // Etiquetas externas
             hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Relleno en sentido horario
-            rotation: 0, // Sin rotación
-            sort: false, // No ordenar por tamaño, respetar el orden dado
-            texttemplate: "%{value:,.0f} m<br>(%{percent})", // Formato con separador de miles, valor entero
+            direction: 'clockwise',
+            rotation: 0,
+            sort: false,
+            texttemplate: "%{value:,.0f} m<br>(%{percent})",
             textfont: {
                 size: 16,
-                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)'] // Color de las etiquetas (naranja y transparente)
+                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)'] // Color de las etiquetas
             }
         }
     ];
@@ -189,14 +189,14 @@ async function drawSinglePlot(tram, resumData) {
         height: 300,
         width: 300,
         title: {
-            text: "Longitud a rehabilitar 2025-2030", // Título del gráfico
+            text: "Longitud a rehabilitar 2025-2030",
             font: {
                 size: 18
             },
-            y: 0.9 // Acercar título al gráfico
+            y: 0.9
         },
         showlegend: false,
-        margin: { t: 40, b: 60 } // Más espacio en blanco por debajo
+        margin: { t: 40, b: 60 }
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
