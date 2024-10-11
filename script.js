@@ -68,7 +68,7 @@ function setupDropdownMenu() {
 
 // Función para mostrar la vista de rehabilitación
 function showRehabilitacioView() {
-    document.getElementById('plot').style.display = 'block';
+    document.getElementById('main-content').style.display = 'flex';
     document.getElementById('title-container').style.display = 'block';
     document.getElementById('tramButtons').style.display = 'flex';
     document.getElementById('table-container').style.display = 'none';
@@ -89,7 +89,7 @@ function showRehabilitacioView() {
 
 // Función para mostrar la vista de inventario
 async function showInventariView() {
-    document.getElementById('plot').style.display = 'none';
+    document.getElementById('main-content').style.display = 'none';
     document.getElementById('title-container').style.display = 'none';
     document.getElementById('tramButtons').style.display = 'none';
     document.getElementById('table-container').style.display = 'block';
@@ -146,6 +146,7 @@ function renderTable(data) {
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
+    document.getElementById('pie-container').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
         <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
             Espai-temps previsió rehabilitació de la línia completa
@@ -206,6 +207,121 @@ async function drawFullLinePlot(trams, resumData) {
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents);
     }
 
+    // Crear gráficos de quesitos para cada tramo y agregarlos al pie-container
+    for (let i = 0; i < trams.length; i++) {
+        const tram = trams[i];
+
+        const totalLength = resumData
+            .filter(d => d.TRAM === tram)
+            .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+        const lengthBefore2025 = resumData
+            .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
+            .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+        const lengthBetween2025And2030 = resumData
+            .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
+            .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+
+        const pieContainer = document.createElement('div');
+        pieContainer.style.marginBottom = '30px';
+
+        const tramTitle = document.createElement('h3');
+        tramTitle.textContent = `Tram ${tram}`;
+        tramTitle.style.textAlign = 'center';
+        tramTitle.style.fontFamily = 'Arial, sans-serif';
+        tramTitle.style.fontSize = '18px';
+        tramTitle.style.marginBottom = '10px';
+
+        pieContainer.appendChild(tramTitle);
+
+        // Gráfico de quesito para < 2025
+        const pieDataBefore2025 = [
+            {
+                values: [lengthBefore2025, totalLength - lengthBefore2025],
+                labels: ['', ''],
+                marker: {
+                    colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                },
+                type: 'pie',
+                textinfo: 'value+percent',
+                textposition: 'outside',
+                hoverinfo: 'none',
+                direction: 'clockwise',
+                rotation: 0,
+                sort: false,
+                texttemplate: "%{value:,.0f} m<br>(%{percent})",
+                textfont: {
+                    size: 16,
+                    color: ['red', 'rgba(0,0,0,0)']
+                }
+            }
+        ];
+
+        const pieLayoutBefore2025 = {
+            height: 300,
+            width: 300,
+            title: {
+                text: "<2025",
+                font: {
+                    size: 18
+                },
+                y: 0.9
+            },
+            showlegend: false,
+            margin: { t: 40, b: 60 }
+        };
+
+        const pieChartBefore2025 = document.createElement('div');
+        pieContainer.appendChild(pieChartBefore2025);
+        Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
+
+        // Gráfico de quesito para 2025-2030
+        const pieDataBetween2025And2030 = [
+            {
+                values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
+                labels: ['', '', ''],
+                marker: {
+                    colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                },
+                type: 'pie',
+                textinfo: 'value+percent',
+                textposition: 'outside',
+                hoverinfo: 'none',
+                direction: 'clockwise',
+                rotation: 0,
+                sort: false,
+                texttemplate: "%{value:,.0f} m<br>(%{percent})",
+                textfont: {
+                    size: 16,
+                    color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)']
+                }
+            }
+        ];
+
+        const pieLayoutBetween2025And2030 = {
+            height: 300,
+            width: 300,
+            title: {
+                text: "2025-2030",
+                font: {
+                    size: 18
+                },
+                y: 0.9
+            },
+            showlegend: false,
+            margin: { t: 40, b: 60 }
+        };
+
+        const pieChartBetween2025And2030 = document.createElement('div');
+        pieContainer.appendChild(pieChartBetween2025And2030);
+        Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
+
+        document.getElementById('pie-container').appendChild(pieContainer);
+    }
+
+    document.getElementById('pie-container').style.display = 'block';
+
     document.body.style.height = 'auto';
     document.body.style.overflow = 'auto';
 }
@@ -213,6 +329,7 @@ async function drawFullLinePlot(trams, resumData) {
 // Función para dibujar gráficos de tramos individuales y ajustar los gráficos de quesitos
 async function drawSinglePlot(tram, resumData) {
     document.getElementById('plot').innerHTML = '';
+    document.getElementById('pie-container').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
         <div id="title">
             Espai-temps previsió rehabilitació tram ${tram}
@@ -251,31 +368,34 @@ async function drawSinglePlot(tram, resumData) {
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
     // Crear los gráficos de quesitos con el diseño solicitado
-    const pieContainer = document.createElement('div');
-    pieContainer.style.display = 'flex';
-    pieContainer.style.justifyContent = 'center';
-    pieContainer.style.gap = '40px';
-    pieContainer.style.marginTop = '10px'; // Subir más cerca del gráfico espacio-tiempo
+    const pieContainer = document.getElementById('pie-container');
+    pieContainer.innerHTML = '';
+    pieContainer.style.display = 'block';
 
-    // Gráfico de quesito para < 2025 (primero el rojo, luego gris)
+    const innerPieContainer = document.createElement('div');
+    innerPieContainer.style.display = 'flex';
+    innerPieContainer.style.flexDirection = 'column';
+    innerPieContainer.style.alignItems = 'center';
+
+    // Gráfico de quesito para < 2025
     const pieDataBefore2025 = [
         {
-            values: [lengthBefore2025, totalLength - lengthBefore2025], // Fijar el orden
+            values: [lengthBefore2025, totalLength - lengthBefore2025],
             labels: ['', ''],
             marker: {
-                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Rojo y gris
+                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            textinfo: 'value+percent', // Solo mostrar valor y porcentaje
-            textposition: 'outside', // Etiquetas externas
-            hoverinfo: 'none', // Desactivar hover
-            direction: 'clockwise', // Relleno en sentido horario
-            rotation: 0, // Sin rotación
-            sort: false, // No ordenar por tamaño, respetar el orden dado
-            texttemplate: "%{value:,.0f} m<br>(%{percent})", // Formato con separador de miles, valor entero
+            textinfo: 'value+percent',
+            textposition: 'outside',
+            hoverinfo: 'none',
+            direction: 'clockwise',
+            rotation: 0,
+            sort: false,
+            texttemplate: "%{value:,.0f} m<br>(%{percent})",
             textfont: {
                 size: 16,
-                color: ['red', 'rgba(0,0,0,0)'] // Color de las etiquetas (rojo y transparente)
+                color: ['red', 'rgba(0,0,0,0)']
             }
         }
     ];
@@ -284,39 +404,39 @@ async function drawSinglePlot(tram, resumData) {
         height: 300,
         width: 300,
         title: {
-            text: "Longitud a rehabilitar <2025", // Título del gráfico
+            text: "Longitud a rehabilitar <2025",
             font: {
                 size: 18
             },
-            y: 0.9 // Acercar título al gráfico
+            y: 0.9
         },
         showlegend: false,
-        margin: { t: 40, b: 60 } // Más espacio en blanco por debajo
+        margin: { t: 40, b: 60 }
     };
 
     const pieChartBefore2025 = document.createElement('div');
-    pieContainer.appendChild(pieChartBefore2025);
+    innerPieContainer.appendChild(pieChartBefore2025);
     Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
 
     // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
         {
-            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030], // Fijar el orden
+            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
             labels: ['', '', ''],
             marker: {
-                colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'] // Gris oscuro, Naranja, Gris claro
+                colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            textinfo: 'value+percent', // Solo mostrar valor y porcentaje
-            textposition: 'outside', // Etiquetas externas
-            hoverinfo: 'none', // Desactivar hover
+            textinfo: 'value+percent',
+            textposition: 'outside',
+            hoverinfo: 'none',
             direction: 'clockwise',
             rotation: 0,
             sort: false,
             texttemplate: "%{value:,.0f} m<br>(%{percent})",
             textfont: {
                 size: 16,
-                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)'] // Color de las etiquetas
+                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)']
             }
         }
     ];
@@ -336,14 +456,10 @@ async function drawSinglePlot(tram, resumData) {
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
-    pieContainer.appendChild(pieChartBetween2025And2030);
+    innerPieContainer.appendChild(pieChartBetween2025And2030);
     Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
 
-    // Centrar los gráficos de quesitos en la ventana
-    pieContainer.style.justifyContent = 'center';
-
-    // Añadir los gráficos de quesitos al contenedor de gráficos
-    plotContainer.appendChild(pieContainer);
+    pieContainer.appendChild(innerPieContainer);
 
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
@@ -606,6 +722,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     Plotly.newPlot(containerId, traces, layout);
 }
 
+// Función para seleccionar un botón de tramo
+function selectTramButton(button) {
+    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
+    button.classList.add('selected');
+}
+
 // Inicializar la página y los eventos
 async function init() {
     setupDropdownMenu();
@@ -667,11 +789,6 @@ async function init() {
     const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
     selectTramButton(firstTramButton);
     drawSinglePlot(trams[0], resumData);
-}
-
-function selectTramButton(button) {
-    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
 }
 
 // Ejecutar cuando el contenido del DOM esté cargado
