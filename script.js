@@ -15,91 +15,63 @@ async function loadData(url) {
 
 // Variables globales
 let resumData = null; // Datos cargados de resum.json
-let trams = [];       // Lista de tramos
 let estacionsData = null; // Datos de estaciones
 let filteredData = null; // Datos filtrados para la tabla
 let activeFilters = {}; // Almacena los filtros aplicados
 let currentFilterDropdown = null; // Almacena el dropdown actual
 
-// Función para mostrar el menú desplegable
-function setupDropdownMenu() {
-    const menuIcon = document.getElementById('menu-icon');
-    const dropdownMenu = document.getElementById('dropdown-menu');
-    const dropdownItems = document.querySelectorAll('.dropdown-item');
-    const headerTitle = document.getElementById('header-title');
+// Función para configurar los botones de navegación
+function setupNavButtons() {
+    const navButtons = document.querySelectorAll('.nav-button');
 
-    function hideMenuOnClickOutside(event) {
-        if (!dropdownMenu.contains(event.target) && event.target !== menuIcon) {
-            dropdownMenu.style.display = 'none';
-            document.removeEventListener('click', hideMenuOnClickOutside);
-        }
-    }
+    navButtons.forEach(button => {
+        button.addEventListener('click', async () => {
+            // Cambiar la clase 'selected' al botón clicado
+            navButtons.forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
 
-    function toggleDropdown() {
-        if (dropdownMenu.style.display === 'block') {
-            dropdownMenu.style.display = 'none';
-            document.removeEventListener('click', hideMenuOnClickOutside);
-        } else {
-            dropdownMenu.style.display = 'block';
-            document.addEventListener('click', hideMenuOnClickOutside);
-        }
-    }
+            const selectedView = button.getAttribute('data-view');
 
-    menuIcon.addEventListener('click', toggleDropdown);
-
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', () => {
-            dropdownItems.forEach(i => i.classList.remove('selected'));
-            item.classList.add('selected');
-            dropdownMenu.style.display = 'none'; // Ocultar el menú inmediatamente
-            document.removeEventListener('click', hideMenuOnClickOutside);
-
-            const selectedView = item.getAttribute('data-view');
-            if (selectedView === 'rehabilitacio') {
-                headerTitle.textContent = 'Previsió rehabilitació de via';
-                showRehabilitacioView();
-            } else if (selectedView === 'inventari') {
-                headerTitle.textContent = 'Inventari de via';
-                showInventariView();
+            if (selectedView === 'espai-temps') {
+                showEspaiTempsView();
+            } else if (selectedView === 'taula-inventari') {
+                showTaulaInventariView();
+            } else if (selectedView === 'necessitats') {
+                showNecessitatsView();
             }
         });
     });
 }
 
-// Función para mostrar la vista de rehabilitación
-function showRehabilitacioView() {
+// Función para mostrar la vista ESPAI-TEMPS
+async function showEspaiTempsView() {
     document.getElementById('plot').style.display = 'block';
     document.getElementById('title-container').style.display = 'block';
-    document.getElementById('tramButtons').style.display = 'flex';
     document.getElementById('table-container').style.display = 'none';
-    document.getElementById('clear-filters-icon').style.display = 'none'; // Ocultar icono
 
-    // Restaurar el último tramo seleccionado o seleccionar el primero
-    const selectedButton = document.querySelector('.tram-button.selected');
-    if (selectedButton) {
-        const tram = selectedButton.textContent;
-        if (tram === 'LINIA COMPLETA') {
-            drawFullLinePlot(trams, resumData);
-        } else {
-            drawSinglePlot(tram, resumData);
-        }
-    } else {
-        const firstTramButton = document.querySelector('.tram-button');
-        if (firstTramButton) {
-            selectTramButton(firstTramButton);
-            drawSinglePlot(firstTramButton.textContent, resumData);
+    // Cargar datos si no se han cargado aún
+    if (!resumData) {
+        const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
+        resumData = await loadData(resumUrl);
+        if (!resumData) {
+            console.error('No se pudo cargar el resumen de datos.');
+            return;
         }
     }
+
+    // Obtener la lista de tramos
+    const trams = [...new Set(resumData.map(d => d.TRAM))];
+
+    drawFullLinePlot(trams, resumData);
 }
 
-// Función para mostrar la vista de inventario
-async function showInventariView() {
+// Función para mostrar la vista TAULA INVENTARI
+async function showTaulaInventariView() {
     document.getElementById('plot').style.display = 'none';
     document.getElementById('title-container').style.display = 'none';
-    document.getElementById('tramButtons').style.display = 'none';
     document.getElementById('table-container').style.display = 'block';
-    document.getElementById('clear-filters-icon').style.display = 'block'; // Mostrar icono
 
+    // Cargar datos si no se han cargado aún
     if (!resumData) {
         const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
         resumData = await loadData(resumUrl);
@@ -112,6 +84,18 @@ async function showInventariView() {
     filteredData = resumData; // Inicialmente, sin filtros
     activeFilters = {}; // Reiniciar filtros
     renderTable(filteredData);
+}
+
+// Función para mostrar la vista NECESSITATS D'INVERSIÓ
+function showNecessitatsView() {
+    document.getElementById('plot').style.display = 'none';
+    document.getElementById('title-container').style.display = 'none';
+    document.getElementById('table-container').style.display = 'none';
+
+    // Aquí puedes agregar el contenido para NECESSITATS D'INVERSIÓ cuando esté disponible
+    const plotContainer = document.getElementById('plot');
+    plotContainer.style.display = 'block';
+    plotContainer.innerHTML = '<h2 style="text-align: center; margin-top: 50px;">En construcción...</h2>';
 }
 
 // Función para renderizar la tabla
@@ -238,24 +222,12 @@ function applyFilters() {
     renderTable(filteredData);
 }
 
-// Función para limpiar todos los filtros
-function clearAllFilters() {
-    activeFilters = {};
-    filteredData = resumData;
-    renderTable(filteredData);
-}
-
-// Evento para el icono de limpiar filtros
-document.getElementById('clear-filters-icon').addEventListener('click', () => {
-    clearAllFilters();
-});
-
-// Función para dibujar gráficos concatenados para LINIA COMPLETA
+// Función para dibujar gráficos concatenados para ESPAI-TEMPS
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
     document.getElementById('title-container').innerHTML = `
         <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
-            Espai-temps previsió rehabilitació de la línia completa
+            Espai-temps previsió rehabilitació de la línia
         </h2>`;
 
     if (!estacionsData) {
@@ -416,135 +388,6 @@ async function drawFullLinePlot(trams, resumData) {
     document.body.style.overflow = 'auto';
 }
 
-// Función para dibujar gráficos de tramos individuales y ajustar los gráficos de quesitos
-async function drawSinglePlot(tram, resumData) {
-    document.getElementById('plot').innerHTML = '';
-    document.getElementById('title-container').innerHTML = `
-        <div id="title">
-            Espai-temps previsió rehabilitació tram ${tram}
-        </div>`;
-
-    if (!estacionsData) {
-        const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
-        estacionsData = await loadData(estacionsUrl);
-        if (!estacionsData) {
-            console.error('No se pudo cargar los datos de las estaciones.');
-            return;
-        }
-    }
-
-    const plotContainer = document.createElement('div');
-    plotContainer.id = 'plot-container-single';
-    plotContainer.style.height = '400px';
-
-    document.getElementById('plot').appendChild(plotContainer);
-
-    // Usar minYear y maxYear globales
-    const globalMinYear = 2020;
-    const globalMaxYear = 2067;
-
-    await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400, null, globalMinYear, globalMaxYear);
-
-    // Añadir una línea horizontal de separación
-    const separator = document.createElement('hr');
-    separator.style.border = '1px solid lightgray';
-    separator.style.marginTop = '20px';
-    separator.style.marginBottom = '20px';
-    document.getElementById('plot').appendChild(separator);
-
-    const totalLength = resumData
-        .filter(d => d.TRAM === tram)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthBefore2025 = resumData
-        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) < 2025)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthBetween2025And2030 = resumData
-        .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
-        .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
-
-    const lengthAfter2030 = totalLength - lengthBefore2025 - lengthBetween2025And2030;
-
-    // Crear gráfico de quesito combinado
-    const pieContainer = document.createElement('div');
-    pieContainer.style.display = 'flex';
-    pieContainer.style.flexDirection = 'column';
-    pieContainer.style.alignItems = 'center';
-
-    const pieChartContainer = document.createElement('div');
-    pieChartContainer.className = 'pie-chart-wrapper';
-
-    // Añadir título al gráfico de quesito
-    const pieChartTitle = document.createElement('div');
-    pieChartTitle.className = 'pie-chart-title';
-    pieChartTitle.textContent = 'Any previsió rehabilitació';
-    pieChartContainer.appendChild(pieChartTitle);
-
-    const sliceNames = ['<2025', '2025-2030', '>2030'];
-
-    const pieData = [
-        {
-            values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
-            labels: sliceNames,
-            marker: {
-                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
-            },
-            type: 'pie',
-            texttemplate: '%{text}',
-            text: [getPieLabel(0), getPieLabel(1), getPieLabel(2)],
-            textposition: 'outside',
-            hoverinfo: 'none',
-            rotation: 0,
-            direction: 'clockwise',
-            sort: false,
-            automargin: true,
-            outsidetextfont: {
-                size: 12,
-            }
-        }
-    ];
-
-    function getPieLabel(index) {
-        const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
-        const percentage = ((length / totalLength) * 100).toFixed(1);
-        const sliceName = sliceNames[index];
-        return `<b>${sliceName}<br>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
-    }
-
-    // Asignar colores de fuente acorde al color del quesito
-    pieData[0].textfont = {
-        size: 12,
-        color: pieData[0].marker.colors.map(color => {
-            const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
-            if (rgba) {
-                const r = rgba[1];
-                const g = rgba[2];
-                const b = rgba[3];
-                return `rgb(${r}, ${g}, ${b})`;
-            }
-            return 'black';
-        })
-    };
-
-    const pieLayout = {
-        height: 250,
-        width: 250,
-        margin: { t: 0, b: 0, l: 0, r: 0 },
-        showlegend: false
-    };
-
-    const pieChart = document.createElement('div');
-    pieChartContainer.appendChild(pieChart);
-    pieContainer.appendChild(pieChartContainer);
-    Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
-
-    document.getElementById('plot').appendChild(pieContainer);
-
-    document.body.style.height = '100vh';
-    document.body.style.overflow = 'hidden';
-}
-
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax, xRange) {
     let shapes = [];
@@ -640,19 +483,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     let shapes = [];
 
     // Determinar el rango de años necesarios
-    const years = resumData.filter(d => d.TRAM === tram).map(d => parseInt(d['PREVISIÓ REHABILITACIÓ'])).filter(year => !isNaN(year));
-    let minYear, maxYear;
-
-    if (minYearOverride !== null && maxYearOverride !== null) {
-        minYear = minYearOverride;
-        maxYear = maxYearOverride;
-    } else if (years.length > 0) {
-        minYear = Math.min(...years) - 1; // Un año antes
-        maxYear = Math.max(...years) + 1; // Un año después
-    } else {
-        minYear = 1995; // Valores por defecto si no hay datos
-        maxYear = 2070;
-    }
+    let minYear = minYearOverride !== null ? minYearOverride : 2020;
+    let maxYear = maxYearOverride !== null ? maxYearOverride : 2067;
 
     const xRange = [minYear, maxYear];
 
@@ -830,73 +662,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     Plotly.newPlot(containerId, traces, layout, config);
 }
 
-// Función para seleccionar un botón de tramo
-function selectTramButton(button) {
-    document.querySelectorAll('.tram-button').forEach(btn => btn.classList.remove('selected'));
-    button.classList.add('selected');
-}
-
 // Inicializar la página y los eventos
 async function init() {
-    setupDropdownMenu();
+    setupNavButtons();
 
-    // Cargar los datos de resumen
-    const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
-    resumData = await loadData(resumUrl);
-    if (!resumData) {
-        console.error('No se pudo cargar el resumen de datos.');
-        return;
-    }
-
-    // Obtener la lista de tramos
-    trams = [...new Set(resumData.map(d => d.TRAM))];
-    if (trams.length === 0) {
-        console.error('No se encontraron tramos en los datos cargados.');
-        return;
-    }
-
-    const tramButtonsContainer = document.getElementById('tramButtons');
-    if (!tramButtonsContainer) {
-        console.error('No se encontró el contenedor de botones de tramo en el DOM.');
-        return;
-    }
-
-    // Crear los botones de tramos
-    tramButtonsContainer.innerHTML = ''; // Limpiar botones anteriores
-    trams.forEach(tram => {
-        if (tram) {
-            const button = document.createElement('button');
-            button.className = 'tram-button';
-            button.textContent = tram;
-            button.addEventListener('click', () => {
-                selectTramButton(button);
-                drawSinglePlot(tram, resumData);
-            });
-            tramButtonsContainer.appendChild(button);
-        }
-    });
-
-    // Añadir una línea separadora y el botón para "LINIA COMPLETA"
-    const separator = document.createElement('div');
-    separator.style.width = '2px';
-    separator.style.height = '30px';
-    separator.style.backgroundColor = 'white';
-    separator.style.margin = '0 15px';
-    tramButtonsContainer.appendChild(separator);
-
-    const liniaCompletaButton = document.createElement('button');
-    liniaCompletaButton.className = 'tram-button';
-    liniaCompletaButton.textContent = 'LINIA COMPLETA';
-    liniaCompletaButton.addEventListener('click', () => {
-        selectTramButton(liniaCompletaButton);
-        drawFullLinePlot(trams, resumData);
-    });
-    tramButtonsContainer.appendChild(liniaCompletaButton);
-
-    // Dibujar el gráfico del primer tramo de la lista por defecto
-    const firstTramButton = tramButtonsContainer.querySelector('.tram-button');
-    selectTramButton(firstTramButton);
-    drawSinglePlot(trams[0], resumData);
+    // Por defecto, mostrar la vista ESPAI-TEMPS
+    showEspaiTempsView();
 }
 
 // Ejecutar cuando el contenido del DOM esté cargado
