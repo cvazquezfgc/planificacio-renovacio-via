@@ -17,17 +17,17 @@ async function loadData(url) {
 let resumData = null; // Datos cargados de resum.json
 let trams = [];       // Lista de tramos
 let estacionsData = null; // Datos de estaciones
+let filteredData = null; // Datos filtrados para la tabla
 
 // Función para mostrar el menú desplegable
 function setupDropdownMenu() {
-    const titleDropdown = document.getElementById('title-dropdown');
-    const dropdownIcon = document.getElementById('dropdown-icon');
+    const menuIcon = document.getElementById('menu-icon');
     const dropdownMenu = document.getElementById('dropdown-menu');
     const dropdownItems = document.querySelectorAll('.dropdown-item');
     const headerTitle = document.getElementById('header-title');
 
     function hideMenuOnClickOutside(event) {
-        if (!titleDropdown.contains(event.target)) {
+        if (!dropdownMenu.contains(event.target) && event.target !== menuIcon) {
             dropdownMenu.style.display = 'none';
             document.removeEventListener('click', hideMenuOnClickOutside);
         }
@@ -39,15 +39,11 @@ function setupDropdownMenu() {
             document.removeEventListener('click', hideMenuOnClickOutside);
         } else {
             dropdownMenu.style.display = 'block';
-            // Ajustar la posición del menú para alinearlo a la izquierda del título
-            const rect = headerTitle.getBoundingClientRect();
-            dropdownMenu.style.left = `${rect.left}px`;
-            dropdownMenu.style.top = `${rect.bottom}px`;
             document.addEventListener('click', hideMenuOnClickOutside);
         }
     }
 
-    titleDropdown.addEventListener('click', toggleDropdown);
+    menuIcon.addEventListener('click', toggleDropdown);
 
     dropdownItems.forEach(item => {
         item.addEventListener('click', () => {
@@ -109,7 +105,8 @@ async function showInventariView() {
         }
     }
 
-    renderTable(resumData);
+    filteredData = resumData; // Inicialmente, sin filtros
+    renderTable(filteredData);
 }
 
 // Función para renderizar la tabla
@@ -125,9 +122,12 @@ function renderTable(data) {
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
 
-    headers.forEach(headerText => {
+    headers.forEach((headerText, index) => {
         const th = document.createElement('th');
         th.textContent = headerText;
+        th.addEventListener('click', () => {
+            showFilterDropdown(th, headerText);
+        });
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -149,6 +149,71 @@ function renderTable(data) {
     tableContainer.appendChild(table);
 }
 
+// Función para mostrar el menú de filtrado
+function showFilterDropdown(th, headerText) {
+    let filterDropdown = document.getElementById('filter-dropdown');
+    if (filterDropdown) {
+        filterDropdown.remove();
+    }
+
+    filterDropdown = document.createElement('div');
+    filterDropdown.id = 'filter-dropdown';
+    filterDropdown.style.position = 'absolute';
+    filterDropdown.style.backgroundColor = 'white';
+    filterDropdown.style.border = '1px solid #ccc';
+    filterDropdown.style.zIndex = '1000';
+    filterDropdown.style.maxHeight = '200px';
+    filterDropdown.style.overflowY = 'auto';
+
+    const rect = th.getBoundingClientRect();
+    filterDropdown.style.left = `${rect.left}px`;
+    filterDropdown.style.top = `${rect.bottom}px`;
+
+    const uniqueValues = [...new Set(resumData.map(d => d[headerText]))].sort();
+    uniqueValues.forEach(value => {
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = value;
+        checkbox.checked = true;
+        checkbox.addEventListener('change', () => {
+            applyFilters();
+        });
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(value));
+        filterDropdown.appendChild(label);
+    });
+
+    document.body.appendChild(filterDropdown);
+
+    // Ocultar el menú al hacer clic fuera
+    function hideFilterDropdown(event) {
+        if (!filterDropdown.contains(event.target)) {
+            filterDropdown.remove();
+            document.removeEventListener('click', hideFilterDropdown);
+        }
+    }
+    document.addEventListener('click', hideFilterDropdown);
+}
+
+// Función para aplicar los filtros seleccionados
+function applyFilters() {
+    const filterDropdown = document.getElementById('filter-dropdown');
+    if (!filterDropdown) return;
+
+    const checkboxes = filterDropdown.querySelectorAll('input[type="checkbox"]');
+    const headerText = filterDropdown.previousSibling.textContent;
+
+    const selectedValues = [...checkboxes]
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+
+    filteredData = filteredData.filter(row => selectedValues.includes(row[headerText]));
+
+    renderTable(filteredData);
+}
+
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
@@ -166,7 +231,7 @@ async function drawFullLinePlot(trams, resumData) {
         }
     }
 
-    const unitHeightPerKm = 75;
+    const unitHeightPerKm = 67.5; // Reducir en un 10%
     const fixedHeightComponents = 100;
 
     for (let i = 0; i < trams.length; i++) {
@@ -256,14 +321,14 @@ async function drawFullLinePlot(trams, resumData) {
                 textinfo: 'none',
                 hoverinfo: 'none',
                 direction: 'clockwise',
-                rotation: 180,
+                rotation: 0, // Rotar 180 grados para que empiece arriba
                 sort: false
             }
         ];
 
         const pieLayoutBefore2025 = {
-            height: 200,
-            width: 200,
+            height: 150,
+            width: 150,
             margin: { t: 0, b: 0, l: 0, r: 0 },
             showlegend: false
         };
@@ -295,14 +360,14 @@ async function drawFullLinePlot(trams, resumData) {
                 textinfo: 'none',
                 hoverinfo: 'none',
                 direction: 'clockwise',
-                rotation: 180,
+                rotation: 0, // Rotar 180 grados para que empiece arriba
                 sort: false
             }
         ];
 
         const pieLayoutBetween2025And2030 = {
-            height: 200,
-            width: 200,
+            height: 150,
+            width: 150,
             margin: { t: 0, b: 0, l: 0, r: 0 },
             showlegend: false
         };
@@ -389,14 +454,14 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             hoverinfo: 'none',
             direction: 'clockwise',
-            rotation: 180,
+            rotation: 0, // Rotar 180 grados para que empiece arriba
             sort: false
         }
     ];
 
     const pieLayoutBefore2025 = {
-        height: 250,
-        width: 250,
+        height: 200,
+        width: 200,
         margin: { t: 0, b: 0, l: 0, r: 0 },
         showlegend: false
     };
@@ -428,14 +493,14 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             hoverinfo: 'none',
             direction: 'clockwise',
-            rotation: 180,
+            rotation: 0, // Rotar 180 grados para que empiece arriba
             sort: false
         }
     ];
 
     const pieLayoutBetween2025And2030 = {
-        height: 250,
-        width: 250,
+        height: 200,
+        width: 200,
         margin: { t: 0, b: 0, l: 0, r: 0 },
         showlegend: false
     };
