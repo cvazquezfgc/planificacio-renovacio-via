@@ -162,6 +162,7 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center; /* Centrar verticalmente */
     width: 25%; /* 25% del ancho para los quesitos */
 }
 
@@ -220,8 +221,39 @@ h2 {
     max-height: 200px;
     overflow-y: auto;
     padding: 10px;
+    min-width: 200px; /* Ancho mínimo ajustado */
+    white-space: nowrap;
 }
 
 .filter-dropdown label {
-    display: block;
+    display: flex;
+    align-items: center;
+    font-weight: normal; /* Texto no en negrita */
+    margin-bottom: 5px;
+}
+
+.filter-dropdown input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid darkgray;
+    border-radius: 4px;
+    margin-right: 8px;
+    position: relative;
+}
+
+.filter-dropdown input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 4px;
+    height: 8px;
+    border: solid darkgray;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.filter-dropdown input[type="checkbox"]:focus {
+    outline: none;
 }
