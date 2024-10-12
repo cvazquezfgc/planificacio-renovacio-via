@@ -11,85 +11,22 @@ body {
     align-items: center;
     background-color: rgb(77, 83, 88);
     color: white;
-    padding: 5px;
+    padding: 5px 15px;
     justify-content: space-between;
     position: relative;
 }
 
-#header-left {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-#header-left img {
+#header img {
     height: 35px;
-    margin-right: 10px;
 }
 
-#menu-icon {
-    font-size: 20px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-#header h1 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: normal;
-    cursor: default;
-}
-
-#dropdown-menu {
-    display: none;
-    position: absolute;
-    top: 45px;
-    left: 0;
-    background-color: rgb(77, 83, 88);
-    color: white;
-    border: 1px solid #ccc;
-    z-index: 1000;
-    min-width: 250px;
-}
-
-#dropdown-menu .dropdown-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    font-family: Arial, sans-serif;
-    transition: background-color 0.3s;
-}
-
-#dropdown-menu .dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-#dropdown-menu .dropdown-item.selected {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-#header-right {
-    display: flex;
-    align-items: center;
-}
-
-#tramButtons {
+#nav-buttons {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-#clear-filters-icon {
-    cursor: pointer;
-    margin-left: 20px;
-}
-
-#clear-filters-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
-.tram-button {
+.nav-button {
     background: none;
     border: none;
     color: white;
@@ -101,7 +38,7 @@ body {
     position: relative;
 }
 
-.tram-button.selected {
+.nav-button.selected {
     border-bottom: 2px solid white;
 }
 
@@ -207,6 +144,7 @@ h2 {
     width: 100%;
     height: 100%;
     overflow: auto;
+    display: none;
 }
 
 /* Estilos para la tabla */
