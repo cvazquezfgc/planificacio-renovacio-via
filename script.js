@@ -46,7 +46,6 @@ function setupNavButtons() {
 // Función para mostrar la vista ESPAI-TEMPS
 async function showEspaiTempsView() {
     document.getElementById('plot').style.display = 'block';
-    document.getElementById('title-container').style.display = 'block';
     document.getElementById('table-container').style.display = 'none';
 
     // Cargar datos si no se han cargado aún
@@ -68,7 +67,6 @@ async function showEspaiTempsView() {
 // Función para mostrar la vista TAULA INVENTARI
 async function showTaulaInventariView() {
     document.getElementById('plot').style.display = 'none';
-    document.getElementById('title-container').style.display = 'none';
     document.getElementById('table-container').style.display = 'block';
 
     // Cargar datos si no se han cargado aún
@@ -89,7 +87,6 @@ async function showTaulaInventariView() {
 // Función para mostrar la vista NECESSITATS D'INVERSIÓ
 function showNecessitatsView() {
     document.getElementById('plot').style.display = 'none';
-    document.getElementById('title-container').style.display = 'none';
     document.getElementById('table-container').style.display = 'none';
 
     // Aquí puedes agregar el contenido para NECESSITATS D'INVERSIÓ cuando esté disponible
@@ -225,10 +222,6 @@ function applyFilters() {
 // Función para dibujar gráficos concatenados para ESPAI-TEMPS
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
-    document.getElementById('title-container').innerHTML = `
-        <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
-            Espai-temps previsió rehabilitació de la línia
-        </h2>`;
 
     if (!estacionsData) {
         const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
@@ -243,8 +236,9 @@ async function drawFullLinePlot(trams, resumData) {
     const fixedHeightComponents = 100;
 
     // Calcular minYear y maxYear globales
-    const globalMinYear = 2020; // Año mínimo fijo
-    const globalMaxYear = 2067; // Año máximo extendido
+    const years = resumData.map(d => parseInt(d['PREVISIÓ REHABILITACIÓ'])).filter(year => !isNaN(year));
+    const globalMinYear = Math.min(...years) - 1; // Un año antes
+    const globalMaxYear = Math.max(...years) + 1; // Un año después
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -264,6 +258,13 @@ async function drawFullLinePlot(trams, resumData) {
         // Crear contenedor para el tramo
         const tramContainer = document.createElement('div');
         tramContainer.className = 'tram-container';
+
+        // Etiqueta del tramo
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'label-container';
+        const label = document.createElement('div');
+        label.textContent = tram;
+        labelContainer.appendChild(label);
 
         // Contenedor de los gráficos de quesitos
         const piesContainer = document.createElement('div');
@@ -352,29 +353,16 @@ async function drawFullLinePlot(trams, resumData) {
         piesContainer.appendChild(pieChartContainer);
         Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
 
-        // Contenedor para el gráfico y la etiqueta del tramo
-        const plotAndLabelContainer = document.createElement('div');
-        plotAndLabelContainer.className = 'plot-and-label';
-
-        // Etiqueta del tramo
-        const labelContainer = document.createElement('div');
-        labelContainer.className = 'label-container';
-        const label = document.createElement('div');
-        label.textContent = tram;
-        labelContainer.appendChild(label);
-
         // Contenedor del gráfico
         const plotContainer = document.createElement('div');
         plotContainer.className = 'plot-container';
         plotContainer.id = `plot-${tram}-chart`;
         plotContainer.style.height = `${tramoHeight}px`;
 
-        plotAndLabelContainer.appendChild(labelContainer);
-        plotAndLabelContainer.appendChild(plotContainer);
-
         // Añadir contenedores al contenedor principal del tramo en el orden correcto
+        tramContainer.appendChild(labelContainer);
         tramContainer.appendChild(piesContainer);
-        tramContainer.appendChild(plotAndLabelContainer);
+        tramContainer.appendChild(plotContainer);
 
         // Añadir el contenedor del tramo al contenedor principal
         document.getElementById('plot').appendChild(tramContainer);
@@ -483,8 +471,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     let shapes = [];
 
     // Determinar el rango de años necesarios
-    let minYear = minYearOverride !== null ? minYearOverride : 2020;
-    let maxYear = maxYearOverride !== null ? maxYearOverride : 2067;
+    let minYear = minYearOverride !== null ? minYearOverride : 1995;
+    let maxYear = maxYearOverride !== null ? maxYearOverride : 2070;
 
     const xRange = [minYear, maxYear];
 
