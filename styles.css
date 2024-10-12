@@ -154,7 +154,8 @@ h2 {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 80%; /* Aumentado de 70% a 80% */
+    width: 75vw; /* Ancho variable según el viewport */
+    min-width: 1066.67px; /* Ancho mínimo */
     flex: 1;
 }
 
@@ -184,7 +185,8 @@ h2 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 20%; /* Reducido de 30% a 20% */
+    width: calc(100% - 75vw); /* Resto del espacio */
+    min-width: calc(100% - 1066.67px);
     flex: 1;
 }
 
