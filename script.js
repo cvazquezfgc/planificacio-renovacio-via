@@ -19,6 +19,7 @@ let trams = [];       // Lista de tramos
 let estacionsData = null; // Datos de estaciones
 let filteredData = null; // Datos filtrados para la tabla
 let activeFilters = {}; // Almacena los filtros aplicados
+let currentFilterDropdown = null; // Almacena el dropdown actual
 
 // Función para mostrar el menú desplegable
 function setupDropdownMenu() {
@@ -161,7 +162,9 @@ function showFilterDropdown(th, headerText) {
     const filterDropdown = document.createElement('div');
     filterDropdown.className = 'filter-dropdown';
 
-    const uniqueValues = [...new Set(resumData.map(d => d[headerText]))].sort();
+    currentFilterDropdown = filterDropdown;
+
+    const uniqueValues = [...new Set(resumData.map(d => String(d[headerText])))].sort();
     uniqueValues.forEach(value => {
         const label = document.createElement('label');
         label.style.display = 'flex';
@@ -192,11 +195,14 @@ function showFilterDropdown(th, headerText) {
         event.stopPropagation();
     });
 
-    // Ocultar el menú al hacer clic fuera
+    // Ocultar el menú al hacer clic fuera y actualizar filtros
     function hideFilterDropdown(event) {
         if (!filterDropdown.contains(event.target) && event.target !== th) {
+            updateFilters(headerText);
             filterDropdown.remove();
+            currentFilterDropdown = null;
             document.removeEventListener('click', hideFilterDropdown);
+            applyFilters();
         }
     }
     document.addEventListener('click', hideFilterDropdown);
@@ -204,8 +210,7 @@ function showFilterDropdown(th, headerText) {
 
 // Función para actualizar los filtros activos
 function updateFilters(headerText) {
-    const th = [...document.querySelectorAll('#data-table th')].find(th => th.textContent === headerText);
-    const checkboxes = th.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = currentFilterDropdown.querySelectorAll('input[type="checkbox"]');
     const selectedValues = [...checkboxes]
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
@@ -221,7 +226,8 @@ function updateFilters(headerText) {
 function applyFilters() {
     filteredData = resumData.filter(row => {
         return Object.keys(activeFilters).every(header => {
-            return activeFilters[header].includes(row[header]);
+            const rowValue = String(row[header]);
+            return activeFilters[header].includes(rowValue);
         });
     });
 
@@ -335,7 +341,8 @@ async function drawFullLinePlot(trams, resumData) {
                     colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
-                textinfo: 'none',
+                texttemplate: '<b>%{label}<br>%{value:,.0f} m<br>%{percent}</b>',
+                textposition: 'inside',
                 hoverinfo: 'none',
                 rotation: 0, // Empezar desde arriba
                 direction: 'clockwise', // Sentido horario
@@ -354,50 +361,6 @@ async function drawFullLinePlot(trams, resumData) {
         pieChartContainer.appendChild(pieChart);
         piesContainer.appendChild(pieChartContainer);
         Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
-
-        // Añadir etiquetas para cada slice
-        const totalDegrees = 360;
-        const angles = [
-            (lengthBefore2025 / totalLength) * totalDegrees,
-            (lengthBetween2025And2030 / totalLength) * totalDegrees,
-            (lengthAfter2030 / totalLength) * totalDegrees
-        ];
-
-        let cumulativeAngle = 0; // Empezar desde arriba
-
-        const annotations = [];
-
-        const categories = ['<2025', '2025-2030', '>2030'];
-        const colors = ['red', 'orange', 'gray'];
-
-        categories.forEach((category, index) => {
-            const angle = cumulativeAngle + angles[index] / 2;
-            const radians = (angle * Math.PI) / 180;
-            const x = 0.5 + 1.2 * Math.cos(radians);
-            const y = 0.5 + 1.2 * Math.sin(radians);
-            const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
-            const percentage = ((length / totalLength) * 100).toFixed(1);
-            const labelColor = colors[index];
-            const text = `<b>${category}<br>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`;
-
-            annotations.push({
-                x: x,
-                y: y,
-                xref: 'paper',
-                yref: 'paper',
-                text: text,
-                showarrow: false,
-                font: {
-                    size: 12,
-                    color: labelColor
-                },
-                align: 'center'
-            });
-
-            cumulativeAngle += angles[index];
-        });
-
-        Plotly.relayout(pieChart, { annotations: annotations });
     }
 
     document.body.style.height = 'auto';
@@ -473,7 +436,8 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            textinfo: 'none',
+            texttemplate: '<b>%{label}<br>%{value:,.0f} m<br>%{percent}</b>',
+            textposition: 'inside',
             hoverinfo: 'none',
             rotation: 0, // Empezar desde arriba
             direction: 'clockwise', // Sentido horario
@@ -492,50 +456,6 @@ async function drawSinglePlot(tram, resumData) {
     pieChartContainer.appendChild(pieChart);
     pieContainer.appendChild(pieChartContainer);
     Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
-
-    // Añadir etiquetas para cada slice
-    const totalDegrees = 360;
-    const angles = [
-        (lengthBefore2025 / totalLength) * totalDegrees,
-        (lengthBetween2025And2030 / totalLength) * totalDegrees,
-        (lengthAfter2030 / totalLength) * totalDegrees
-    ];
-
-    let cumulativeAngle = 0; // Empezar desde arriba
-
-    const annotations = [];
-
-    const categories = ['<2025', '2025-2030', '>2030'];
-    const colors = ['red', 'orange', 'gray'];
-
-    categories.forEach((category, index) => {
-        const angle = cumulativeAngle + angles[index] / 2;
-        const radians = (angle * Math.PI) / 180;
-        const x = 0.5 + 1.2 * Math.cos(radians);
-        const y = 0.5 + 1.2 * Math.sin(radians);
-        const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
-        const percentage = ((length / totalLength) * 100).toFixed(1);
-        const labelColor = colors[index];
-        const text = `<b>${category}<br>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`;
-
-        annotations.push({
-            x: x,
-            y: y,
-            xref: 'paper',
-            yref: 'paper',
-            text: text,
-            showarrow: false,
-            font: {
-                size: 12,
-                color: labelColor
-            },
-            align: 'center'
-        });
-
-        cumulativeAngle += angles[index];
-    });
-
-    Plotly.relayout(pieChart, { annotations: annotations });
 
     document.getElementById('plot').appendChild(pieContainer);
 
