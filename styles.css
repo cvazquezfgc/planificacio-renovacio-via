@@ -22,6 +22,11 @@ body {
     position: relative;
 }
 
+#header-left img {
+    height: 50px;
+    margin-right: 15px;
+}
+
 #menu-icon {
     font-size: 24px;
     cursor: pointer;
@@ -42,8 +47,8 @@ body {
 #dropdown-menu {
     display: none;
     position: absolute;
-    top: 50px;
-    left: 10px; /* Mover más a la izquierda */
+    top: 60px;
+    left: 10px;
     background-color: rgb(77, 83, 88);
     color: white;
     border: 1px solid #ccc;
@@ -80,16 +85,12 @@ body {
     padding: 10px 15px;
     cursor: pointer;
     font-family: Arial, sans-serif;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.tram-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    transition: border-bottom 0.3s;
+    position: relative;
 }
 
 .tram-button.selected {
-    background-color: lightgray;
-    color: black;
+    border-bottom: 2px solid white;
 }
 
 #content {
@@ -151,14 +152,16 @@ h2 {
 
 .plot-container {
     flex-grow: 1;
-    margin-left: -50px;
+    margin-left: -20px; /* Reducir para dejar espacio a la izquierda */
+    margin-right: 20px; /* Añadir espacio a la derecha */
 }
 
 .pie-charts-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 200px; /* Hacer los gráficos más pequeños */
+    width: 150px; /* Hacer los gráficos más pequeños */
+    margin-right: 50px; /* Añadir espacio en blanco a la derecha */
 }
 
 .pie-chart-title {
@@ -168,7 +171,7 @@ h2 {
 }
 
 .pie-chart-label {
-    font-size: 12px;
+    font-size: 14px; /* Aumentar tamaño de fuente */
     margin-top: 5px;
     text-align: center;
     font-weight: bold;
@@ -207,10 +210,7 @@ h2 {
     position: sticky;
     top: 0;
     z-index: 1;
-}
-
-#data-table th {
-    white-space: normal; /* Permitir múltiples líneas */
+    white-space: normal;
 }
 
 #data-table td:last-child {
