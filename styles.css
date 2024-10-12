@@ -9,10 +9,10 @@ body {
 #header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     background-color: rgb(77, 83, 88);
     color: white;
     padding: 5px 15px;
-    justify-content: space-between;
     position: relative;
 }
 
@@ -24,6 +24,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin: 0 auto; /* Centrar los botones */
 }
 
 .nav-button {
@@ -49,22 +50,6 @@ body {
     overflow: auto;
 }
 
-#title-container {
-    position: relative;
-    text-align: center;
-    font-size: 24px;
-    font-family: Arial, sans-serif;
-    margin: 10px 0;
-    z-index: 2;
-}
-
-h2 {
-    text-align: center;
-    font-size: 24px;
-    font-family: Arial, sans-serif;
-    margin-bottom: 20px;
-}
-
 #plot {
     width: 100%;
     position: relative;
@@ -87,6 +72,22 @@ h2 {
     border-bottom: 1px solid lightgray;
 }
 
+.label-container {
+    width: 70px;
+    min-width: 70px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.label-container div {
+    transform: rotate(270deg);
+    white-space: nowrap;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
 .pie-charts-container {
     display: flex;
     flex-direction: column;
@@ -97,33 +98,9 @@ h2 {
     flex: none;
 }
 
-.plot-and-label {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 75%;
-    min-width: 750px;
-    flex: 1;
-}
-
-.plot-and-label .label-container {
-    width: 70px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.plot-and-label .label-container div {
-    transform: rotate(270deg);
-    white-space: nowrap;
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-}
-
 .plot-container {
     flex-grow: 1;
-    margin-left: -20px;
+    margin-left: 10px;
     margin-right: 10px;
 }
 
@@ -138,6 +115,7 @@ h2 {
     font-size: 14px;
     margin-bottom: 5px;
     text-align: center;
+    font-weight: normal; /* Quitar negrita */
 }
 
 #table-container {
