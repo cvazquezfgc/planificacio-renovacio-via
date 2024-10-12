@@ -22,39 +22,28 @@ body {
     position: relative;
 }
 
+#menu-icon {
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
 #header-right {
     display: flex;
     align-items: center;
 }
 
-#header img {
-    height: 50px;
-    margin-right: 15px;
-}
-
 #header h1 {
     margin: 0;
     font-size: 24px;
-    cursor: pointer;
-}
-
-#title-dropdown {
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-#dropdown-icon {
-    margin-left: 5px;
-    font-size: 16px;
-    cursor: pointer;
+    cursor: default;
 }
 
 #dropdown-menu {
     display: none;
     position: absolute;
-    top: 60px;
-    left: 0; /* Alinear a la izquierda */
+    top: 50px;
+    left: 10px; /* Mover más a la izquierda */
     background-color: rgb(77, 83, 88);
     color: white;
     border: 1px solid #ccc;
@@ -74,7 +63,7 @@ body {
 }
 
 #dropdown-menu .dropdown-item.selected {
-    background-color: rgba(255, 255, 255, 0.2); /* Fondo más oscuro */
+    background-color: rgba(255, 255, 255, 0.2);
     color: white;
 }
 
@@ -126,10 +115,6 @@ h2 {
     margin-bottom: 20px;
 }
 
-#main-content {
-    /* No es necesario ajustar aquí */
-}
-
 #plot {
     width: 100%;
     position: relative;
@@ -150,7 +135,7 @@ h2 {
 }
 
 .plot-and-label .label-container {
-    width: 70px; /* Aumentar el ancho para etiquetas más grandes */
+    width: 70px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -160,30 +145,30 @@ h2 {
     transform: rotate(270deg);
     white-space: nowrap;
     text-align: center;
-    font-size: 18px; /* Tamaño de fuente más grande */
+    font-size: 18px;
     font-weight: bold;
 }
 
 .plot-container {
     flex-grow: 1;
-    margin-left: -50px; /* Mover el gráfico hacia la izquierda */
+    margin-left: -50px;
 }
 
 .pie-charts-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 250px; /* Ajustar el ancho para gráficos más pequeños */
+    width: 200px; /* Hacer los gráficos más pequeños */
 }
 
 .pie-chart-title {
-    font-size: 16px;
+    font-size: 14px;
     margin-bottom: 5px;
     text-align: center;
 }
 
 .pie-chart-label {
-    font-size: 14px;
+    font-size: 12px;
     margin-top: 5px;
     text-align: center;
     font-weight: bold;
@@ -214,7 +199,7 @@ h2 {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-    white-space: nowrap;
+    word-wrap: break-word;
 }
 
 #data-table th {
@@ -224,6 +209,24 @@ h2 {
     z-index: 1;
 }
 
+#data-table th {
+    white-space: normal; /* Permitir múltiples líneas */
+}
+
 #data-table td:last-child {
     white-space: normal;
+}
+
+/* Hacer más estrechas las columnas especificadas */
+#data-table th:nth-child(5),
+#data-table th:nth-child(6),
+#data-table th:nth-child(7),
+#data-table th:nth-child(8),
+#data-table th:nth-child(9),
+#data-table td:nth-child(5),
+#data-table td:nth-child(6),
+#data-table td:nth-child(7),
+#data-table td:nth-child(8),
+#data-table td:nth-child(9) {
+    max-width: 80px;
 }
