@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
-    overflow: hidden; /* para evitar scroll en tramos individuales */
+    overflow: hidden;
 }
 
 #header {
@@ -54,7 +54,7 @@ body {
     display: none;
     position: absolute;
     top: 60px;
-    left: 65px;
+    left: 0; /* Alinear a la izquierda */
     background-color: rgb(77, 83, 88);
     color: white;
     border: 1px solid #ccc;
@@ -74,8 +74,8 @@ body {
 }
 
 #dropdown-menu .dropdown-item.selected {
-    background-color: lightgray;
-    color: black;
+    background-color: rgba(255, 255, 255, 0.2); /* Fondo más oscuro */
+    color: white;
 }
 
 #tramButtons {
@@ -104,10 +104,10 @@ body {
 }
 
 #content {
-    width: 100%; /* Ahora ocupa todo el ancho */
-    height: calc(100vh - 80px); /* Ajustar según la altura del header */
+    width: 100%;
+    height: calc(100vh - 80px);
     position: relative;
-    overflow: auto; /* Permitir scroll en el contenido */
+    overflow: auto;
 }
 
 #title-container {
@@ -127,7 +127,7 @@ h2 {
 }
 
 #main-content {
-    /* Se elimina el display flex */
+    /* No es necesario ajustar aquí */
 }
 
 #plot {
@@ -139,7 +139,7 @@ h2 {
     display: flex;
     align-items: flex-start;
     margin-bottom: 30px;
-    width: 100%; /* Asegurar que ocupe todo el ancho */
+    width: 100%;
 }
 
 .plot-and-label {
@@ -150,7 +150,7 @@ h2 {
 }
 
 .plot-and-label .label-container {
-    width: 50px;
+    width: 70px; /* Aumentar el ancho para etiquetas más grandes */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -160,19 +160,41 @@ h2 {
     transform: rotate(270deg);
     white-space: nowrap;
     text-align: center;
-    font-size: 16px;
+    font-size: 18px; /* Tamaño de fuente más grande */
     font-weight: bold;
 }
 
 .plot-container {
     flex-grow: 1;
+    margin-left: -50px; /* Mover el gráfico hacia la izquierda */
 }
 
 .pie-charts-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 300px; /* Aumentar el ancho para gráficos más grandes */
+    width: 250px; /* Ajustar el ancho para gráficos más pequeños */
+}
+
+.pie-chart-title {
+    font-size: 16px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.pie-chart-label {
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.pie-chart-label.red {
+    color: red;
+}
+
+.pie-chart-label.orange {
+    color: orange;
 }
 
 #table-container {
@@ -197,7 +219,7 @@ h2 {
 
 #data-table th {
     background-color: #f0f0f0;
-    position: sticky; /* Hacer que los encabezados sean fijos */
+    position: sticky;
     top: 0;
     z-index: 1;
 }
