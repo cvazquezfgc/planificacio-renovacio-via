@@ -594,6 +594,20 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     let stationAnnotations = [];
     let shapes = [];
 
+    // Determinar el rango de años necesarios
+    const years = resumData.filter(d => d.TRAM === tram).map(d => parseInt(d['PREVISIÓ REHABILITACIÓ'])).filter(year => !isNaN(year));
+    let minYear, maxYear;
+
+    if (years.length > 0) {
+        minYear = Math.min(...years) - 1; // Un año antes
+        maxYear = Math.max(...years) + 1; // Un año después
+    } else {
+        minYear = 1995; // Valores por defecto si no hay datos
+        maxYear = 2070;
+    }
+
+    const xRange = [minYear, maxYear];
+
     function groupConsecutiveSegments(data) {
         const groupedData = [];
         let currentGroup = null;
@@ -636,13 +650,6 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     if (via1.length > 0 || via2.length > 0) {
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
         pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
-
-        // Determinar el rango de años necesarios
-        const years = resumData.map(d => parseInt(d['PREVISIÓ REHABILITACIÓ']));
-        const minYear = Math.min(...years) - 1; // Un año antes
-        const maxYear = Math.max(...years) + 1; // Un año después
-
-        const xRange = [minYear, maxYear];
 
         traces.push({
             x: via1.map(d => d.PREVISIO),
