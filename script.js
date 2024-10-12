@@ -47,6 +47,7 @@ function setupNavButtons() {
 async function showEspaiTempsView() {
     document.getElementById('plot').style.display = 'block';
     document.getElementById('table-container').style.display = 'none';
+    document.getElementById('clear-filters-icon').style.display = 'none'; // Ocultar icono de filtros
 
     // Cargar datos si no se han cargado aún
     if (!resumData) {
@@ -68,6 +69,7 @@ async function showEspaiTempsView() {
 async function showTaulaInventariView() {
     document.getElementById('plot').style.display = 'none';
     document.getElementById('table-container').style.display = 'block';
+    document.getElementById('clear-filters-icon').style.display = 'block'; // Mostrar icono de filtros
 
     // Cargar datos si no se han cargado aún
     if (!resumData) {
@@ -88,6 +90,7 @@ async function showTaulaInventariView() {
 function showNecessitatsView() {
     document.getElementById('plot').style.display = 'none';
     document.getElementById('table-container').style.display = 'none';
+    document.getElementById('clear-filters-icon').style.display = 'none'; // Ocultar icono de filtros
 
     // Aquí puedes agregar el contenido para NECESSITATS D'INVERSIÓ cuando esté disponible
     const plotContainer = document.getElementById('plot');
@@ -155,6 +158,29 @@ function showFilterDropdown(th, headerText) {
     currentFilterDropdown = filterDropdown;
 
     const uniqueValues = [...new Set(resumData.map(d => String(d[headerText])))].sort();
+
+    // Añadir opción "Seleccionar tot"
+    const selectAllLabel = document.createElement('label');
+    selectAllLabel.classList.add('bold');
+    const selectAllCheckbox = document.createElement('input');
+    selectAllCheckbox.type = 'checkbox';
+    selectAllCheckbox.value = 'select-all';
+    selectAllCheckbox.checked = !activeFilters[headerText] || activeFilters[headerText].length === uniqueValues.length;
+    selectAllLabel.appendChild(selectAllCheckbox);
+    const selectAllText = document.createTextNode('Seleccionar tot');
+    selectAllLabel.appendChild(selectAllText);
+    filterDropdown.appendChild(selectAllLabel);
+
+    // Evento para el checkbox "Seleccionar tot"
+    selectAllCheckbox.addEventListener('change', () => {
+        const checkboxes = filterDropdown.querySelectorAll('input[type="checkbox"]:not([value="select-all"])');
+        if (selectAllCheckbox.checked) {
+            checkboxes.forEach(cb => cb.checked = true);
+        } else {
+            checkboxes.forEach(cb => cb.checked = false);
+        }
+    });
+
     uniqueValues.forEach(value => {
         const label = document.createElement('label');
         label.style.display = 'flex';
@@ -167,6 +193,13 @@ function showFilterDropdown(th, headerText) {
         const textNode = document.createTextNode(value);
         label.appendChild(textNode);
         filterDropdown.appendChild(label);
+
+        // Evento para actualizar el estado de "Seleccionar tot"
+        checkbox.addEventListener('change', () => {
+            const checkboxes = filterDropdown.querySelectorAll('input[type="checkbox"]:not([value="select-all"])');
+            const allChecked = [...checkboxes].every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+        });
     });
 
     th.appendChild(filterDropdown);
@@ -195,7 +228,7 @@ function showFilterDropdown(th, headerText) {
 
 // Función para actualizar los filtros activos
 function updateFilters(headerText) {
-    const checkboxes = currentFilterDropdown.querySelectorAll('input[type="checkbox"]');
+    const checkboxes = currentFilterDropdown.querySelectorAll('input[type="checkbox"]:not([value="select-all"])');
     const selectedValues = [...checkboxes]
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
@@ -218,6 +251,18 @@ function applyFilters() {
 
     renderTable(filteredData);
 }
+
+// Función para limpiar todos los filtros
+function clearAllFilters() {
+    activeFilters = {};
+    filteredData = resumData;
+    renderTable(filteredData);
+}
+
+// Evento para el icono de limpiar filtros
+document.getElementById('clear-filters-icon').addEventListener('click', () => {
+    clearAllFilters();
+});
 
 // Función para dibujar gráficos concatenados para ESPAI-TEMPS
 async function drawFullLinePlot(trams, resumData) {
@@ -343,7 +388,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const pieLayout = {
             height: 250,
-            width: 250,
+            width: 200,
             margin: { t: 0, b: 0, l: 0, r: 0 },
             showlegend: false
         };
@@ -352,6 +397,97 @@ async function drawFullLinePlot(trams, resumData) {
         pieChartContainer.appendChild(pieChart);
         piesContainer.appendChild(pieChartContainer);
         Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
+
+        // Contenedor del gráfico de pirámide
+        const pyramidContainer = document.createElement('div');
+        pyramidContainer.className = 'pyramid-container';
+
+        // Crear gráfico de pirámide
+        const pyramidChartContainer = document.createElement('div');
+        pyramidChartContainer.className = 'pyramid-chart-wrapper';
+
+        // Añadir título al gráfico de pirámide
+        const pyramidChartTitle = document.createElement('div');
+        pyramidChartTitle.className = 'pyramid-chart-title';
+        pyramidChartTitle.textContent = 'Piràmide demogràfica de via';
+        pyramidChartContainer.appendChild(pyramidChartTitle);
+
+        // Calcular datos para el gráfico de pirámide
+        const lustrums = [];
+        for (let year = 1995; year <= 2060; year += 5) {
+            lustrums.push(`${year}-${year + 4}`);
+        }
+        lustrums.reverse(); // Para que los más recientes estén abajo
+
+        const via1Lengths = [];
+        const via2Lengths = [];
+        const totalLengthPerTram = totalLength;
+
+        lustrums.forEach(lustro => {
+            const [startYear, endYear] = lustro.split('-').map(Number);
+            const via1Length = resumData
+                .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
+                .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+            via1Lengths.push(via1Length);
+
+            const via2Length = resumData
+                .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
+                .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+            via2Lengths.push(via2Length);
+        });
+
+        const pyramidData = [
+            {
+                x: via1Lengths.map(length => -length / totalLengthPerTram * 100),
+                y: lustrums,
+                name: 'Via 1',
+                orientation: 'h',
+                type: 'bar',
+                marker: {
+                    color: 'rgba(31, 119, 180, 1)'
+                },
+                hoverinfo: 'x',
+                hovertemplate: '%{x:.1f}%'
+            },
+            {
+                x: via2Lengths.map(length => length / totalLengthPerTram * 100),
+                y: lustrums,
+                name: 'Via 2',
+                orientation: 'h',
+                type: 'bar',
+                marker: {
+                    color: 'rgba(135, 206, 250, 1)'
+                },
+                hoverinfo: 'x',
+                hovertemplate: '%{x:.1f}%'
+            }
+        ];
+
+        const pyramidLayout = {
+            barmode: 'overlay',
+            bargap: 0.1,
+            bargroupgap: 0,
+            height: 250,
+            width: 200,
+            margin: { t: 0, b: 20, l: 20, r: 20 },
+            xaxis: {
+                tickvals: [-100, -50, 0, 50, 100],
+                ticktext: ['100%', '50%', '0%', '50%', '100%'],
+                range: [-100, 100],
+                showgrid: false,
+                showticklabels: false
+            },
+            yaxis: {
+                automargin: true
+            },
+            showlegend: false,
+            hovermode: 'y'
+        };
+
+        const pyramidChart = document.createElement('div');
+        pyramidChartContainer.appendChild(pyramidChart);
+        pyramidContainer.appendChild(pyramidChartContainer);
+        Plotly.newPlot(pyramidChart, pyramidData, pyramidLayout, { displayModeBar: false });
 
         // Contenedor del gráfico
         const plotContainer = document.createElement('div');
@@ -362,6 +498,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Añadir contenedores al contenedor principal del tramo en el orden correcto
         tramContainer.appendChild(labelContainer);
         tramContainer.appendChild(piesContainer);
+        tramContainer.appendChild(pyramidContainer);
         tramContainer.appendChild(plotContainer);
 
         // Añadir el contenedor del tramo al contenedor principal
@@ -584,6 +721,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             opacity: 1
         })));
 
+        // Líneas de estaciones continuas
         shapes.push(...estaciones.map(d => ({
             type: 'line',
             x0: minYear,
@@ -594,7 +732,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 color: 'darkgray',
                 width: 1.5,
                 layer: 'below',
-                dash: 'dot'
+                dash: 'solid' // Línea continua
             }
         })));
 
