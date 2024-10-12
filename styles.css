@@ -43,6 +43,10 @@ body {
     border-bottom: 2px solid white;
 }
 
+#clear-filters-icon {
+    cursor: pointer;
+}
+
 #content {
     width: 100%;
     height: calc(100vh - 60px);
@@ -93,29 +97,42 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 25%;
-    min-width: 250px;
+    width: 20%;
+    min-width: 200px;
+    flex: none;
+}
+
+.pyramid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 20%;
+    min-width: 200px;
     flex: none;
 }
 
 .plot-container {
     flex-grow: 1;
+    width: 60%;
     margin-left: 10px;
     margin-right: 10px;
 }
 
-.pie-chart-wrapper {
+.pie-chart-wrapper,
+.pyramid-chart-wrapper {
     position: relative;
-    width: 250px;
+    width: 200px;
     height: 250px;
     margin-bottom: 20px;
 }
 
-.pie-chart-title {
+.pie-chart-title,
+.pyramid-chart-title {
     font-size: 14px;
     margin-bottom: 5px;
     text-align: center;
-    font-weight: normal; /* Quitar negrita */
+    font-weight: normal;
 }
 
 #table-container {
@@ -171,6 +188,10 @@ body {
     align-items: center;
     font-weight: normal;
     margin-bottom: 5px;
+}
+
+.filter-dropdown label.bold {
+    font-weight: bold;
 }
 
 .filter-dropdown input[type="checkbox"] {
