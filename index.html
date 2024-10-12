@@ -8,25 +8,11 @@
 </head>
 <body>
     <div id="header">
-        <div id="header-left">
-            <img src="https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/logo%20blanc.png" alt="FGC Logo">
-            <div id="menu-icon">&#9776;</div>
-            <h1 id="header-title">Previsió rehabilitació de via</h1>
-            <div id="dropdown-menu">
-                <div class="dropdown-item selected" data-view="rehabilitacio">Previsió rehabilitació de via</div>
-                <div class="dropdown-item" data-view="inventari">Inventari de via</div>
-            </div>
-        </div>
-        <div id="header-right">
-            <div id="tramButtons"></div>
-            <div id="clear-filters-icon" style="display: none;">
-                <!-- Icono de embudo con cruz -->
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <path d="M3 4h18l-7 9v7l-4-3v-4l-7-9zm10 0h-2v2h2v-2zm2 0h2v2h-2v-2zm-6 0h2v2h-2v-2zm6 16h-2v2h2v-2zm-6 0h2v2h-2v-2z"/>
-                    <line x1="19" y1="19" x2="23" y2="23" stroke="white" stroke-width="2"/>
-                    <line x1="23" y1="19" x2="19" y2="23" stroke="white" stroke-width="2"/>
-                </svg>
-            </div>
+        <img src="https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/logo%20blanc.png" alt="FGC Logo">
+        <div id="nav-buttons">
+            <button class="nav-button selected" data-view="espai-temps">ESPAI-TEMPS</button>
+            <button class="nav-button" data-view="taula-inventari">TAULA INVENTARI</button>
+            <button class="nav-button" data-view="necessitats">NECESSITATS D'INVERSIÓ</button>
         </div>
     </div>
     <div id="content">
