@@ -164,7 +164,8 @@ function showFilterDropdown(th, headerText) {
     const uniqueValues = [...new Set(resumData.map(d => d[headerText]))].sort();
     uniqueValues.forEach(value => {
         const label = document.createElement('label');
-        label.style.display = 'block';
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = value;
@@ -174,7 +175,8 @@ function showFilterDropdown(th, headerText) {
             applyFilters();
         });
         label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(value));
+        const textNode = document.createTextNode(value);
+        label.appendChild(textNode);
         filterDropdown.appendChild(label);
     });
 
@@ -208,7 +210,7 @@ function updateFilters(headerText) {
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
 
-    if (selectedValues.length === checkboxes.length) {
+    if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
         delete activeFilters[headerText];
     } else {
         activeFilters[headerText] = selectedValues;
@@ -335,7 +337,7 @@ async function drawFullLinePlot(trams, resumData) {
                 type: 'pie',
                 textinfo: 'none',
                 hoverinfo: 'none',
-                rotation: -90, // Empezar desde arriba
+                rotation: 0, // Empezar desde arriba
                 direction: 'clockwise', // Sentido horario
                 sort: false
             }
@@ -361,7 +363,7 @@ async function drawFullLinePlot(trams, resumData) {
             (lengthAfter2030 / totalLength) * totalDegrees
         ];
 
-        let cumulativeAngle = -90; // Empezar desde arriba
+        let cumulativeAngle = 0; // Empezar desde arriba
 
         const annotations = [];
 
@@ -473,7 +475,7 @@ async function drawSinglePlot(tram, resumData) {
             type: 'pie',
             textinfo: 'none',
             hoverinfo: 'none',
-            rotation: -90, // Empezar desde arriba
+            rotation: 0, // Empezar desde arriba
             direction: 'clockwise', // Sentido horario
             sort: false
         }
@@ -499,7 +501,7 @@ async function drawSinglePlot(tram, resumData) {
         (lengthAfter2030 / totalLength) * totalDegrees
     ];
 
-    let cumulativeAngle = -90; // Empezar desde arriba
+    let cumulativeAngle = 0; // Empezar desde arriba
 
     const annotations = [];
 
