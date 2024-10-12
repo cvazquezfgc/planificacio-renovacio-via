@@ -153,7 +153,7 @@ async function drawFullLinePlot(trams, resumData) {
     document.getElementById('title-container').innerHTML = `
         <h2 style="font-family: Arial, sans-serif; font-size: 24px; font-weight: normal; text-align: center;">
             Espai-temps previsió rehabilitació de la línia completa
-        </h2>`; // Aseguramos la fuente sin negrita
+        </h2>`;
 
     if (!estacionsData) {
         const estacionsUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/estacions.json';
@@ -164,8 +164,8 @@ async function drawFullLinePlot(trams, resumData) {
         }
     }
 
-    const unitHeightPerKm = 75; // Unidad de altura por km
-    const fixedHeightComponents = 100; // Altura fija para componentes como ejes y etiquetas
+    const unitHeightPerKm = 75;
+    const fixedHeightComponents = 100;
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -178,7 +178,7 @@ async function drawFullLinePlot(trams, resumData) {
         const tramoLength = pkMax - pkMin;
         let tramoHeight = fixedHeightComponents + (tramoLength * unitHeightPerKm);
 
-        if (tramoHeight < 250) { // Ajuste para tramos muy cortos
+        if (tramoHeight < 250) {
             tramoHeight = 250;
         }
 
@@ -243,32 +243,26 @@ async function drawFullLinePlot(trams, resumData) {
                     colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
-                textinfo: 'value+percent',
-                textposition: 'outside',
+                textinfo: 'none',
                 hoverinfo: 'none',
                 direction: 'clockwise',
-                rotation: 0,
-                sort: false,
-                texttemplate: "%{value:,.0f} m<br>(%{percent})",
-                textfont: {
-                    size: 16,
-                    color: ['red', 'rgba(0,0,0,0)']
-                }
+                rotation: -90,
+                sort: false
             }
         ];
 
         const pieLayoutBefore2025 = {
-            height: 200,
-            width: 200,
+            height: 250,
+            width: 250,
             title: {
-                text: "<2025",
+                text: `<2025<br>${(lengthBefore2025).toLocaleString('es-ES')} m<br>(${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%)`,
                 font: {
-                    size: 18
+                    size: 16
                 },
-                y: 0.9
+                y: 0.5
             },
             showlegend: false,
-            margin: { t: 40, b: 60 }
+            margin: { t: 30, b: 30, l: 30, r: 30 }
         };
 
         const pieChartBefore2025 = document.createElement('div');
@@ -278,38 +272,32 @@ async function drawFullLinePlot(trams, resumData) {
         // Gráfico de quesito para 2025-2030
         const pieDataBetween2025And2030 = [
             {
-                values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
-                labels: ['', '', ''],
+                values: [lengthBetween2025And2030, totalLength - lengthBetween2025And2030],
+                labels: ['', ''],
                 marker: {
-                    colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                    colors: ['rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
-                textinfo: 'value+percent',
-                textposition: 'outside',
+                textinfo: 'none',
                 hoverinfo: 'none',
                 direction: 'clockwise',
-                rotation: 0,
-                sort: false,
-                texttemplate: "%{value:,.0f} m<br>(%{percent})",
-                textfont: {
-                    size: 16,
-                    color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)']
-                }
+                rotation: -90,
+                sort: false
             }
         ];
 
         const pieLayoutBetween2025And2030 = {
-            height: 200,
-            width: 200,
+            height: 250,
+            width: 250,
             title: {
-                text: "2025-2030",
+                text: `2025-2030<br>${(lengthBetween2025And2030).toLocaleString('es-ES')} m<br>(${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%)`,
                 font: {
-                    size: 18
+                    size: 16
                 },
-                y: 0.9
+                y: 0.5
             },
             showlegend: false,
-            margin: { t: 40, b: 60 }
+            margin: { t: 30, b: 30, l: 30, r: 30 }
         };
 
         const pieChartBetween2025And2030 = document.createElement('div');
@@ -380,17 +368,11 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            textinfo: 'value+percent',
-            textposition: 'outside',
+            textinfo: 'none',
             hoverinfo: 'none',
             direction: 'clockwise',
-            rotation: 0,
-            sort: false,
-            texttemplate: "%{value:,.0f} m<br>(%{percent})",
-            textfont: {
-                size: 16,
-                color: ['red', 'rgba(0,0,0,0)']
-            }
+            rotation: -90,
+            sort: false
         }
     ];
 
@@ -398,11 +380,11 @@ async function drawSinglePlot(tram, resumData) {
         height: 300,
         width: 300,
         title: {
-            text: "Longitud a rehabilitar <2025",
+            text: `Longitud a rehabilitar <2025<br>${(lengthBefore2025).toLocaleString('es-ES')} m<br>(${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%)`,
             font: {
                 size: 18
             },
-            y: 0.9
+            y: 0.5
         },
         showlegend: false,
         margin: { t: 40, b: 60 }
@@ -415,23 +397,17 @@ async function drawSinglePlot(tram, resumData) {
     // Gráfico de quesito para 2025-2030
     const pieDataBetween2025And2030 = [
         {
-            values: [lengthBefore2025, lengthBetween2025And2030, totalLength - lengthBefore2025 - lengthBetween2025And2030],
-            labels: ['', '', ''],
+            values: [lengthBetween2025And2030, totalLength - lengthBetween2025And2030],
+            labels: ['', ''],
             marker: {
-                colors: ['rgba(150, 150, 150, 0.3)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                colors: ['rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            textinfo: 'value+percent',
-            textposition: 'outside',
+            textinfo: 'none',
             hoverinfo: 'none',
             direction: 'clockwise',
-            rotation: 0,
-            sort: false,
-            texttemplate: "%{value:,.0f} m<br>(%{percent})",
-            textfont: {
-                size: 16,
-                color: ['rgba(0,0,0,0)', 'orange', 'rgba(0,0,0,0)']
-            }
+            rotation: -90,
+            sort: false
         }
     ];
 
@@ -439,11 +415,11 @@ async function drawSinglePlot(tram, resumData) {
         height: 300,
         width: 300,
         title: {
-            text: "Longitud a rehabilitar 2025-2030",
+            text: `Longitud a rehabilitar 2025-2030<br>${(lengthBetween2025And2030).toLocaleString('es-ES')} m<br>(${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%)`,
             font: {
                 size: 18
             },
-            y: 0.9
+            y: 0.5
         },
         showlegend: false,
         margin: { t: 40, b: 60 }
@@ -458,6 +434,8 @@ async function drawSinglePlot(tram, resumData) {
     document.body.style.height = '100vh';
     document.body.style.overflow = 'hidden';
 }
+
+// Resto de funciones (addLinesAndShading, drawPlot, selectTramButton, init) permanecen igual
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax) {
@@ -609,7 +587,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 color: 'rgba(31, 119, 180, 1)'
             },
             hoverinfo: 'text',
-            hovertext: via1.map(d => `${Math.round(d.length)} m`),
+            hovertext: via1.map(d => `${Math.round(d.length).toLocaleString('es-ES')} m`),
             hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
                 font: {
@@ -631,7 +609,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 color: 'rgba(135, 206, 250, 1)'
             },
             hoverinfo: 'text',
-            hovertext: via2.map(d => `${Math.round(d.length)} m`),
+            hovertext: via2.map(d => `${Math.round(d.length).toLocaleString('es-ES')} m`),
             hoverlabel: {
                 bgcolor: 'rgba(135, 206, 250, 1)',
                 font: {
