@@ -154,7 +154,7 @@ h2 {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 70%; /* Reducido de 80% a 70% */
+    width: 80%; /* Aumentado de 70% a 80% */
     flex: 1;
 }
 
@@ -184,13 +184,13 @@ h2 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 30%; /* Aumentado de 20% a 30% */
+    width: 20%; /* Reducido de 30% a 20% */
     flex: 1;
 }
 
 .pie-chart-wrapper {
     position: relative;
-    width: 250px; /* Aumentado de 200px a 250px */
+    width: 250px;
     height: 250px;
     margin-bottom: 20px;
 }
@@ -212,12 +212,13 @@ h2 {
     width: 100%;
     border-collapse: collapse;
     table-layout: auto;
+    font-size: 12px; /* Reducir tamaño de letra */
 }
 
 #data-table th,
 #data-table td {
     border: 1px solid #ccc;
-    padding: 8px;
+    padding: 6px; /* Reducir padding */
     text-align: left;
     white-space: nowrap;
 }
