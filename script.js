@@ -209,7 +209,7 @@ function applyFilters() {
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
 
-    filteredData = filteredData.filter(row => selectedValues.includes(row[headerText]));
+    filteredData = resumData.filter(row => selectedValues.includes(row[headerText]));
 
     renderTable(filteredData);
 }
@@ -231,7 +231,7 @@ async function drawFullLinePlot(trams, resumData) {
         }
     }
 
-    const unitHeightPerKm = 67.5; // Reducir en un 10%
+    const unitHeightPerKm = 60.75; // Reducir un 10% adicional
     const fixedHeightComponents = 100;
 
     for (let i = 0; i < trams.length; i++) {
@@ -306,9 +306,6 @@ async function drawFullLinePlot(trams, resumData) {
         const pieChartBefore2025Title = document.createElement('div');
         pieChartBefore2025Title.className = 'pie-chart-title';
         pieChartBefore2025Title.textContent = '<2025';
-        const pieChartBefore2025Label = document.createElement('div');
-        pieChartBefore2025Label.className = 'pie-chart-label red';
-        pieChartBefore2025Label.textContent = `${lengthBefore2025.toLocaleString('de-DE')} m (${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%)`;
 
         const pieDataBefore2025 = [
             {
@@ -321,8 +318,9 @@ async function drawFullLinePlot(trams, resumData) {
                 textinfo: 'none',
                 hoverinfo: 'none',
                 direction: 'clockwise',
-                rotation: 0, // Rotar 180 grados para que empiece arriba
-                sort: false
+                rotation: 0,
+                sort: false,
+                hole: 0.4
             }
         ];
 
@@ -330,24 +328,35 @@ async function drawFullLinePlot(trams, resumData) {
             height: 150,
             width: 150,
             margin: { t: 0, b: 0, l: 0, r: 0 },
-            showlegend: false
+            showlegend: false,
+            annotations: [
+                {
+                    x: 0.5,
+                    y: 1.1,
+                    xref: 'paper',
+                    yref: 'paper',
+                    text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m<br>${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%</b>`,
+                    showarrow: false,
+                    font: {
+                        size: 14,
+                        color: 'red'
+                    },
+                    align: 'center'
+                }
+            ]
         };
 
         const pieChartBefore2025 = document.createElement('div');
         pieChartBefore2025Container.appendChild(pieChartBefore2025Title);
         pieChartBefore2025Container.appendChild(pieChartBefore2025);
-        pieChartBefore2025Container.appendChild(pieChartBefore2025Label);
         piesContainer.appendChild(pieChartBefore2025Container);
-        Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
+        Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025, { displayModeBar: false });
 
         // Gráfico de quesito para 2025-2030
         const pieChartBetween2025And2030Container = document.createElement('div');
         const pieChartBetween2025And2030Title = document.createElement('div');
         pieChartBetween2025And2030Title.className = 'pie-chart-title';
         pieChartBetween2025And2030Title.textContent = '2025-2030';
-        const pieChartBetween2025And2030Label = document.createElement('div');
-        pieChartBetween2025And2030Label.className = 'pie-chart-label orange';
-        pieChartBetween2025And2030Label.textContent = `${lengthBetween2025And2030.toLocaleString('de-DE')} m (${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%)`;
 
         const pieDataBetween2025And2030 = [
             {
@@ -360,8 +369,9 @@ async function drawFullLinePlot(trams, resumData) {
                 textinfo: 'none',
                 hoverinfo: 'none',
                 direction: 'clockwise',
-                rotation: 0, // Rotar 180 grados para que empiece arriba
-                sort: false
+                rotation: 0,
+                sort: false,
+                hole: 0.4
             }
         ];
 
@@ -369,15 +379,29 @@ async function drawFullLinePlot(trams, resumData) {
             height: 150,
             width: 150,
             margin: { t: 0, b: 0, l: 0, r: 0 },
-            showlegend: false
+            showlegend: false,
+            annotations: [
+                {
+                    x: 0.5,
+                    y: 1.1,
+                    xref: 'paper',
+                    yref: 'paper',
+                    text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m<br>${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%</b>`,
+                    showarrow: false,
+                    font: {
+                        size: 14,
+                        color: 'orange'
+                    },
+                    align: 'center'
+                }
+            ]
         };
 
         const pieChartBetween2025And2030 = document.createElement('div');
         pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030Title);
         pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030);
-        pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030Label);
         piesContainer.appendChild(pieChartBetween2025And2030Container);
-        Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
+        Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030, { displayModeBar: false });
     }
 
     document.body.style.height = 'auto';
@@ -439,9 +463,6 @@ async function drawSinglePlot(tram, resumData) {
     const pieChartBefore2025Title = document.createElement('div');
     pieChartBefore2025Title.className = 'pie-chart-title';
     pieChartBefore2025Title.textContent = 'Longitud a rehabilitar <2025';
-    const pieChartBefore2025Label = document.createElement('div');
-    pieChartBefore2025Label.className = 'pie-chart-label red';
-    pieChartBefore2025Label.textContent = `${lengthBefore2025.toLocaleString('de-DE')} m (${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%)`;
 
     const pieDataBefore2025 = [
         {
@@ -454,8 +475,9 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             hoverinfo: 'none',
             direction: 'clockwise',
-            rotation: 0, // Rotar 180 grados para que empiece arriba
-            sort: false
+            rotation: 0,
+            sort: false,
+            hole: 0.4
         }
     ];
 
@@ -463,24 +485,35 @@ async function drawSinglePlot(tram, resumData) {
         height: 200,
         width: 200,
         margin: { t: 0, b: 0, l: 0, r: 0 },
-        showlegend: false
+        showlegend: false,
+        annotations: [
+            {
+                x: 0.5,
+                y: 1.1,
+                xref: 'paper',
+                yref: 'paper',
+                text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m<br>${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%</b>`,
+                showarrow: false,
+                font: {
+                    size: 14,
+                    color: 'red'
+                },
+                align: 'center'
+            }
+        ]
     };
 
     const pieChartBefore2025 = document.createElement('div');
     pieChartBefore2025Container.appendChild(pieChartBefore2025Title);
     pieChartBefore2025Container.appendChild(pieChartBefore2025);
-    pieChartBefore2025Container.appendChild(pieChartBefore2025Label);
     pieContainer.appendChild(pieChartBefore2025Container);
-    Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025);
+    Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025, { displayModeBar: false });
 
     // Gráfico de quesito para 2025-2030
     const pieChartBetween2025And2030Container = document.createElement('div');
     const pieChartBetween2025And2030Title = document.createElement('div');
     pieChartBetween2025And2030Title.className = 'pie-chart-title';
     pieChartBetween2025And2030Title.textContent = 'Longitud a rehabilitar 2025-2030';
-    const pieChartBetween2025And2030Label = document.createElement('div');
-    pieChartBetween2025And2030Label.className = 'pie-chart-label orange';
-    pieChartBetween2025And2030Label.textContent = `${lengthBetween2025And2030.toLocaleString('de-DE')} m (${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%)`;
 
     const pieDataBetween2025And2030 = [
         {
@@ -493,8 +526,9 @@ async function drawSinglePlot(tram, resumData) {
             textinfo: 'none',
             hoverinfo: 'none',
             direction: 'clockwise',
-            rotation: 0, // Rotar 180 grados para que empiece arriba
-            sort: false
+            rotation: 0,
+            sort: false,
+            hole: 0.4
         }
     ];
 
@@ -502,15 +536,29 @@ async function drawSinglePlot(tram, resumData) {
         height: 200,
         width: 200,
         margin: { t: 0, b: 0, l: 0, r: 0 },
-        showlegend: false
+        showlegend: false,
+        annotations: [
+            {
+                x: 0.5,
+                y: 1.1,
+                xref: 'paper',
+                yref: 'paper',
+                text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m<br>${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%</b>`,
+                showarrow: false,
+                font: {
+                    size: 14,
+                    color: 'orange'
+                },
+                align: 'center'
+            }
+        ]
     };
 
     const pieChartBetween2025And2030 = document.createElement('div');
     pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030Title);
     pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030);
-    pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030Label);
     pieContainer.appendChild(pieChartBetween2025And2030Container);
-    Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030);
+    Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030, { displayModeBar: false });
 
     document.getElementById('plot').appendChild(pieContainer);
 
@@ -702,7 +750,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         const estaciones = estacionsData.filter(d => d.Tram === tram);
 
         stationAnnotations.push(...estaciones.map(d => ({
-            x: 2069,
+            x: 2072, // Ajustar para que se vean las etiquetas
             y: parseFloat(d['PK']),
             text: `<b>${d['Abreviatura']}</b>`,
             showarrow: false,
@@ -723,7 +771,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         shapes.push(...estaciones.map(d => ({
             type: 'line',
             x0: 1995,
-            x1: 2069,
+            x1: 2070, // Ajustar para que la línea se vea completa
             y0: parseFloat(d['PK']),
             y1: parseFloat(d['PK']),
             line: {
@@ -772,7 +820,17 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         height: plotHeight
     };
 
-    Plotly.newPlot(containerId, traces, layout);
+    const config = {
+        modeBarButtonsToRemove: ['zoom2d', 'pan2d', 'select2d', 'lasso2d', 'zoomIn2d',
+            'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian',
+            'hoverCompareCartesian', 'toggleSpikelines', 'resetViews', 'toggleHover',
+            'toImage'],
+        modeBarButtonsToAdd: ['toImage'],
+        displaylogo: false,
+        displayModeBar: true
+    };
+
+    Plotly.newPlot(containerId, traces, layout, config);
 }
 
 // Función para seleccionar un botón de tramo
