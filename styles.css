@@ -125,17 +125,27 @@ h2 {
 
 .tram-container {
     display: flex;
-    align-items: stretch; /* Cambiado de flex-start a stretch */
+    align-items: stretch;
     margin-bottom: 30px;
     width: 100%;
+    position: relative;
+}
+
+.tram-container::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 100%;
+    border-bottom: 1px solid lightgray;
 }
 
 .plot-and-label {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 75%; /* 75% del ancho para el gráfico y etiquetas */
-    flex: 1; /* Añadido */
+    width: 80%; /* Aumentado de 75% a 80% */
+    flex: 1;
 }
 
 .plot-and-label .label-container {
@@ -156,21 +166,21 @@ h2 {
 .plot-container {
     flex-grow: 1;
     margin-left: -20px;
-    margin-right: 20px;
+    margin-right: 10px; /* Reducido de 20px a 10px */
 }
 
 .pie-charts-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centrar verticalmente */
-    width: 25%; /* 25% del ancho para los quesitos */
-    flex: 1; /* Añadido */
+    justify-content: center;
+    width: 20%; /* Reducido de 25% a 20% */
+    flex: 1;
 }
 
 .pie-chart-wrapper {
     position: relative;
-    width: 200px; /* Hacer los gráficos más grandes */
+    width: 200px;
     height: 200px;
     margin-bottom: 20px;
 }
@@ -199,7 +209,7 @@ h2 {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-    white-space: nowrap; /* Evitar que el contenido se divida en varias líneas */
+    white-space: nowrap;
 }
 
 #data-table th {
@@ -223,14 +233,14 @@ h2 {
     max-height: 200px;
     overflow-y: auto;
     padding: 10px;
-    min-width: 200px; /* Ancho mínimo ajustado */
+    min-width: 200px;
     white-space: nowrap;
 }
 
 .filter-dropdown label {
     display: flex;
     align-items: center;
-    font-weight: normal; /* Texto no en negrita */
+    font-weight: normal;
     margin-bottom: 5px;
 }
 
