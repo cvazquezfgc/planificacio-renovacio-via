@@ -53,13 +53,13 @@ body {
 #dropdown-menu {
     display: none;
     position: absolute;
-    top: 60px; /* Ajustar según sea necesario */
-    left: 65px; /* Ajustar según sea necesario */
+    top: 60px;
+    left: 65px;
     background-color: rgb(77, 83, 88);
     color: white;
     border: 1px solid #ccc;
     z-index: 1000;
-    min-width: 250px; /* Ancho fijo */
+    min-width: 250px;
 }
 
 #dropdown-menu .dropdown-item {
@@ -100,12 +100,11 @@ body {
 
 .tram-button.selected {
     background-color: lightgray;
-    color: black; /* Texto más oscuro para mejor legibilidad */
+    color: black;
 }
 
 #content {
-    width: 90%;
-    margin: auto;
+    width: 100%; /* Ahora ocupa todo el ancho */
     height: calc(100vh - 80px); /* Ajustar según la altura del header */
     position: relative;
     overflow: auto; /* Permitir scroll en el contenido */
@@ -117,7 +116,7 @@ body {
     font-size: 24px;
     font-family: Arial, sans-serif;
     margin: 10px 0;
-    z-index: 2; /* Asegurar que el título esté encima del gráfico */
+    z-index: 2;
 }
 
 h2 {
@@ -128,7 +127,7 @@ h2 {
 }
 
 #main-content {
-    /* Se elimina el display flex, ya que no se usará en este diseño */
+    /* Se elimina el display flex */
 }
 
 #plot {
@@ -140,6 +139,7 @@ h2 {
     display: flex;
     align-items: flex-start;
     margin-bottom: 30px;
+    width: 100%; /* Asegurar que ocupe todo el ancho */
 }
 
 .plot-and-label {
@@ -172,7 +172,7 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 350px; /* Ajustar según sea necesario */
+    width: 300px; /* Aumentar el ancho para gráficos más grandes */
 }
 
 #table-container {
@@ -192,13 +192,16 @@ h2 {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    white-space: nowrap;
 }
 
 #data-table th {
     background-color: #f0f0f0;
+    position: sticky; /* Hacer que los encabezados sean fijos */
+    top: 0;
+    z-index: 1;
 }
 
 #data-table td:last-child {
-    white-space: normal; /* Permite que la columna de comentarios tenga texto en varias líneas */
+    white-space: normal;
 }
