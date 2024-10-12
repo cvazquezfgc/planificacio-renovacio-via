@@ -130,6 +130,7 @@ function renderTable(data) {
         th.addEventListener('click', () => {
             showFilterDropdown(th, headerText);
         });
+        th.style.position = 'relative'; // Para posicionar el filtro debajo
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -153,29 +154,17 @@ function renderTable(data) {
 
 // Función para mostrar el menú de filtrado
 function showFilterDropdown(th, headerText) {
-    let filterDropdown = document.getElementById('filter-dropdown');
-    if (filterDropdown) {
-        filterDropdown.remove();
+    let existingDropdown = th.querySelector('.filter-dropdown');
+    if (existingDropdown) {
+        existingDropdown.remove();
     }
 
-    filterDropdown = document.createElement('div');
-    filterDropdown.id = 'filter-dropdown';
-    filterDropdown.style.position = 'absolute';
-    filterDropdown.style.backgroundColor = 'white';
-    filterDropdown.style.border = '1px solid #ccc';
-    filterDropdown.style.zIndex = '1000';
-    filterDropdown.style.maxHeight = '200px';
-    filterDropdown.style.overflowY = 'auto';
-    filterDropdown.style.padding = '10px';
-
-    const rect = th.getBoundingClientRect();
-    filterDropdown.style.left = `${rect.left}px`;
-    filterDropdown.style.top = `${rect.bottom}px`;
+    const filterDropdown = document.createElement('div');
+    filterDropdown.className = 'filter-dropdown';
 
     const uniqueValues = [...new Set(resumData.map(d => d[headerText]))].sort();
     uniqueValues.forEach(value => {
         const label = document.createElement('label');
-        label.style.display = 'block';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = value;
@@ -189,22 +178,13 @@ function showFilterDropdown(th, headerText) {
         filterDropdown.appendChild(label);
     });
 
-    document.body.appendChild(filterDropdown);
-
-    // Ocultar el menú al hacer clic fuera
-    function hideFilterDropdown(event) {
-        if (!filterDropdown.contains(event.target)) {
-            filterDropdown.remove();
-            document.removeEventListener('click', hideFilterDropdown);
-        }
-    }
-    document.addEventListener('click', hideFilterDropdown);
+    th.appendChild(filterDropdown);
 }
 
 // Función para actualizar los filtros activos
 function updateFilters(headerText) {
-    const filterDropdown = document.getElementById('filter-dropdown');
-    const checkboxes = filterDropdown.querySelectorAll('input[type="checkbox"]');
+    const th = [...document.querySelectorAll('#data-table th')].find(th => th.textContent === headerText);
+    const checkboxes = th.querySelectorAll('input[type="checkbox"]');
     const selectedValues = [...checkboxes]
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
@@ -314,121 +294,78 @@ async function drawFullLinePlot(trams, resumData) {
             .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
             .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-        // Gráfico de quesito para < 2025
-        const pieChartBefore2025Container = document.createElement('div');
-        const pieChartBefore2025Title = document.createElement('div');
-        pieChartBefore2025Title.className = 'pie-chart-title';
-        pieChartBefore2025Title.textContent = '<2025';
+        const lengthAfter2030 = totalLength - lengthBefore2025 - lengthBetween2025And2030;
 
-        const pieDataBefore2025 = [
+        // Gráfico de quesito combinado
+        const pieChartContainer = document.createElement('div');
+        pieChartContainer.className = 'pie-chart-wrapper';
+
+        const pieData = [
             {
-                values: [lengthBefore2025, totalLength - lengthBefore2025],
-                labels: ['<2025', ''],
+                values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
+                labels: ['<2025', '2025-2030', '>2030'],
                 marker: {
-                    colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                    colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
                 textinfo: 'none',
                 hoverinfo: 'none',
-                rotation: 0,
+                rotation: -90, // Empezar desde arriba
                 sort: false
             }
         ];
 
-        const pieLayoutBefore2025 = {
-            height: 100,
-            width: 100,
+        const pieLayout = {
+            height: 200,
+            width: 200,
             margin: { t: 0, b: 0, l: 0, r: 0 },
             showlegend: false
         };
 
-        const pieChartBefore2025 = document.createElement('div');
-        pieChartBefore2025Container.appendChild(pieChartBefore2025Title);
-        pieChartBefore2025Container.appendChild(pieChartBefore2025);
-        piesContainer.appendChild(pieChartBefore2025Container);
-        Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025, { displayModeBar: false });
+        const pieChart = document.createElement('div');
+        pieChartContainer.appendChild(pieChart);
+        piesContainer.appendChild(pieChartContainer);
+        Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
 
-        // Añadir etiqueta de longitud y porcentaje en la bisectriz del slice
-        const angleBefore2025 = (lengthBefore2025 / totalLength) * 360 / 2; // Dividir entre 2 para obtener la bisectriz
-        const radiansBefore2025 = (angleBefore2025 - 90) * Math.PI / 180;
-        const xPositionBefore2025 = 0.5 + 0.7 * Math.cos(radiansBefore2025);
-        const yPositionBefore2025 = 0.5 + 0.7 * Math.sin(radiansBefore2025);
+        // Añadir etiquetas fuera del gráfico
+        const totalDegrees = 360;
+        const angles = [
+            (lengthBefore2025 / totalLength) * totalDegrees,
+            (lengthBetween2025And2030 / totalLength) * totalDegrees,
+            (lengthAfter2030 / totalLength) * totalDegrees
+        ];
 
-        Plotly.relayout(pieChartBefore2025, {
-            annotations: [
-                {
-                    x: xPositionBefore2025,
-                    y: yPositionBefore2025,
-                    xref: 'paper',
-                    yref: 'paper',
-                    text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m<br>${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%</b>`,
-                    showarrow: false,
-                    font: {
-                        size: 12,
-                        color: 'red'
-                    },
-                    align: 'center'
-                }
-            ]
-        });
+        let cumulativeAngle = -90; // Empezar desde arriba
 
-        // Gráfico de quesito para 2025-2030
-        const pieChartBetween2025And2030Container = document.createElement('div');
-        const pieChartBetween2025And2030Title = document.createElement('div');
-        pieChartBetween2025And2030Title.className = 'pie-chart-title';
-        pieChartBetween2025And2030Title.textContent = '2025-2030';
+        const annotations = [];
 
-        const pieDataBetween2025And2030 = [
-            {
-                values: [lengthBetween2025And2030, totalLength - lengthBetween2025And2030],
-                labels: ['2025-2030', ''],
-                marker: {
-                    colors: ['rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+        ['red', 'orange', 'gray'].forEach((color, index) => {
+            const angle = cumulativeAngle + angles[index] / 2;
+            const radians = (angle * Math.PI) / 180;
+            const x = 0.5 + 1.2 * Math.cos(radians);
+            const y = 0.5 + 1.2 * Math.sin(radians);
+            const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
+            const percentage = ((length / totalLength) * 100).toFixed(1);
+            const labelColor = ['red', 'orange', 'black'][index];
+
+            annotations.push({
+                x: x,
+                y: y,
+                xref: 'paper',
+                yref: 'paper',
+                text: `<b>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`,
+                showarrow: false,
+                font: {
+                    size: 12,
+                    color: labelColor
                 },
-                type: 'pie',
-                textinfo: 'none',
-                hoverinfo: 'none',
-                rotation: 0,
-                sort: false
-            }
-        ];
+                align: 'center'
+            });
 
-        const pieLayoutBetween2025And2030 = {
-            height: 100,
-            width: 100,
-            margin: { t: 0, b: 0, l: 0, r: 0 },
-            showlegend: false
-        };
-
-        const pieChartBetween2025And2030 = document.createElement('div');
-        pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030Title);
-        pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030);
-        piesContainer.appendChild(pieChartBetween2025And2030Container);
-        Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030, { displayModeBar: false });
-
-        // Añadir etiqueta de longitud y porcentaje en la bisectriz del slice
-        const angleBetween2025And2030 = (lengthBetween2025And2030 / totalLength) * 360 / 2;
-        const radiansBetween2025And2030 = (angleBetween2025And2030 - 90) * Math.PI / 180;
-        const xPositionBetween2025And2030 = 0.5 + 0.7 * Math.cos(radiansBetween2025And2030);
-        const yPositionBetween2025And2030 = 0.5 + 0.7 * Math.sin(radiansBetween2025And2030);
-
-        Plotly.relayout(pieChartBetween2025And2030, {
-            annotations: [
-                {
-                    x: xPositionBetween2025And2030,
-                    y: yPositionBetween2025And2030,
-                    xref: 'paper',
-                    yref: 'paper',
-                    text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m<br>${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%</b>`,
-                    showarrow: false,
-                    font: {
-                        size: 12,
-                        color: 'orange'
-                    },
-                    align: 'center'
-                }
-            ]
+            cumulativeAngle += angles[index];
         });
+
+        Plotly.relayout(pieChart, { annotations: annotations });
     }
 
     document.body.style.height = 'auto';
@@ -479,127 +416,83 @@ async function drawSinglePlot(tram, resumData) {
         .filter(d => d.TRAM === tram && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= 2025 && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= 2030)
         .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
 
-    // Crear los gráficos de quesitos con el diseño solicitado
+    const lengthAfter2030 = totalLength - lengthBefore2025 - lengthBetween2025And2030;
+
+    // Crear gráfico de quesito combinado
     const pieContainer = document.createElement('div');
     pieContainer.style.display = 'flex';
     pieContainer.style.flexDirection = 'column';
     pieContainer.style.alignItems = 'center';
 
-    // Gráfico de quesito para < 2025
-    const pieChartBefore2025Container = document.createElement('div');
-    const pieChartBefore2025Title = document.createElement('div');
-    pieChartBefore2025Title.className = 'pie-chart-title';
-    pieChartBefore2025Title.textContent = 'Longitud a rehabilitar <2025';
+    const pieChartContainer = document.createElement('div');
+    pieChartContainer.className = 'pie-chart-wrapper';
 
-    const pieDataBefore2025 = [
+    const pieData = [
         {
-            values: [lengthBefore2025, totalLength - lengthBefore2025],
-            labels: ['<2025', ''],
+            values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
+            labels: ['<2025', '2025-2030', '>2030'],
             marker: {
-                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+                colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
             textinfo: 'none',
             hoverinfo: 'none',
-            rotation: 0,
+            rotation: -90,
             sort: false
         }
     ];
 
-    const pieLayoutBefore2025 = {
-        height: 100,
-        width: 100,
+    const pieLayout = {
+        height: 200,
+        width: 200,
         margin: { t: 0, b: 0, l: 0, r: 0 },
         showlegend: false
     };
 
-    const pieChartBefore2025 = document.createElement('div');
-    pieChartBefore2025Container.appendChild(pieChartBefore2025Title);
-    pieChartBefore2025Container.appendChild(pieChartBefore2025);
-    pieContainer.appendChild(pieChartBefore2025Container);
-    Plotly.newPlot(pieChartBefore2025, pieDataBefore2025, pieLayoutBefore2025, { displayModeBar: false });
+    const pieChart = document.createElement('div');
+    pieChartContainer.appendChild(pieChart);
+    pieContainer.appendChild(pieChartContainer);
+    Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
 
-    // Añadir etiqueta de longitud y porcentaje en la bisectriz del slice
-    const angleBefore2025 = (lengthBefore2025 / totalLength) * 360 / 2;
-    const radiansBefore2025 = (angleBefore2025 - 90) * Math.PI / 180;
-    const xPositionBefore2025 = 0.5 + 0.7 * Math.cos(radiansBefore2025);
-    const yPositionBefore2025 = 0.5 + 0.7 * Math.sin(radiansBefore2025);
+    // Añadir etiquetas fuera del gráfico
+    const totalDegrees = 360;
+    const angles = [
+        (lengthBefore2025 / totalLength) * totalDegrees,
+        (lengthBetween2025And2030 / totalLength) * totalDegrees,
+        (lengthAfter2030 / totalLength) * totalDegrees
+    ];
 
-    Plotly.relayout(pieChartBefore2025, {
-        annotations: [
-            {
-                x: xPositionBefore2025,
-                y: yPositionBefore2025,
-                xref: 'paper',
-                yref: 'paper',
-                text: `<b>${lengthBefore2025.toLocaleString('de-DE')} m<br>${((lengthBefore2025 / totalLength) * 100).toFixed(1)}%</b>`,
-                showarrow: false,
-                font: {
-                    size: 12,
-                    color: 'red'
-                },
-                align: 'center'
-            }
-        ]
-    });
+    let cumulativeAngle = -90;
 
-    // Gráfico de quesito para 2025-2030
-    const pieChartBetween2025And2030Container = document.createElement('div');
-    const pieChartBetween2025And2030Title = document.createElement('div');
-    pieChartBetween2025And2030Title.className = 'pie-chart-title';
-    pieChartBetween2025And2030Title.textContent = 'Longitud a rehabilitar 2025-2030';
+    const annotations = [];
 
-    const pieDataBetween2025And2030 = [
-        {
-            values: [lengthBetween2025And2030, totalLength - lengthBetween2025And2030],
-            labels: ['2025-2030', ''],
-            marker: {
-                colors: ['rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
+    ['red', 'orange', 'gray'].forEach((color, index) => {
+        const angle = cumulativeAngle + angles[index] / 2;
+        const radians = (angle * Math.PI) / 180;
+        const x = 0.5 + 1.2 * Math.cos(radians);
+        const y = 0.5 + 1.2 * Math.sin(radians);
+        const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
+        const percentage = ((length / totalLength) * 100).toFixed(1);
+        const labelColor = ['red', 'orange', 'black'][index];
+
+        annotations.push({
+            x: x,
+            y: y,
+            xref: 'paper',
+            yref: 'paper',
+            text: `<b>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`,
+            showarrow: false,
+            font: {
+                size: 12,
+                color: labelColor
             },
-            type: 'pie',
-            textinfo: 'none',
-            hoverinfo: 'none',
-            rotation: 0,
-            sort: false
-        }
-    ];
+            align: 'center'
+        });
 
-    const pieLayoutBetween2025And2030 = {
-        height: 100,
-        width: 100,
-        margin: { t: 0, b: 0, l: 0, r: 0 },
-        showlegend: false
-    };
-
-    const pieChartBetween2025And2030 = document.createElement('div');
-    pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030Title);
-    pieChartBetween2025And2030Container.appendChild(pieChartBetween2025And2030);
-    pieContainer.appendChild(pieChartBetween2025And2030Container);
-    Plotly.newPlot(pieChartBetween2025And2030, pieDataBetween2025And2030, pieLayoutBetween2025And2030, { displayModeBar: false });
-
-    // Añadir etiqueta de longitud y porcentaje en la bisectriz del slice
-    const angleBetween2025And2030 = (lengthBetween2025And2030 / totalLength) * 360 / 2;
-    const radiansBetween2025And2030 = (angleBetween2025And2030 - 90) * Math.PI / 180;
-    const xPositionBetween2025And2030 = 0.5 + 0.7 * Math.cos(radiansBetween2025And2030);
-    const yPositionBetween2025And2030 = 0.5 + 0.7 * Math.sin(radiansBetween2025And2030);
-
-    Plotly.relayout(pieChartBetween2025And2030, {
-        annotations: [
-            {
-                x: xPositionBetween2025And2030,
-                y: yPositionBetween2025And2030,
-                xref: 'paper',
-                yref: 'paper',
-                text: `<b>${lengthBetween2025And2030.toLocaleString('de-DE')} m<br>${((lengthBetween2025And2030 / totalLength) * 100).toFixed(1)}%</b>`,
-                showarrow: false,
-                font: {
-                    size: 12,
-                    color: 'orange'
-                },
-                align: 'center'
-            }
-        ]
+        cumulativeAngle += angles[index];
     });
+
+    Plotly.relayout(pieChart, { annotations: annotations });
 
     document.getElementById('plot').appendChild(pieContainer);
 
@@ -608,9 +501,9 @@ async function drawSinglePlot(tram, resumData) {
 }
 
 // Función para añadir líneas y sombreado
-function addLinesAndShading(pkMin, pkMax) {
+function addLinesAndShading(pkMin, pkMax, xRange) {
     let shapes = [];
-    for (let year = 1995; year <= 2069; year++) {
+    for (let year = xRange[0]; year <= xRange[1]; year++) {
         shapes.push({
             type: 'line',
             x0: year,
@@ -668,7 +561,7 @@ function addLinesAndShading(pkMin, pkMax) {
 
     shapes.push({
         type: 'rect',
-        x0: 1995,
+        x0: xRange[0],
         x1: 2025,
         y0: pkMin,
         y1: pkMax,
@@ -744,6 +637,13 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
         pkMax = pkMax !== null ? pkMax : Math.max(...via1.concat(via2).map(d => d.PKFinal));
 
+        // Determinar el rango de años necesarios
+        const years = resumData.map(d => parseInt(d['PREVISIÓ REHABILITACIÓ']));
+        const minYear = Math.min(...years) - 1; // Un año antes
+        const maxYear = Math.max(...years) + 1; // Un año después
+
+        const xRange = [minYear, maxYear];
+
         traces.push({
             x: via1.map(d => d.PREVISIO),
             y: via1.map(d => d.PKFinal - d.PKInici),
@@ -791,7 +691,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         const estaciones = estacionsData.filter(d => d.Tram === tram);
 
         stationAnnotations.push(...estaciones.map(d => ({
-            x: 2072, // Ajustar para que se vean las etiquetas
+            x: maxYear + 0.5, // Colocar cerca del final del gráfico
             y: parseFloat(d['PK']),
             text: `<b>${d['Abreviatura']}</b>`,
             showarrow: false,
@@ -811,8 +711,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
         shapes.push(...estaciones.map(d => ({
             type: 'line',
-            x0: 1995,
-            x1: 2070, // Ajustar para que la línea se vea completa
+            x0: minYear,
+            x1: maxYear,
             y0: parseFloat(d['PK']),
             y1: parseFloat(d['PK']),
             line: {
@@ -822,15 +722,15 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             }
         })));
 
-        shapes = shapes.concat(addLinesAndShading(pkMin, pkMax));
+        shapes = shapes.concat(addLinesAndShading(pkMin, pkMax, xRange));
     }
 
     const layout = {
         title: '',
         xaxis: {
             title: addHorizontalLabels ? 'Any previsió rehabilitació' : '',
-            range: [1995, 2075], // Ampliar el rango para que se vean las etiquetas
-            tickvals: Array.from({ length: 80 }, (_, i) => 1995 + i).filter(year => year % 5 === 0),
+            range: [minYear, maxYear],
+            tickvals: Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i).filter(year => year % 5 === 0),
             tickangle: addHorizontalLabels ? -45 : 0,
             showticklabels: addHorizontalLabels
         },
@@ -854,7 +754,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         hovermode: 'closest',
         margin: {
             l: 150,
-            r: 150,
+            r: 50,
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
