@@ -415,7 +415,11 @@ async function drawFullLinePlot(trams, resumData) {
         // Calcular datos para el gráfico de pirámide
         const lustrums = [];
         for (let year = 1995; year <= 2060; year += 5) {
-            lustrums.push(`${year}-${year + 4}`);
+            const startYear = year % 100;
+            const endYear = (year + 4) % 100;
+            const startYearStr = startYear < 10 ? `0${startYear}` : `${startYear}`;
+            const endYearStr = endYear < 10 ? `0${endYear}` : `${endYear}`;
+            lustrums.push(`${startYearStr}-${endYearStr}`);
         }
         lustrums.reverse(); // Para que los más recientes estén abajo
 
@@ -423,8 +427,11 @@ async function drawFullLinePlot(trams, resumData) {
         const via2Lengths = [];
         const totalLengthPerTram = totalLength;
 
-        lustrums.forEach(lustro => {
-            const [startYear, endYear] = lustro.split('-').map(Number);
+        lustrums.forEach((lustro, index) => {
+            const originalYear = 1995 + (lustrums.length - 1 - index) * 5;
+            const startYear = originalYear;
+            const endYear = originalYear + 4;
+
             const via1Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
@@ -446,8 +453,14 @@ async function drawFullLinePlot(trams, resumData) {
                 marker: {
                     color: 'rgba(31, 119, 180, 1)'
                 },
-                hoverinfo: 'x',
-                hovertemplate: '%{x:.1f}%'
+                hoverinfo: 'none', // Desactivar etiquetas hover
+                text: via1Lengths.map(length => length === 0 ? '' : `${Math.abs(length / totalLengthPerTram * 100).toFixed(1)}%`),
+                textposition: 'outside',
+                textfont: {
+                    size: 10,
+                    color: 'black'
+                },
+                cliponaxis: false
             },
             {
                 x: via2Lengths.map(length => length / totalLengthPerTram * 100),
@@ -458,8 +471,14 @@ async function drawFullLinePlot(trams, resumData) {
                 marker: {
                     color: 'rgba(135, 206, 250, 1)'
                 },
-                hoverinfo: 'x',
-                hovertemplate: '%{x:.1f}%'
+                hoverinfo: 'none', // Desactivar etiquetas hover
+                text: via2Lengths.map(length => length === 0 ? '' : `${Math.abs(length / totalLengthPerTram * 100).toFixed(1)}%`),
+                textposition: 'outside',
+                textfont: {
+                    size: 10,
+                    color: 'black'
+                },
+                cliponaxis: false
             }
         ];
 
@@ -469,19 +488,20 @@ async function drawFullLinePlot(trams, resumData) {
             bargroupgap: 0,
             height: 250,
             width: 200,
-            margin: { t: 0, b: 20, l: 20, r: 20 },
+            margin: { t: 0, b: 20, l: 50, r: 20 }, // Aumentar margen izquierdo para etiquetas
             xaxis: {
-                tickvals: [-100, -50, 0, 50, 100],
-                ticktext: ['100%', '50%', '0%', '50%', '100%'],
-                range: [-100, 100],
+                tickvals: [-30, -15, 0, 15, 30],
+                ticktext: ['30%', '15%', '0%', '15%', '30%'],
+                range: [-30, 30],
                 showgrid: false,
-                showticklabels: false
+                showticklabels: false // Ocultar etiquetas del eje x
             },
             yaxis: {
-                automargin: true
+                automargin: true,
+                side: 'left' // Colocar eje y a la izquierda
             },
             showlegend: false,
-            hovermode: 'y'
+            hovermode: false // Desactivar hover
         };
 
         const pyramidChart = document.createElement('div');
