@@ -11,7 +11,7 @@ body {
     align-items: center;
     background-color: rgb(77, 83, 88);
     color: white;
-    padding: 10px;
+    padding: 5px; /* Reducir el padding para hacer el header más estrecho */
     justify-content: space-between;
     position: relative;
 }
@@ -23,32 +23,28 @@ body {
 }
 
 #header-left img {
-    height: 50px;
-    margin-right: 15px;
+    height: 35px; /* Reducir el tamaño de la imagen */
+    margin-right: 10px;
 }
 
 #menu-icon {
-    font-size: 24px;
+    font-size: 20px; /* Reducir el tamaño del icono */
     cursor: pointer;
-    margin-right: 15px;
-}
-
-#header-right {
-    display: flex;
-    align-items: center;
+    margin-right: 10px;
 }
 
 #header h1 {
     margin: 0;
-    font-size: 24px;
+    font-size: 16px; /* Igualar el tamaño de fuente con los botones de tramo */
+    font-weight: normal; /* Quitar negrita */
     cursor: default;
 }
 
 #dropdown-menu {
     display: none;
     position: absolute;
-    top: 60px;
-    left: 10px;
+    top: 45px; /* Ajustar según el nuevo tamaño del header */
+    left: 0; /* Alinear con el icono de menú */
     background-color: rgb(77, 83, 88);
     color: white;
     border: 1px solid #ccc;
@@ -72,6 +68,11 @@ body {
     color: white;
 }
 
+#header-right {
+    display: flex;
+    align-items: center;
+}
+
 #tramButtons {
     display: flex;
     align-items: center;
@@ -85,6 +86,7 @@ body {
     padding: 10px 15px;
     cursor: pointer;
     font-family: Arial, sans-serif;
+    font-size: 16px; /* Igualar el tamaño de fuente */
     transition: border-bottom 0.3s;
     position: relative;
 }
@@ -95,7 +97,7 @@ body {
 
 #content {
     width: 100%;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 60px); /* Ajustar según el nuevo tamaño del header */
     position: relative;
     overflow: auto;
 }
@@ -152,16 +154,16 @@ h2 {
 
 .plot-container {
     flex-grow: 1;
-    margin-left: -20px; /* Reducir para dejar espacio a la izquierda */
-    margin-right: 20px; /* Añadir espacio a la derecha */
+    margin-left: -20px;
+    margin-right: 20px;
 }
 
 .pie-charts-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 150px; /* Hacer los gráficos más pequeños */
-    margin-right: 50px; /* Añadir espacio en blanco a la derecha */
+    width: 100px; /* Hacer los gráficos aún más pequeños */
+    margin-right: 50px;
 }
 
 .pie-chart-title {
@@ -171,7 +173,7 @@ h2 {
 }
 
 .pie-chart-label {
-    font-size: 14px; /* Aumentar tamaño de fuente */
+    font-size: 14px;
     margin-top: 5px;
     text-align: center;
     font-weight: bold;
@@ -193,8 +195,9 @@ h2 {
 
 /* Estilos para la tabla */
 #data-table {
-    width: 100%;
+    width: auto; /* Permitir que la tabla se ajuste al contenido */
     border-collapse: collapse;
+    table-layout: auto; /* Ajuste automático de columnas */
 }
 
 #data-table th,
@@ -202,7 +205,6 @@ h2 {
     border: 1px solid #ccc;
     padding: 8px;
     text-align: left;
-    word-wrap: break-word;
 }
 
 #data-table th {
@@ -211,22 +213,9 @@ h2 {
     top: 0;
     z-index: 1;
     white-space: normal;
+    word-break: keep-all; /* No dividir palabras */
 }
 
 #data-table td:last-child {
     white-space: normal;
-}
-
-/* Hacer más estrechas las columnas especificadas */
-#data-table th:nth-child(5),
-#data-table th:nth-child(6),
-#data-table th:nth-child(7),
-#data-table th:nth-child(8),
-#data-table th:nth-child(9),
-#data-table td:nth-child(5),
-#data-table td:nth-child(6),
-#data-table td:nth-child(7),
-#data-table td:nth-child(8),
-#data-table td:nth-child(9) {
-    max-width: 80px;
 }
