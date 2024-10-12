@@ -156,6 +156,13 @@ function renderTable(data) {
 
 // Función para mostrar el menú de filtrado
 function showFilterDropdown(th, headerText) {
+    // Si el desplegable actual está abierto y se hace clic en el mismo encabezado, cerrarlo
+    if (currentFilterDropdown && currentFilterDropdown.parentElement === th) {
+        currentFilterDropdown.remove();
+        currentFilterDropdown = null;
+        return;
+    }
+
     // Eliminar cualquier otro dropdown abierto
     document.querySelectorAll('.filter-dropdown').forEach(dropdown => dropdown.remove());
 
@@ -173,10 +180,6 @@ function showFilterDropdown(th, headerText) {
         checkbox.type = 'checkbox';
         checkbox.value = value;
         checkbox.checked = !activeFilters[headerText] || activeFilters[headerText].includes(value);
-        checkbox.addEventListener('change', () => {
-            updateFilters(headerText);
-            applyFilters();
-        });
         label.appendChild(checkbox);
         const textNode = document.createTextNode(value);
         label.appendChild(textNode);
@@ -186,7 +189,6 @@ function showFilterDropdown(th, headerText) {
     th.appendChild(filterDropdown);
 
     // Posicionar el dropdown
-    const rect = th.getBoundingClientRect();
     filterDropdown.style.left = '0';
     filterDropdown.style.top = `${th.offsetHeight}px`;
 
@@ -195,7 +197,7 @@ function showFilterDropdown(th, headerText) {
         event.stopPropagation();
     });
 
-    // Ocultar el menú al hacer clic fuera y actualizar filtros
+    // Ocultar el menú al hacer clic fuera o en el encabezado nuevamente
     function hideFilterDropdown(event) {
         if (!filterDropdown.contains(event.target) && event.target !== th) {
             updateFilters(headerText);
@@ -341,12 +343,16 @@ async function drawFullLinePlot(trams, resumData) {
                     colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
-                texttemplate: '<b>%{label}<br>%{value:,.0f} m<br>%{percent}</b>',
-                textposition: 'inside',
+                texttemplate: '',
+                textposition: 'outside',
                 hoverinfo: 'none',
-                rotation: 0, // Empezar desde arriba
-                direction: 'clockwise', // Sentido horario
-                sort: false
+                rotation: 0,
+                direction: 'clockwise',
+                sort: false,
+                automargin: true,
+                outsidetextfont: {
+                    size: 12,
+                }
             }
         ];
 
@@ -354,7 +360,35 @@ async function drawFullLinePlot(trams, resumData) {
             height: 200,
             width: 200,
             margin: { t: 0, b: 0, l: 0, r: 0 },
-            showlegend: false
+            showlegend: false,
+            annotations: []
+        };
+
+        const categories = ['<2025', '2025-2030', '>2030'];
+        const colors = ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'];
+        const lengths = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030];
+        const totalValues = lengthBefore2025 + lengthBetween2025And2030 + lengthAfter2030;
+
+        // Añadir etiquetas personalizadas
+        pieData[0].text = categories.map((category, index) => {
+            const percentage = ((lengths[index] / totalValues) * 100).toFixed(1);
+            return `<b>${category}<br>${lengths[index].toLocaleString('de-DE')} m<br>${percentage}%</b>`;
+        });
+
+        pieData[0].textfont = {
+            size: 12,
+            color: colors.map(color => {
+                // Extraer el color en formato rgba
+                const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
+                if (rgba) {
+                    const r = rgba[1];
+                    const g = rgba[2];
+                    const b = rgba[3];
+                    // Usar el mismo color para la fuente
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
+                return 'black';
+            })
         };
 
         const pieChart = document.createElement('div');
@@ -436,12 +470,16 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            texttemplate: '<b>%{label}<br>%{value:,.0f} m<br>%{percent}</b>',
-            textposition: 'inside',
+            texttemplate: '',
+            textposition: 'outside',
             hoverinfo: 'none',
-            rotation: 0, // Empezar desde arriba
-            direction: 'clockwise', // Sentido horario
-            sort: false
+            rotation: 0,
+            direction: 'clockwise',
+            sort: false,
+            automargin: true,
+            outsidetextfont: {
+                size: 12,
+            }
         }
     ];
 
@@ -449,7 +487,35 @@ async function drawSinglePlot(tram, resumData) {
         height: 200,
         width: 200,
         margin: { t: 0, b: 0, l: 0, r: 0 },
-        showlegend: false
+        showlegend: false,
+        annotations: []
+    };
+
+    const categories = ['<2025', '2025-2030', '>2030'];
+    const colors = ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'];
+    const lengths = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030];
+    const totalValues = lengthBefore2025 + lengthBetween2025And2030 + lengthAfter2030;
+
+    // Añadir etiquetas personalizadas
+    pieData[0].text = categories.map((category, index) => {
+        const percentage = ((lengths[index] / totalValues) * 100).toFixed(1);
+        return `<b>${category}<br>${lengths[index].toLocaleString('de-DE')} m<br>${percentage}%</b>`;
+    });
+
+    pieData[0].textfont = {
+        size: 12,
+        color: colors.map(color => {
+            // Extraer el color en formato rgba
+            const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
+            if (rgba) {
+                const r = rgba[1];
+                const g = rgba[2];
+                const b = rgba[3];
+                // Usar el mismo color para la fuente
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+            return 'black';
+        })
     };
 
     const pieChart = document.createElement('div');
@@ -688,7 +754,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             line: {
                 color: 'darkgray',
                 width: 1.5,
-                layer: 'below'
+                layer: 'below',
+                dash: 'dot'
             }
         })));
 
@@ -724,7 +791,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         hovermode: 'closest',
         margin: {
             l: 150,
-            r: 50,
+            r: 100,
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
