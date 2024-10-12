@@ -72,6 +72,7 @@ function showRehabilitacioView() {
     document.getElementById('title-container').style.display = 'block';
     document.getElementById('tramButtons').style.display = 'flex';
     document.getElementById('table-container').style.display = 'none';
+    document.getElementById('clear-filters-icon').style.display = 'none'; // Ocultar icono
 
     // Restaurar el último tramo seleccionado o seleccionar el primero
     const selectedButton = document.querySelector('.tram-button.selected');
@@ -97,6 +98,7 @@ async function showInventariView() {
     document.getElementById('title-container').style.display = 'none';
     document.getElementById('tramButtons').style.display = 'none';
     document.getElementById('table-container').style.display = 'block';
+    document.getElementById('clear-filters-icon').style.display = 'block'; // Mostrar icono
 
     if (!resumData) {
         const resumUrl = 'https://raw.githubusercontent.com/cvazquezfgc/planificacio-renovacio-via/main/resum.json';
@@ -236,6 +238,18 @@ function applyFilters() {
     renderTable(filteredData);
 }
 
+// Función para limpiar todos los filtros
+function clearAllFilters() {
+    activeFilters = {};
+    filteredData = resumData;
+    renderTable(filteredData);
+}
+
+// Evento para el icono de limpiar filtros
+document.getElementById('clear-filters-icon').addEventListener('click', () => {
+    clearAllFilters();
+});
+
 // Función para dibujar gráficos concatenados para LINIA COMPLETA
 async function drawFullLinePlot(trams, resumData) {
     document.getElementById('plot').innerHTML = '';
@@ -255,6 +269,11 @@ async function drawFullLinePlot(trams, resumData) {
 
     const unitHeightPerKm = 54.675; // Reducir un 10% adicional
     const fixedHeightComponents = 100;
+
+    // Calcular minYear y maxYear globales
+    const allYears = resumData.map(d => parseInt(d['PREVISIÓ REHABILITACIÓ'])).filter(year => !isNaN(year));
+    let globalMinYear = 2020; // Año mínimo fijo
+    let globalMaxYear = 2065; // Año máximo fijo
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -308,7 +327,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Ahora que el elemento está en el DOM, podemos llamar a drawPlot
         const addHorizontalLabels = true;
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents);
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents, globalMinYear, globalMaxYear);
 
         // Calcular datos para los gráficos de quesitos
         const totalLength = resumData
@@ -343,7 +362,8 @@ async function drawFullLinePlot(trams, resumData) {
                     colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
-                texttemplate: '',
+                texttemplate: '%{text}',
+                text: [getPieLabel(0), getPieLabel(1), getPieLabel(2)],
                 textposition: 'outside',
                 hoverinfo: 'none',
                 rotation: 0,
@@ -356,39 +376,17 @@ async function drawFullLinePlot(trams, resumData) {
             }
         ];
 
+        function getPieLabel(index) {
+            const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
+            const percentage = ((length / totalLength) * 100).toFixed(1);
+            return `<b>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
+        }
+
         const pieLayout = {
-            height: 200,
-            width: 200,
+            height: 250,
+            width: 250,
             margin: { t: 0, b: 0, l: 0, r: 0 },
-            showlegend: false,
-            annotations: []
-        };
-
-        const categories = ['<2025', '2025-2030', '>2030'];
-        const colors = ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'];
-        const lengths = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030];
-        const totalValues = lengthBefore2025 + lengthBetween2025And2030 + lengthAfter2030;
-
-        // Añadir etiquetas personalizadas
-        pieData[0].text = categories.map((category, index) => {
-            const percentage = ((lengths[index] / totalValues) * 100).toFixed(1);
-            return `<b>${category}<br>${lengths[index].toLocaleString('de-DE')} m<br>${percentage}%</b>`;
-        });
-
-        pieData[0].textfont = {
-            size: 12,
-            color: colors.map(color => {
-                // Extraer el color en formato rgba
-                const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
-                if (rgba) {
-                    const r = rgba[1];
-                    const g = rgba[2];
-                    const b = rgba[3];
-                    // Usar el mismo color para la fuente
-                    return `rgb(${r}, ${g}, ${b})`;
-                }
-                return 'black';
-            })
+            showlegend: false
         };
 
         const pieChart = document.createElement('div');
@@ -424,7 +422,11 @@ async function drawSinglePlot(tram, resumData) {
 
     document.getElementById('plot').appendChild(plotContainer);
 
-    await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400);
+    // Usar minYear y maxYear globales
+    const globalMinYear = 2020;
+    const globalMaxYear = 2065;
+
+    await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400, null, globalMinYear, globalMaxYear);
 
     // Añadir una línea horizontal de separación
     const separator = document.createElement('hr');
@@ -470,7 +472,8 @@ async function drawSinglePlot(tram, resumData) {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
             type: 'pie',
-            texttemplate: '',
+            texttemplate: '%{text}',
+            text: [getPieLabel(0), getPieLabel(1), getPieLabel(2)],
             textposition: 'outside',
             hoverinfo: 'none',
             rotation: 0,
@@ -483,39 +486,17 @@ async function drawSinglePlot(tram, resumData) {
         }
     ];
 
+    function getPieLabel(index) {
+        const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
+        const percentage = ((length / totalLength) * 100).toFixed(1);
+        return `<b>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
+    }
+
     const pieLayout = {
-        height: 200,
-        width: 200,
+        height: 250,
+        width: 250,
         margin: { t: 0, b: 0, l: 0, r: 0 },
-        showlegend: false,
-        annotations: []
-    };
-
-    const categories = ['<2025', '2025-2030', '>2030'];
-    const colors = ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)'];
-    const lengths = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030];
-    const totalValues = lengthBefore2025 + lengthBetween2025And2030 + lengthAfter2030;
-
-    // Añadir etiquetas personalizadas
-    pieData[0].text = categories.map((category, index) => {
-        const percentage = ((lengths[index] / totalValues) * 100).toFixed(1);
-        return `<b>${category}<br>${lengths[index].toLocaleString('de-DE')} m<br>${percentage}%</b>`;
-    });
-
-    pieData[0].textfont = {
-        size: 12,
-        color: colors.map(color => {
-            // Extraer el color en formato rgba
-            const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
-            if (rgba) {
-                const r = rgba[1];
-                const g = rgba[2];
-                const b = rgba[3];
-                // Usar el mismo color para la fuente
-                return `rgb(${r}, ${g}, ${b})`;
-            }
-            return 'black';
-        })
+        showlegend: false
     };
 
     const pieChart = document.createElement('div');
@@ -618,7 +599,7 @@ function addLinesAndShading(pkMin, pkMax, xRange) {
 }
 
 // Función para dibujar un gráfico específico
-async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500, fixedHeightComponents = 100) {
+async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500, fixedHeightComponents = 100, minYearOverride = null, maxYearOverride = null) {
     let traces = [];
     let stationAnnotations = [];
     let shapes = [];
@@ -627,7 +608,10 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     const years = resumData.filter(d => d.TRAM === tram).map(d => parseInt(d['PREVISIÓ REHABILITACIÓ'])).filter(year => !isNaN(year));
     let minYear, maxYear;
 
-    if (years.length > 0) {
+    if (minYearOverride !== null && maxYearOverride !== null) {
+        minYear = minYearOverride;
+        maxYear = maxYearOverride;
+    } else if (years.length > 0) {
         minYear = Math.min(...years) - 1; // Un año antes
         maxYear = Math.max(...years) + 1; // Un año después
     } else {
@@ -727,7 +711,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         const estaciones = estacionsData.filter(d => d.Tram === tram);
 
         stationAnnotations.push(...estaciones.map(d => ({
-            x: maxYear + 0.5, // Colocar cerca del final del gráfico
+            x: maxYear - 1, // Ajustado para que las etiquetas se vean
             y: parseFloat(d['PK']),
             text: `<b>${d['Abreviatura']}</b>`,
             showarrow: false,
