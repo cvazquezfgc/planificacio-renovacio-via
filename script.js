@@ -414,23 +414,26 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Calcular datos para el gráfico de pirámide
         const lustrums = [];
-        for (let year = 1995; year <= 2060; year += 5) {
-            const startYear = year % 100;
-            const endYear = (year + 4) % 100;
-            const startYearStr = startYear < 10 ? `0${startYear}` : `${startYear}`;
-            const endYearStr = endYear < 10 ? `0${endYear}` : `${endYear}`;
+        const startLustrumYear = Math.floor(globalMinYear / 5) * 5;
+        const endLustrumYear = Math.ceil(globalMaxYear / 5) * 5;
+
+        for (let year = startLustrumYear; year <= endLustrumYear; year += 5) {
+            const startYearStr = (year % 100).toString().padStart(2, '0');
+            const endYearStr = ((year + 4) % 100).toString().padStart(2, '0');
             lustrums.push(`${startYearStr}-${endYearStr}`);
         }
-        lustrums.reverse(); // Para que los más recientes estén abajo
+
+        // Invertir los lustros para que los más antiguos estén arriba
+        lustrums.reverse();
 
         const via1Lengths = [];
         const via2Lengths = [];
         const totalLengthPerTram = totalLength;
 
         lustrums.forEach((lustro, index) => {
-            const originalYear = 1995 + (lustrums.length - 1 - index) * 5;
-            const startYear = originalYear;
-            const endYear = originalYear + 4;
+            const reversedIndex = lustrums.length - 1 - index;
+            const startYear = startLustrumYear + reversedIndex * 5;
+            const endYear = startYear + 4;
 
             const via1Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
@@ -498,7 +501,9 @@ async function drawFullLinePlot(trams, resumData) {
             },
             yaxis: {
                 automargin: true,
-                side: 'left' // Colocar eje y a la izquierda
+                side: 'left',
+                categoryorder: 'array',
+                categoryarray: lustrums, // Mantener el orden de los lustros
             },
             showlegend: false,
             hovermode: false // Desactivar hover
@@ -787,12 +792,13 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         shapes: shapes,
         hovermode: 'closest',
         margin: {
-            l: 150,
-            r: 100,
+            l: 100, // Reducido para aprovechar más el espacio
+            r: 50,
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
-        height: plotHeight
+        height: plotHeight,
+        width: document.getElementById(containerId).clientWidth // Ajustar el ancho al contenedor
     };
 
     const config = {
@@ -802,7 +808,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             'toImage'],
         modeBarButtonsToAdd: ['toImage'],
         displaylogo: false,
-        displayModeBar: true
+        displayModeBar: true,
+        responsive: true // Hacer el gráfico responsive
     };
 
     Plotly.newPlot(containerId, traces, layout, config);
