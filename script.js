@@ -127,7 +127,8 @@ function renderTable(data) {
     headers.forEach((headerText, index) => {
         const th = document.createElement('th');
         th.textContent = headerText;
-        th.addEventListener('click', () => {
+        th.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevenir que el evento se propague al body
             showFilterDropdown(th, headerText);
         });
         th.style.position = 'relative'; // Para posicionar el filtro debajo
@@ -154,10 +155,8 @@ function renderTable(data) {
 
 // Función para mostrar el menú de filtrado
 function showFilterDropdown(th, headerText) {
-    let existingDropdown = th.querySelector('.filter-dropdown');
-    if (existingDropdown) {
-        existingDropdown.remove();
-    }
+    // Eliminar cualquier otro dropdown abierto
+    document.querySelectorAll('.filter-dropdown').forEach(dropdown => dropdown.remove());
 
     const filterDropdown = document.createElement('div');
     filterDropdown.className = 'filter-dropdown';
@@ -165,6 +164,7 @@ function showFilterDropdown(th, headerText) {
     const uniqueValues = [...new Set(resumData.map(d => d[headerText]))].sort();
     uniqueValues.forEach(value => {
         const label = document.createElement('label');
+        label.style.display = 'block';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = value;
@@ -179,6 +179,25 @@ function showFilterDropdown(th, headerText) {
     });
 
     th.appendChild(filterDropdown);
+
+    // Posicionar el dropdown
+    const rect = th.getBoundingClientRect();
+    filterDropdown.style.left = '0';
+    filterDropdown.style.top = `${th.offsetHeight}px`;
+
+    // Prevenir que el clic dentro del dropdown se propague
+    filterDropdown.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+
+    // Ocultar el menú al hacer clic fuera
+    function hideFilterDropdown(event) {
+        if (!filterDropdown.contains(event.target) && event.target !== th) {
+            filterDropdown.remove();
+            document.removeEventListener('click', hideFilterDropdown);
+        }
+    }
+    document.addEventListener('click', hideFilterDropdown);
 }
 
 // Función para actualizar los filtros activos
@@ -300,6 +319,12 @@ async function drawFullLinePlot(trams, resumData) {
         const pieChartContainer = document.createElement('div');
         pieChartContainer.className = 'pie-chart-wrapper';
 
+        // Añadir título al gráfico de quesito
+        const pieChartTitle = document.createElement('div');
+        pieChartTitle.className = 'pie-chart-title';
+        pieChartTitle.textContent = 'Any previsió rehabilitació';
+        pieChartContainer.appendChild(pieChartTitle);
+
         const pieData = [
             {
                 values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
@@ -311,6 +336,7 @@ async function drawFullLinePlot(trams, resumData) {
                 textinfo: 'none',
                 hoverinfo: 'none',
                 rotation: -90, // Empezar desde arriba
+                direction: 'clockwise', // Sentido horario
                 sort: false
             }
         ];
@@ -327,7 +353,7 @@ async function drawFullLinePlot(trams, resumData) {
         piesContainer.appendChild(pieChartContainer);
         Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
 
-        // Añadir etiquetas fuera del gráfico
+        // Añadir etiquetas para cada slice
         const totalDegrees = 360;
         const angles = [
             (lengthBefore2025 / totalLength) * totalDegrees,
@@ -339,21 +365,25 @@ async function drawFullLinePlot(trams, resumData) {
 
         const annotations = [];
 
-        ['red', 'orange', 'gray'].forEach((color, index) => {
+        const categories = ['<2025', '2025-2030', '>2030'];
+        const colors = ['red', 'orange', 'gray'];
+
+        categories.forEach((category, index) => {
             const angle = cumulativeAngle + angles[index] / 2;
             const radians = (angle * Math.PI) / 180;
             const x = 0.5 + 1.2 * Math.cos(radians);
             const y = 0.5 + 1.2 * Math.sin(radians);
             const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
             const percentage = ((length / totalLength) * 100).toFixed(1);
-            const labelColor = ['red', 'orange', 'black'][index];
+            const labelColor = colors[index];
+            const text = `<b>${category}<br>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`;
 
             annotations.push({
                 x: x,
                 y: y,
                 xref: 'paper',
                 yref: 'paper',
-                text: `<b>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`,
+                text: text,
                 showarrow: false,
                 font: {
                     size: 12,
@@ -427,6 +457,12 @@ async function drawSinglePlot(tram, resumData) {
     const pieChartContainer = document.createElement('div');
     pieChartContainer.className = 'pie-chart-wrapper';
 
+    // Añadir título al gráfico de quesito
+    const pieChartTitle = document.createElement('div');
+    pieChartTitle.className = 'pie-chart-title';
+    pieChartTitle.textContent = 'Any previsió rehabilitació';
+    pieChartContainer.appendChild(pieChartTitle);
+
     const pieData = [
         {
             values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
@@ -437,7 +473,8 @@ async function drawSinglePlot(tram, resumData) {
             type: 'pie',
             textinfo: 'none',
             hoverinfo: 'none',
-            rotation: -90,
+            rotation: -90, // Empezar desde arriba
+            direction: 'clockwise', // Sentido horario
             sort: false
         }
     ];
@@ -454,7 +491,7 @@ async function drawSinglePlot(tram, resumData) {
     pieContainer.appendChild(pieChartContainer);
     Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
 
-    // Añadir etiquetas fuera del gráfico
+    // Añadir etiquetas para cada slice
     const totalDegrees = 360;
     const angles = [
         (lengthBefore2025 / totalLength) * totalDegrees,
@@ -462,25 +499,29 @@ async function drawSinglePlot(tram, resumData) {
         (lengthAfter2030 / totalLength) * totalDegrees
     ];
 
-    let cumulativeAngle = -90;
+    let cumulativeAngle = -90; // Empezar desde arriba
 
     const annotations = [];
 
-    ['red', 'orange', 'gray'].forEach((color, index) => {
+    const categories = ['<2025', '2025-2030', '>2030'];
+    const colors = ['red', 'orange', 'gray'];
+
+    categories.forEach((category, index) => {
         const angle = cumulativeAngle + angles[index] / 2;
         const radians = (angle * Math.PI) / 180;
         const x = 0.5 + 1.2 * Math.cos(radians);
         const y = 0.5 + 1.2 * Math.sin(radians);
         const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
         const percentage = ((length / totalLength) * 100).toFixed(1);
-        const labelColor = ['red', 'orange', 'black'][index];
+        const labelColor = colors[index];
+        const text = `<b>${category}<br>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`;
 
         annotations.push({
             x: x,
             y: y,
             xref: 'paper',
             yref: 'paper',
-            text: `<b>${length.toLocaleString('de-DE')} m<br>${percentage}%</b>`,
+            text: text,
             showarrow: false,
             font: {
                 size: 12,
