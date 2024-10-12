@@ -125,7 +125,7 @@ h2 {
 
 .tram-container {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch; /* Cambiado de flex-start a stretch */
     margin-bottom: 30px;
     width: 100%;
 }
@@ -135,6 +135,7 @@ h2 {
     flex-direction: row;
     align-items: center;
     width: 75%; /* 75% del ancho para el gráfico y etiquetas */
+    flex: 1; /* Añadido */
 }
 
 .plot-and-label .label-container {
@@ -164,6 +165,7 @@ h2 {
     align-items: center;
     justify-content: center; /* Centrar verticalmente */
     width: 25%; /* 25% del ancho para los quesitos */
+    flex: 1; /* Añadido */
 }
 
 .pie-chart-wrapper {
