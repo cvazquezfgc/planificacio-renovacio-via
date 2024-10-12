@@ -271,9 +271,8 @@ async function drawFullLinePlot(trams, resumData) {
     const fixedHeightComponents = 100;
 
     // Calcular minYear y maxYear globales
-    const allYears = resumData.map(d => parseInt(d['PREVISIÓ REHABILITACIÓ'])).filter(year => !isNaN(year));
-    let globalMinYear = 2020; // Año mínimo fijo
-    let globalMaxYear = 2065; // Año máximo fijo
+    const globalMinYear = 2020; // Año mínimo fijo
+    const globalMaxYear = 2067; // Año máximo extendido
 
     for (let i = 0; i < trams.length; i++) {
         const tram = trams[i];
@@ -294,40 +293,19 @@ async function drawFullLinePlot(trams, resumData) {
         const tramContainer = document.createElement('div');
         tramContainer.className = 'tram-container';
 
-        // Contenedor para el gráfico y la etiqueta del tramo
-        const plotAndLabelContainer = document.createElement('div');
-        plotAndLabelContainer.className = 'plot-and-label';
-
-        // Etiqueta del tramo
-        const labelContainer = document.createElement('div');
-        labelContainer.className = 'label-container';
-        const label = document.createElement('div');
-        label.textContent = tram;
-        labelContainer.appendChild(label);
-
-        // Contenedor del gráfico
-        const plotContainer = document.createElement('div');
-        plotContainer.className = 'plot-container';
-        plotContainer.id = `plot-${tram}-chart`;
-        plotContainer.style.height = `${tramoHeight}px`;
-
-        plotAndLabelContainer.appendChild(labelContainer);
-        plotAndLabelContainer.appendChild(plotContainer);
-
         // Contenedor de los gráficos de quesitos
         const piesContainer = document.createElement('div');
         piesContainer.className = 'pie-charts-container';
 
-        // Añadir contenedores al contenedor principal del tramo
-        tramContainer.appendChild(plotAndLabelContainer);
-        tramContainer.appendChild(piesContainer);
+        // Crear gráfico de quesito combinado
+        const pieChartContainer = document.createElement('div');
+        pieChartContainer.className = 'pie-chart-wrapper';
 
-        // Añadir el contenedor del tramo al contenedor principal
-        document.getElementById('plot').appendChild(tramContainer);
-
-        // Ahora que el elemento está en el DOM, podemos llamar a drawPlot
-        const addHorizontalLabels = true;
-        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents, globalMinYear, globalMaxYear);
+        // Añadir título al gráfico de quesito
+        const pieChartTitle = document.createElement('div');
+        pieChartTitle.className = 'pie-chart-title';
+        pieChartTitle.textContent = 'Any previsió rehabilitació';
+        pieChartContainer.appendChild(pieChartTitle);
 
         // Calcular datos para los gráficos de quesitos
         const totalLength = resumData
@@ -344,20 +322,12 @@ async function drawFullLinePlot(trams, resumData) {
 
         const lengthAfter2030 = totalLength - lengthBefore2025 - lengthBetween2025And2030;
 
-        // Gráfico de quesito combinado
-        const pieChartContainer = document.createElement('div');
-        pieChartContainer.className = 'pie-chart-wrapper';
-
-        // Añadir título al gráfico de quesito
-        const pieChartTitle = document.createElement('div');
-        pieChartTitle.className = 'pie-chart-title';
-        pieChartTitle.textContent = 'Any previsió rehabilitació';
-        pieChartContainer.appendChild(pieChartTitle);
+        const sliceNames = ['<2025', '2025-2030', '>2030'];
 
         const pieData = [
             {
                 values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
-                labels: ['<2025', '2025-2030', '>2030'],
+                labels: sliceNames,
                 marker: {
                     colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
@@ -379,8 +349,24 @@ async function drawFullLinePlot(trams, resumData) {
         function getPieLabel(index) {
             const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
             const percentage = ((length / totalLength) * 100).toFixed(1);
-            return `<b>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
+            const sliceName = sliceNames[index];
+            return `<b>${sliceName}<br>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
         }
+
+        // Asignar colores de fuente acorde al color del quesito
+        pieData[0].textfont = {
+            size: 12,
+            color: pieData[0].marker.colors.map(color => {
+                const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
+                if (rgba) {
+                    const r = rgba[1];
+                    const g = rgba[2];
+                    const b = rgba[3];
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
+                return 'black';
+            })
+        };
 
         const pieLayout = {
             height: 250,
@@ -393,6 +379,37 @@ async function drawFullLinePlot(trams, resumData) {
         pieChartContainer.appendChild(pieChart);
         piesContainer.appendChild(pieChartContainer);
         Plotly.newPlot(pieChart, pieData, pieLayout, { displayModeBar: false });
+
+        // Contenedor para el gráfico y la etiqueta del tramo
+        const plotAndLabelContainer = document.createElement('div');
+        plotAndLabelContainer.className = 'plot-and-label';
+
+        // Etiqueta del tramo
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'label-container';
+        const label = document.createElement('div');
+        label.textContent = tram;
+        labelContainer.appendChild(label);
+
+        // Contenedor del gráfico
+        const plotContainer = document.createElement('div');
+        plotContainer.className = 'plot-container';
+        plotContainer.id = `plot-${tram}-chart`;
+        plotContainer.style.height = `${tramoHeight}px`;
+
+        plotAndLabelContainer.appendChild(labelContainer);
+        plotAndLabelContainer.appendChild(plotContainer);
+
+        // Añadir contenedores al contenedor principal del tramo en el orden correcto
+        tramContainer.appendChild(piesContainer);
+        tramContainer.appendChild(plotAndLabelContainer);
+
+        // Añadir el contenedor del tramo al contenedor principal
+        document.getElementById('plot').appendChild(tramContainer);
+
+        // Ahora que el elemento está en el DOM, podemos llamar a drawPlot
+        const addHorizontalLabels = true;
+        await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents, globalMinYear, globalMaxYear);
     }
 
     document.body.style.height = 'auto';
@@ -424,7 +441,7 @@ async function drawSinglePlot(tram, resumData) {
 
     // Usar minYear y maxYear globales
     const globalMinYear = 2020;
-    const globalMaxYear = 2065;
+    const globalMaxYear = 2067;
 
     await drawPlot(tram, resumData, estacionsData, plotContainer.id, true, null, null, 400, null, globalMinYear, globalMaxYear);
 
@@ -464,10 +481,12 @@ async function drawSinglePlot(tram, resumData) {
     pieChartTitle.textContent = 'Any previsió rehabilitació';
     pieChartContainer.appendChild(pieChartTitle);
 
+    const sliceNames = ['<2025', '2025-2030', '>2030'];
+
     const pieData = [
         {
             values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
-            labels: ['<2025', '2025-2030', '>2030'],
+            labels: sliceNames,
             marker: {
                 colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
             },
@@ -489,8 +508,24 @@ async function drawSinglePlot(tram, resumData) {
     function getPieLabel(index) {
         const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
         const percentage = ((length / totalLength) * 100).toFixed(1);
-        return `<b>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
+        const sliceName = sliceNames[index];
+        return `<b>${sliceName}<br>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
     }
+
+    // Asignar colores de fuente acorde al color del quesito
+    pieData[0].textfont = {
+        size: 12,
+        color: pieData[0].marker.colors.map(color => {
+            const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
+            if (rgba) {
+                const r = rgba[1];
+                const g = rgba[2];
+                const b = rgba[3];
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+            return 'black';
+        })
+    };
 
     const pieLayout = {
         height: 250,
