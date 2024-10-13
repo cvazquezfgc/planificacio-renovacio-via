@@ -849,5 +849,5 @@ async function init() {
 
 // Ejecutar cuando el contenido del DOM esté cargado
 document.addEventListener('DOMContentLoaded', () => {
-    init();
-});
+    init()
+})
