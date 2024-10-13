@@ -215,7 +215,7 @@ function showFilterDropdown(th, headerText) {
 
     // Ocultar el menú al hacer clic fuera o en el encabezado nuevamente
     function hideFilterDropdown(event) {
-               if (!filterDropdown.contains(event.target) && event.target !== th) {
+        if (!filterDropdown.contains(event.target) && event.target !== th) {
             updateFilters(headerText);
             filterDropdown.remove();
             currentFilterDropdown = null;
@@ -233,7 +233,7 @@ function updateFilters(headerText) {
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
 
-    if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
+        if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
         delete activeFilters[headerText];
     } else {
         activeFilters[headerText] = selectedValues;
@@ -425,12 +425,12 @@ async function drawFullLinePlot(trams, resumData) {
 
         lustrums.forEach(lustro => {
             const [startYear, endYear] = lustro.split('-').map(Number);
-                        const via1Length = resumData
+            const via1Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via1Lengths.push(via1Length);
 
-            const via2Length = resumData
+                        const via2Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via2Lengths.push(via2Length);
@@ -543,6 +543,94 @@ async function drawFullLinePlot(trams, resumData) {
     document.body.style.overflow = 'auto';
 }
 
+// Función para añadir líneas y sombreado
+function addLinesAndShading(pkMin, pkMax, xRange) {
+    let shapes = [];
+    for (let year = xRange[0]; year <= xRange[1]; year++) {
+        shapes.push({
+            type: 'line',
+            x0: year,
+            x1: year,
+            y0: pkMin,
+            y1: pkMax,
+            line: {
+                color: 'lightgray',
+                width: 0.8,
+                layer: 'below'
+            }
+        });
+
+        if (year % 5 === 0) {
+            shapes.push({
+                type: 'rect',
+                x0: year,
+                x1: year + 1,
+                y0: pkMin,
+                y1: pkMax,
+                fillcolor: 'rgba(211, 211, 211, 0.3)',
+                layer: 'below',
+                line: {
+                    width: 0
+                }
+            });
+        }
+    }
+
+    shapes.push({
+        type: 'rect',
+        x0: 2025,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 165, 0, 0.1)', // Sombreado tenue naranja
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    shapes.push({
+        type: 'line',
+        x0: 2030,
+        x1: 2030,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'orange',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    shapes.push({
+        type: 'rect',
+        x0: xRange[0],
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        fillcolor: 'rgba(255, 0, 0, 0.1)',
+        layer: 'below',
+        line: {
+            width: 0
+        }
+    });
+
+    shapes.push({
+        type: 'line',
+        x0: 2025,
+        x1: 2025,
+        y0: pkMin,
+        y1: pkMax,
+        line: {
+            color: 'red',
+            width: 2,
+            layer: 'above'
+        }
+    });
+
+    return shapes;
+}
+
 // Función para dibujar un gráfico específico
 async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', addHorizontalLabels = false, pkMin = null, pkMax = null, plotHeight = 500, fixedHeightComponents = 100, minYearOverride = null, maxYearOverride = null) {
     let traces = [];
@@ -572,7 +660,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                     groupedData.push(currentGroup);
                 }
                 currentGroup = {
-                    PKInici: pkInici,
+                                        PKInici: pkInici,
                     PKFinal: pkFinal,
                     PREVISIO: previsio,
                     length: (pkFinal - pkInici) * 1000,
@@ -614,7 +702,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             hovertext: via1.map(d => `${Math.round(d.length).toLocaleString('de-DE')} m`),
             hoverlabel: {
                 bgcolor: 'rgba(31, 119, 180, 1)',
-                                font: {
+                font: {
                     color: 'white'
                 }
             }
@@ -747,6 +835,3 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
-
-
