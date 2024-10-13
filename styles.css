@@ -47,7 +47,7 @@ body {
 #clear-filters-icon {
     cursor: pointer;
     position: absolute; /* Mantener su posición sin afectar a los botones */
-    left: 10px; /* Ajustar según sea necesario */
+    right: 15px; /* Asegurarse de que esté alineado a la derecha */
     top: 50%;
     transform: translateY(-50%); /* Centrar verticalmente */
 }
@@ -226,3 +226,4 @@ body {
 .filter-dropdown input[type="checkbox"]:focus {
     outline: none;
 }
+
