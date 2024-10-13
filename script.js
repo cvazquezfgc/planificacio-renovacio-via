@@ -639,7 +639,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
             if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio && currentGroup.via === segment.Via) {
                 currentGroup.PKFinal = pkFinal;
-                currentGroup.length += (pkFinal - pkInici) *                 currentGroup.length += (pkFinal - pkInici) * 1000;
+                currentGroup.length += (pkFinal - pkInici) * currentGroup.length += (pkFinal - pkInici) * 1000;
             } else {
                 if (currentGroup) {
                     groupedData.push(currentGroup);
