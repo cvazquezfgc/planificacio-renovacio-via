@@ -124,7 +124,7 @@ function renderTable(data) {
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-       // Crear filas de datos
+    // Crear filas de datos
     const tbody = document.createElement('tbody');
     data.forEach(rowData => {
         const row = document.createElement('tr');
@@ -236,7 +236,7 @@ function updateFilters(headerText) {
     if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
         delete activeFilters[headerText];
     } else {
-        activeFilters[headerText] = selectedValues;
+                activeFilters[headerText] = selectedValues;
     }
 }
 
@@ -346,7 +346,7 @@ async function drawFullLinePlot(trams, resumData) {
             {
                 values: [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030],
                 labels: sliceNames,
-                                marker: {
+                marker: {
                     colors: ['rgba(255, 0, 0, 0.8)', 'rgba(255, 165, 0, 0.8)', 'rgba(200, 200, 200, 0.3)']
                 },
                 type: 'pie',
@@ -431,7 +431,7 @@ async function drawFullLinePlot(trams, resumData) {
             via1Lengths.push(via1Length);
 
             const via2Length = resumData
-                .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
+                                .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via2Lengths.push(via2Length);
         });
@@ -661,7 +661,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 }
                 currentGroup = {
                     PKInici: pkInici,
-                    PKFinal: pkFinal,
+                                       PKFinal: pkFinal,
                     PREVISIO: previsio,
                     length: (pkFinal - pkInici) * 1000,
                     via: segment.Via
@@ -795,7 +795,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             orientation: 'v',
             x: 1.05,
             xanchor: 'left',
-                        y: 0.5,
+            y: 0.5,
             yanchor: 'middle'
         },
         annotations: stationAnnotations,
@@ -836,7 +836,4 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
-
-
 
