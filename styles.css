@@ -24,7 +24,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 0 auto; /* Centrar los botones */
+    position: relative; /* Cambiado para evitar que se muevan al agregar el icono de filtro */
 }
 
 .nav-button {
@@ -35,16 +35,19 @@ body {
     cursor: pointer;
     font-family: Arial, sans-serif;
     font-size: 16px;
-    transition: border-bottom 0.3s;
     position: relative;
 }
 
 .nav-button.selected {
-    border-bottom: 2px solid white;
+    border-bottom: 3px solid white; /* Grosor fijo para el borde inferior */
 }
 
 #clear-filters-icon {
     cursor: pointer;
+    position: absolute; /* Para mantener su posición sin afectar a los botones */
+    left: 10px; /* Ajustar según sea necesario */
+    top: 50%;
+    transform: translateY(-50%); /* Centrar verticalmente */
 }
 
 #content {
@@ -105,7 +108,7 @@ body {
 .pyramid-container {
     display: flex;
     flex-direction: column;
-        align-items: center;
+    align-items: center;
     justify-content: center;
     width: 20%;
     min-width: 200px;
@@ -220,4 +223,3 @@ body {
 .filter-dropdown input[type="checkbox"]:focus {
     outline: none;
 }
-
