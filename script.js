@@ -118,9 +118,9 @@ function renderTable(data) {
             event.stopPropagation(); // Prevenir que el evento se propague al body
             showFilterDropdown(th, headerText);
         });
-        th.style.position = 'sticky'; // Para posicionar el filtro debajo
+        th.style.position = 'sticky'; // Para fijar el encabezado
         th.style.top = '0'; // Fijar al tope
-        th.style.backgroundColor = '#f0f0f0'; // Asegurar fondo para evitar transparencia
+        th.style.backgroundColor = '#f0f0f0'; // Fondo para evitar transparencia
         th.style.zIndex = '3'; // Asegurar que el encabezado esté por encima
         headerRow.appendChild(th);
     });
@@ -170,7 +170,7 @@ function showFilterDropdown(th, headerText) {
     selectAllCheckbox.value = 'select-all';
     selectAllCheckbox.checked = !activeFilters[headerText] || activeFilters[headerText].length === uniqueValues.length;
     selectAllLabel.appendChild(selectAllCheckbox);
-    const selectAllText = document.createTextNode('Seleccionar tot');
+    const selectAllText = document.createTextNode(' Seleccionar tot');
     selectAllLabel.appendChild(selectAllText);
     filterDropdown.appendChild(selectAllLabel);
 
@@ -188,12 +188,13 @@ function showFilterDropdown(th, headerText) {
         const label = document.createElement('label');
         label.style.display = 'flex';
         label.style.alignItems = 'center';
+        label.style.marginTop = '5px';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = value;
         checkbox.checked = !activeFilters[headerText] || activeFilters[headerText].includes(value);
         label.appendChild(checkbox);
-        const textNode = document.createTextNode(value);
+        const textNode = document.createTextNode(' ' + value);
         label.appendChild(textNode);
         filterDropdown.appendChild(label);
 
@@ -481,6 +482,9 @@ async function drawFullLinePlot(trams, resumData) {
             }
         ];
 
+        // Encontrar el índice del lustrum '25-29'
+        const index2025 = lustrums.indexOf('25-29');
+
         const pyramidLayout = {
             barmode: 'overlay',
             bargap: 0.1,
@@ -511,7 +515,7 @@ async function drawFullLinePlot(trams, resumData) {
                     x0: -30,
                     x1: 30,
                     y0: 0,
-                    y1: lustrums.indexOf('25-29'), // Suponiendo que '25-29' existe
+                    y1: index2025 !== -1 ? index2025 : 0,
                     fillcolor: 'rgba(255, 0, 0, 0.1)',
                     line: {
                         width: 0
@@ -523,8 +527,8 @@ async function drawFullLinePlot(trams, resumData) {
                     type: 'rect',
                     x0: -30,
                     x1: 30,
-                    y0: lustrums.indexOf('25-29'),
-                    y1: lustrums.indexOf('25-29') + 1,
+                    y0: index2025 !== -1 ? index2025 : 0,
+                    y1: index2025 !== -1 ? index2025 + 1 : 0,
                     fillcolor: 'rgba(255, 165, 0, 0.1)',
                     line: {
                         width: 0
@@ -833,7 +837,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     };
 
     Plotly.newPlot(containerId, traces, layout, config);
-}
+} // Cierre de drawPlot
 
 // Inicializar la página y los eventos
 async function init() {
