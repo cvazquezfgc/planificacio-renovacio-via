@@ -206,7 +206,7 @@ function showFilterDropdown(th, headerText) {
 
     // Posicionar el dropdown
     filterDropdown.style.left = '0';
-    filterDropdown.style.top = `${    th.offsetHeight}px`;
+    filterDropdown.style.top = `${th.offsetHeight}px`;
 
     // Prevenir que el clic dentro del dropdown se propague
     filterDropdown.addEventListener('click', (event) => {
@@ -235,7 +235,7 @@ function updateFilters(headerText) {
 
     if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
         delete activeFilters[headerText];
-    } else {
+        } else {
         activeFilters[headerText] = selectedValues;
     }
 }
@@ -417,7 +417,7 @@ async function drawFullLinePlot(trams, resumData) {
         for (let year = 1995; year <= 2060; year += 5) {
             lustrums.push(`${year}-${year + 4}`);
         }
-                lustrums.reverse(); // Para que los más recientes estén abajo
+        lustrums.reverse(); // Para que los más recientes estén abajo
 
         const via1Lengths = [];
         const via2Lengths = [];
@@ -430,7 +430,7 @@ async function drawFullLinePlot(trams, resumData) {
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via1Lengths.push(via1Length);
 
-            const via2Length = resumData
+                       const via2Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via2Lengths.push(via2Length);
@@ -639,7 +639,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
             if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio && currentGroup.via === segment.Via) {
                 currentGroup.PKFinal = pkFinal;
-                currentGroup.length += (pkFinal - pkInici) * currentGroup.length += (pkFinal - pkInici) * 1000;
+                currentGroup.length += (pkFinal - pkInici) * 1000;
             } else {
                 if (currentGroup) {
                     groupedData.push(currentGroup);
@@ -665,7 +665,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
 
     const via1 = groupConsecutiveSegments(via1Data);
-    const via2 = groupConsecutiveSegments(via2Data);
+        const via2 = groupConsecutiveSegments(via2Data);
 
     if (via1.length > 0 || via2.length > 0) {
         pkMin = pkMin !== null ? pkMin : Math.min(...via1.concat(via2).map(d => d.PKInici));
@@ -819,6 +819,4 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-
-
 
