@@ -414,8 +414,8 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Calcular datos para el gráfico de pirámide
         const lustrums = [];
-        const startLustrumYear = Math.floor(globalMinYear / 5) * 5;
-        const endLustrumYear = Math.ceil(globalMaxYear / 5) * 5;
+        const startLustrumYear = 1995; // Año inicial fijo
+        const endLustrumYear = 2060;   // Año final fijo
 
         for (let year = startLustrumYear; year <= endLustrumYear; year += 5) {
             const startYearStr = (year % 100).toString().padStart(2, '0');
@@ -423,16 +423,14 @@ async function drawFullLinePlot(trams, resumData) {
             lustrums.push(`${startYearStr}-${endYearStr}`);
         }
 
-        // Invertir los lustros para que los más antiguos estén arriba
-        lustrums.reverse();
-
+        // Los lustros más antiguos arriba, más recientes abajo
+        // No invertimos el array, ya que Plotly ordenará las categorías según el orden del array
         const via1Lengths = [];
         const via2Lengths = [];
         const totalLengthPerTram = totalLength;
 
         lustrums.forEach((lustro, index) => {
-            const reversedIndex = lustrums.length - 1 - index;
-            const startYear = startLustrumYear + reversedIndex * 5;
+            const startYear = startLustrumYear + index * 5;
             const endYear = startYear + 4;
 
             const via1Length = resumData
@@ -446,10 +444,14 @@ async function drawFullLinePlot(trams, resumData) {
             via2Lengths.push(via2Length);
         });
 
+        // Invertir los arrays para que los años más antiguos estén arriba
+        via1Lengths.reverse();
+        via2Lengths.reverse();
+
         const pyramidData = [
             {
                 x: via1Lengths.map(length => -length / totalLengthPerTram * 100),
-                y: lustrums,
+                y: lustrums.slice().reverse(), // Invertir los lustros para que coincidan con los datos
                 name: 'Via 1',
                 orientation: 'h',
                 type: 'bar',
@@ -467,7 +469,7 @@ async function drawFullLinePlot(trams, resumData) {
             },
             {
                 x: via2Lengths.map(length => length / totalLengthPerTram * 100),
-                y: lustrums,
+                y: lustrums.slice().reverse(), // Invertir los lustros para que coincidan con los datos
                 name: 'Via 2',
                 orientation: 'h',
                 type: 'bar',
@@ -503,7 +505,7 @@ async function drawFullLinePlot(trams, resumData) {
                 automargin: true,
                 side: 'left',
                 categoryorder: 'array',
-                categoryarray: lustrums, // Mantener el orden de los lustros
+                categoryarray: lustrums.slice().reverse(), // Mantener el orden de los lustros
             },
             showlegend: false,
             hovermode: false // Desactivar hover
@@ -535,7 +537,7 @@ async function drawFullLinePlot(trams, resumData) {
     }
 
     document.body.style.height = 'auto';
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = 'auto'; // Habilitar desplazamiento vertical
 }
 
 // Función para añadir líneas y sombreado
