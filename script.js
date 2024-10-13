@@ -427,11 +427,11 @@ async function drawFullLinePlot(trams, resumData) {
             const [startYear, endYear] = lustro.split('-').map(Number);
             const via1Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
-                                .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
+                .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via1Lengths.push(via1Length);
 
             const via2Length = resumData
-                .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
+                               .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via2Lengths.push(via2Length);
         });
@@ -654,7 +654,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
             if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio && currentGroup.via === segment.Via) {
                 currentGroup.PKFinal = pkFinal;
-                                currentGroup.length += (pkFinal - pkInici) * 1000;
+                currentGroup.length += (pkFinal - pkInici) * 1000;
             } else {
                 if (currentGroup) {
                     groupedData.push(currentGroup);
@@ -662,7 +662,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 currentGroup = {
                     PKInici: pkInici,
                     PKFinal: pkFinal,
-                    PREVISIO: previsio,
+                       PREVISIO: previsio,
                     length: (pkFinal - pkInici) * 1000,
                     via: segment.Via
                 };
@@ -835,4 +835,6 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+                
 
+   
