@@ -121,6 +121,7 @@ function renderTable(data) {
         th.style.position = 'sticky'; // Para posicionar el filtro debajo
         th.style.top = '0'; // Fijar al tope
         th.style.backgroundColor = '#f0f0f0'; // Asegurar fondo para evitar transparencia
+        th.style.zIndex = '3'; // Asegurar que el encabezado esté por encima
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -377,7 +378,7 @@ async function drawFullLinePlot(trams, resumData) {
         pieData[0].textfont = {
             size: 12,
             color: pieData[0].marker.colors.map(color => {
-                const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
+                const rgba = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([\d\.]+)?\)/);
                 if (rgba) {
                     const r = rgba[1];
                     const g = rgba[2];
@@ -495,18 +496,22 @@ async function drawFullLinePlot(trams, resumData) {
                 showticklabels: true
             },
             yaxis: {
+                title: 'Lustrums',
+                type: 'category',
+                categoryorder: 'array',
+                categoryarray: lustrums,
                 automargin: true
             },
             showlegend: false,
             hovermode: false, // Desactivar modo hover
-            annotations: [
+            shapes: [
                 // Área sombreada roja para lustrums <2025
                 {
                     type: 'rect',
                     x0: -30,
-                    x1: 0,
+                    x1: 30,
                     y0: 0,
-                    y1: lustrums.length,
+                    y1: lustrums.indexOf('25-29'), // Suponiendo que '25-29' existe
                     fillcolor: 'rgba(255, 0, 0, 0.1)',
                     line: {
                         width: 0
@@ -518,7 +523,7 @@ async function drawFullLinePlot(trams, resumData) {
                     type: 'rect',
                     x0: -30,
                     x1: 30,
-                    y0: lustrums.indexOf('25-29'), // Asumiendo que '25-29' existe
+                    y0: lustrums.indexOf('25-29'),
                     y1: lustrums.indexOf('25-29') + 1,
                     fillcolor: 'rgba(255, 165, 0, 0.1)',
                     line: {
@@ -526,12 +531,8 @@ async function drawFullLinePlot(trams, resumData) {
                     },
                     layer: 'below'
                 }
-            ],
-            shapes: [] // Para futuras formas si es necesario
+            ]
         };
-
-        // Agregar etiquetas fijas al final de las barras
-        // No es necesario agregar aquí ya que ya se establecen con 'text' y 'textposition'
 
         // Renderizar el gráfico de pirámide
         const pyramidChart = document.createElement('div');
@@ -557,7 +558,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Ahora que el elemento está en el DOM, podemos llamar a drawPlot
         const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents, globalMinYear, globalMaxYear);
-    }
+    } // Cierre de drawFullLinePlot
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax, xRange) {
@@ -795,11 +796,11 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             showticklabels: addHorizontalLabels
         },
         yaxis: {
-            title: 'PK',
-            autorange: 'reversed',
-            range: [pkMax, pkMin],
-            tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
-            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${String(Math.floor(pkMin) + i).slice(-2)}+000`)
+            title: 'Lustrums',
+            type: 'category',
+            categoryorder: 'array',
+            categoryarray: lustrums,
+            automargin: true
         },
         showlegend: true,
         legend: {
