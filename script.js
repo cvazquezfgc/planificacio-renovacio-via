@@ -118,7 +118,9 @@ function renderTable(data) {
             event.stopPropagation(); // Prevenir que el evento se propague al body
             showFilterDropdown(th, headerText);
         });
-        th.style.position = 'relative'; // Para posicionar el filtro debajo
+        th.style.position = 'sticky'; // Para posicionar el filtro debajo
+        th.style.top = '0'; // Fijar al tope
+        th.style.backgroundColor = '#f0f0f0'; // Asegurar fondo para evitar transparencia
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -368,7 +370,7 @@ async function drawFullLinePlot(trams, resumData) {
             const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
             const percentage = ((length / totalLength) * 100).toFixed(1);
             const sliceName = sliceNames[index];
-            return `<b>${sliceName}<br>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
+            return `${percentage}%`;
         }
 
         // Asignar colores de fuente acorde al color del quesito
@@ -415,7 +417,11 @@ async function drawFullLinePlot(trams, resumData) {
         // Calcular datos para el gráfico de pirámide
         const lustrums = [];
         for (let year = 1995; year <= 2060; year += 5) {
-            lustrums.push(`${year}-${year + 4}`);
+            const start = year;
+            const end = year + 4;
+            const formattedStart = String(start).slice(-2);
+            const formattedEnd = String(end).slice(-2);
+            lustrums.push(`${formattedStart}-${formattedEnd}`);
         }
         lustrums.reverse(); // Para que los más recientes estén abajo
 
@@ -423,8 +429,9 @@ async function drawFullLinePlot(trams, resumData) {
         const via2Lengths = [];
         const totalLengthPerTram = totalLength;
 
-        lustrums.forEach(lustro => {
-            const [startYear, endYear] = lustro.split('-').map(Number);
+        lustrums.forEach((lustro, index) => {
+            const startYear = 1995 + index * 5;
+            const endYear = startYear + 4;
             const via1Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
@@ -438,7 +445,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const pyramidData = [
             {
-                x: via1Lengths.map(length => -length / totalLengthPerTram * 100),
+                x: via1Lengths.map(length => -length / totalLengthPerTram * 30), // Escala de 0 a 30%
                 y: lustrums,
                 name: 'Via 1',
                 orientation: 'h',
@@ -448,14 +455,14 @@ async function drawFullLinePlot(trams, resumData) {
                 },
                 hoverinfo: 'none', // Desactivar etiquetas hover
                 text: via1Lengths.map(length => `${(length / totalLengthPerTram * 100).toFixed(1)}%`),
-                textposition: 'inside',
+                textposition: 'outside',
                 textfont: {
                     size: 10,
-                    color: 'white'
+                    color: 'black'
                 }
             },
             {
-                x: via2Lengths.map(length => length / totalLengthPerTram * 100),
+                x: via2Lengths.map(length => length / totalLengthPerTram * 30), // Escala de 0 a 30%
                 y: lustrums,
                 name: 'Via 2',
                 orientation: 'h',
@@ -465,10 +472,10 @@ async function drawFullLinePlot(trams, resumData) {
                 },
                 hoverinfo: 'none', // Desactivar etiquetas hover
                 text: via2Lengths.map(length => `${(length / totalLengthPerTram * 100).toFixed(1)}%`),
-                textposition: 'inside',
+                textposition: 'outside',
                 textfont: {
                     size: 10,
-                    color: 'white'
+                    color: 'black'
                 }
             }
         ];
@@ -478,22 +485,55 @@ async function drawFullLinePlot(trams, resumData) {
             bargap: 0.1,
             bargroupgap: 0,
             height: 250,
-            width: 200,
-            margin: { t: 0, b: 20, l: 20, r: 20 },
+            width: 300, // Aumentar el ancho para acomodar las etiquetas
+            margin: { t: 0, b: 20, l: 50, r: 50 },
             xaxis: {
                 tickvals: [-30, -15, 0, 15, 30],
                 ticktext: ['30%', '15%', '0%', '15%', '30%'],
                 range: [-30, 30], // Ajustar rango del eje X
                 showgrid: false,
-                showticklabels: false
+                showticklabels: true
             },
             yaxis: {
                 automargin: true
             },
             showlegend: false,
-            hovermode: false // Desactivar modo hover
+            hovermode: false, // Desactivar modo hover
+            annotations: [
+                // Área sombreada roja para lustrums <2025
+                {
+                    type: 'rect',
+                    x0: -30,
+                    x1: 0,
+                    y0: 0,
+                    y1: lustrums.length,
+                    fillcolor: 'rgba(255, 0, 0, 0.1)',
+                    line: {
+                        width: 0
+                    },
+                    layer: 'below'
+                },
+                // Área sombreada naranja para lustrum 2025-2029
+                {
+                    type: 'rect',
+                    x0: -30,
+                    x1: 30,
+                    y0: lustrums.indexOf('25-29'), // Asumiendo que '25-29' existe
+                    y1: lustrums.indexOf('25-29') + 1,
+                    fillcolor: 'rgba(255, 165, 0, 0.1)',
+                    line: {
+                        width: 0
+                    },
+                    layer: 'below'
+                }
+            ],
+            shapes: [] // Para futuras formas si es necesario
         };
 
+        // Agregar etiquetas fijas al final de las barras
+        // No es necesario agregar aquí ya que ya se establecen con 'text' y 'textposition'
+
+        // Renderizar el gráfico de pirámide
         const pyramidChart = document.createElement('div');
         pyramidChartContainer.appendChild(pyramidChart);
         pyramidContainer.appendChild(pyramidChartContainer);
@@ -518,10 +558,6 @@ async function drawFullLinePlot(trams, resumData) {
         const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents, globalMinYear, globalMaxYear);
     }
-
-    document.body.style.height = 'auto';
-    document.body.style.overflow = 'auto';
-}
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax, xRange) {
@@ -763,7 +799,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             autorange: 'reversed',
             range: [pkMax, pkMin],
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
-            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${Math.floor(pkMin) + i}+000`)
+            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => `${String(Math.floor(pkMin) + i).slice(-2)}+000`)
         },
         showlegend: true,
         legend: {
