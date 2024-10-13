@@ -235,7 +235,7 @@ function updateFilters(headerText) {
 
     if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
         delete activeFilters[headerText];
-    } else {
+            } else {
         activeFilters[headerText] = selectedValues;
     }
 }
@@ -662,7 +662,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
                 currentGroup = {
                     PKInici: pkInici,
                     PKFinal: pkFinal,
-                       PREVISIO: previsio,
+                   
+                    PREVISIO: previsio,
                     length: (pkFinal - pkInici) * 1000,
                     via: segment.Via
                 };
@@ -807,7 +808,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
-        height: plotHeight
+        height: plotHeight,
+        autosize: false // Asegúrate de que no ajuste automáticamente
     };
 
     const config = {
@@ -835,6 +837,4 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
-                
 
-   
