@@ -414,25 +414,17 @@ async function drawFullLinePlot(trams, resumData) {
 
         // Calcular datos para el gráfico de pirámide
         const lustrums = [];
-        const startLustrumYear = 1995; // Año inicial fijo
-        const endLustrumYear = 2060;   // Año final fijo
-
-        for (let year = startLustrumYear; year <= endLustrumYear; year += 5) {
-            const startYearStr = (year % 100).toString().padStart(2, '0');
-            const endYearStr = ((year + 4) % 100).toString().padStart(2, '0');
-            lustrums.push(`${startYearStr}-${endYearStr}`);
+        for (let year = 1995; year <= 2060; year += 5) {
+            lustrums.push(`${year}-${year + 4}`);
         }
+        lustrums.reverse(); // Para que los más recientes estén abajo
 
-        // Los lustros más antiguos arriba, más recientes abajo
-        // No invertimos el array, ya que Plotly ordenará las categorías según el orden del array
         const via1Lengths = [];
         const via2Lengths = [];
         const totalLengthPerTram = totalLength;
 
-        lustrums.forEach((lustro, index) => {
-            const startYear = startLustrumYear + index * 5;
-            const endYear = startYear + 4;
-
+        lustrums.forEach(lustro => {
+            const [startYear, endYear] = lustro.split('-').map(Number);
             const via1Length = resumData
                 .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
@@ -444,46 +436,30 @@ async function drawFullLinePlot(trams, resumData) {
             via2Lengths.push(via2Length);
         });
 
-        // Invertir los arrays para que los años más antiguos estén arriba
-        via1Lengths.reverse();
-        via2Lengths.reverse();
-
         const pyramidData = [
             {
                 x: via1Lengths.map(length => -length / totalLengthPerTram * 100),
-                y: lustrums.slice().reverse(), // Invertir los lustros para que coincidan con los datos
+                y: lustrums,
                 name: 'Via 1',
                 orientation: 'h',
                 type: 'bar',
                 marker: {
                     color: 'rgba(31, 119, 180, 1)'
                 },
-                hoverinfo: 'none', // Desactivar etiquetas hover
-                text: via1Lengths.map(length => length === 0 ? '' : `${Math.abs(length / totalLengthPerTram * 100).toFixed(1)}%`),
-                textposition: 'outside',
-                textfont: {
-                    size: 10,
-                    color: 'black'
-                },
-                cliponaxis: false
+                hoverinfo: 'x',
+                hovertemplate: '%{x:.1f}%'
             },
             {
                 x: via2Lengths.map(length => length / totalLengthPerTram * 100),
-                y: lustrums.slice().reverse(), // Invertir los lustros para que coincidan con los datos
+                y: lustrums,
                 name: 'Via 2',
                 orientation: 'h',
                 type: 'bar',
                 marker: {
                     color: 'rgba(135, 206, 250, 1)'
                 },
-                hoverinfo: 'none', // Desactivar etiquetas hover
-                text: via2Lengths.map(length => length === 0 ? '' : `${Math.abs(length / totalLengthPerTram * 100).toFixed(1)}%`),
-                textposition: 'outside',
-                textfont: {
-                    size: 10,
-                    color: 'black'
-                },
-                cliponaxis: false
+                hoverinfo: 'x',
+                hovertemplate: '%{x:.1f}%'
             }
         ];
 
@@ -493,22 +469,19 @@ async function drawFullLinePlot(trams, resumData) {
             bargroupgap: 0,
             height: 250,
             width: 200,
-            margin: { t: 0, b: 20, l: 50, r: 20 }, // Aumentar margen izquierdo para etiquetas
+            margin: { t: 0, b: 20, l: 20, r: 20 },
             xaxis: {
-                tickvals: [-30, -15, 0, 15, 30],
-                ticktext: ['30%', '15%', '0%', '15%', '30%'],
-                range: [-30, 30],
+                tickvals: [-100, -50, 0, 50, 100],
+                ticktext: ['100%', '50%', '0%', '50%', '100%'],
+                range: [-100, 100],
                 showgrid: false,
-                showticklabels: false // Ocultar etiquetas del eje x
+                showticklabels: false
             },
             yaxis: {
-                automargin: true,
-                side: 'left',
-                categoryorder: 'array',
-                categoryarray: lustrums.slice().reverse(), // Mantener el orden de los lustros
+                automargin: true
             },
             showlegend: false,
-            hovermode: false // Desactivar hover
+            hovermode: 'y'
         };
 
         const pyramidChart = document.createElement('div');
@@ -537,7 +510,7 @@ async function drawFullLinePlot(trams, resumData) {
     }
 
     document.body.style.height = 'auto';
-    document.body.style.overflow = 'auto'; // Habilitar desplazamiento vertical
+    document.body.style.overflow = 'auto';
 }
 
 // Función para añadir líneas y sombreado
@@ -794,13 +767,12 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
         shapes: shapes,
         hovermode: 'closest',
         margin: {
-            l: 100, // Reducido para aprovechar más el espacio
-            r: 50,
+            l: 150,
+            r: 100,
             t: 20,
             b: addHorizontalLabels ? 50 : 20
         },
-        height: plotHeight,
-        width: document.getElementById(containerId).clientWidth // Ajustar el ancho al contenedor
+        height: plotHeight
     };
 
     const config = {
@@ -810,8 +782,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             'toImage'],
         modeBarButtonsToAdd: ['toImage'],
         displaylogo: false,
-        displayModeBar: true,
-        responsive: true // Hacer el gráfico responsive
+        displayModeBar: true
     };
 
     Plotly.newPlot(containerId, traces, layout, config);
