@@ -110,7 +110,7 @@ body {
 .pyramid-container {
     display: flex;
     flex-direction: column;
-       align-items: center;
+    align-items: center;
     justify-content: center;
     width: 20%;
     min-width: 200px;
@@ -119,7 +119,7 @@ body {
 
 .plot-container {
     flex-grow: 1;
-    width: 60%;
+    width: 70%; /* Aumentar el ancho de los gráficos de ESPAI-TEMPS */
     height: 500px; /* Altura fija para evitar ajustes repetidos */
     margin-left: 10px;
     margin-right: 10px;
@@ -167,19 +167,11 @@ body {
 
 #data-table th {
     background-color: #f0f0f0;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    white-space: normal;
-    word-break: keep-all;
-}
-
-/* Asegurarse de que la primera fila se quede fija */
-#data-table th {
     position: sticky; 
     top: 0;
-    background-color: #f0f0f0;
     z-index: 10; /* Asegurarse de que se mantenga sobre el resto */
+    white-space: normal;
+    word-break: keep-all;
 }
 
 #data-table td:last-child {
@@ -234,4 +226,3 @@ body {
 .filter-dropdown input[type="checkbox"]:focus {
     outline: none;
 }
-
