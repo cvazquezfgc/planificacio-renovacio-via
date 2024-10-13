@@ -446,8 +446,13 @@ async function drawFullLinePlot(trams, resumData) {
                 marker: {
                     color: 'rgba(31, 119, 180, 1)'
                 },
-                hoverinfo: 'x',
-                hovertemplate: '%{x:.1f}%'
+                hoverinfo: 'none', // Desactivar etiquetas hover
+                text: via1Lengths.map(length => `${(length / totalLengthPerTram * 100).toFixed(1)}%`),
+                textposition: 'inside',
+                textfont: {
+                    size: 10,
+                    color: 'white'
+                }
             },
             {
                 x: via2Lengths.map(length => length / totalLengthPerTram * 100),
@@ -458,8 +463,13 @@ async function drawFullLinePlot(trams, resumData) {
                 marker: {
                     color: 'rgba(135, 206, 250, 1)'
                 },
-                hoverinfo: 'x',
-                hovertemplate: '%{x:.1f}%'
+                hoverinfo: 'none', // Desactivar etiquetas hover
+                text: via2Lengths.map(length => `${(length / totalLengthPerTram * 100).toFixed(1)}%`),
+                textposition: 'inside',
+                textfont: {
+                    size: 10,
+                    color: 'white'
+                }
             }
         ];
 
@@ -471,9 +481,9 @@ async function drawFullLinePlot(trams, resumData) {
             width: 200,
             margin: { t: 0, b: 20, l: 20, r: 20 },
             xaxis: {
-                tickvals: [-100, -50, 0, 50, 100],
-                ticktext: ['100%', '50%', '0%', '50%', '100%'],
-                range: [-100, 100],
+                tickvals: [-30, -15, 0, 15, 30],
+                ticktext: ['30%', '15%', '0%', '15%', '30%'],
+                range: [-30, 30], // Ajustar rango del eje X
                 showgrid: false,
                 showticklabels: false
             },
@@ -481,7 +491,7 @@ async function drawFullLinePlot(trams, resumData) {
                 automargin: true
             },
             showlegend: false,
-            hovermode: 'y'
+            hovermode: false // Desactivar modo hover
         };
 
         const pyramidChart = document.createElement('div');
