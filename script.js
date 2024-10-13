@@ -206,7 +206,7 @@ function showFilterDropdown(th, headerText) {
 
     // Posicionar el dropdown
     filterDropdown.style.left = '0';
-    filterDropdown.style.top = `${th.offsetHeight}px`;
+    filterDropdown.style.top = `${    th.offsetHeight}px`;
 
     // Prevenir que el clic dentro del dropdown se propague
     filterDropdown.addEventListener('click', (event) => {
@@ -236,7 +236,7 @@ function updateFilters(headerText) {
     if (selectedValues.length === checkboxes.length || selectedValues.length === 0) {
         delete activeFilters[headerText];
     } else {
-                activeFilters[headerText] = selectedValues;
+        activeFilters[headerText] = selectedValues;
     }
 }
 
@@ -417,7 +417,7 @@ async function drawFullLinePlot(trams, resumData) {
         for (let year = 1995; year <= 2060; year += 5) {
             lustrums.push(`${year}-${year + 4}`);
         }
-        lustrums.reverse(); // Para que los más recientes estén abajo
+                lustrums.reverse(); // Para que los más recientes estén abajo
 
         const via1Lengths = [];
         const via2Lengths = [];
@@ -431,28 +431,14 @@ async function drawFullLinePlot(trams, resumData) {
             via1Lengths.push(via1Length);
 
             const via2Length = resumData
-                                .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
+                .filter(d => d.TRAM === tram && parseInt(d.Via) === 2 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via2Lengths.push(via2Length);
         });
 
-        // Agregar sombreado rojo para los lustros de 1995 a 2024
-        const shadingRect = {
-            type: 'rect',
-            x0: 1995,
-            x1: 2024,
-            y0: -Infinity,
-            y1: Infinity,
-            fillcolor: 'rgba(255, 0, 0, 0.1)', // Sombreado rojo
-            layer: 'below',
-            line: {
-                width: 0
-            }
-        };
-
         const pyramidData = [
             {
-                x: via1Lengths.map(length => length > 0 ? -length / totalLengthPerTram * 100 : null),
+                x: via1Lengths.map(length => -length / totalLengthPerTram * 100),
                 y: lustrums,
                 name: 'Via 1',
                 orientation: 'h',
@@ -469,7 +455,7 @@ async function drawFullLinePlot(trams, resumData) {
                 }
             },
             {
-                x: via2Lengths.map(length => length > 0 ? length / totalLengthPerTram * 100 : null),
+                x: via2Lengths.map(length => length / totalLengthPerTram * 100),
                 y: lustrums,
                 name: 'Via 2',
                 orientation: 'h',
@@ -495,9 +481,9 @@ async function drawFullLinePlot(trams, resumData) {
             width: 300, // Aumentar el ancho del gráfico de pirámide
             margin: { t: 0, b: 20, l: 20, r: 20 },
             xaxis: {
-                tickvals: [-35, -15, 0, 15, 35], // Extender el eje horizontal
-                ticktext: ['35%', '15%', '0%', '15%', '35%'],
-                range: [-35, 35], // Ajustar rango del eje X
+                tickvals: [-100, -50, 0, 50, 100],
+                ticktext: ['100%', '50%', '0%', '50%', '100%'],
+                range: [-100, 100],
                 showgrid: false,
                 showticklabels: true // Mostrar etiquetas en el eje X
             },
@@ -510,8 +496,7 @@ async function drawFullLinePlot(trams, resumData) {
                 }),
             },
             showlegend: false,
-            hovermode: false, // Desactivar modo hover
-            shapes: [shadingRect] // Añadir el sombreado rojo
+            hovermode: false // Desactivar modo hover
         };
 
         const pyramidChart = document.createElement('div');
@@ -654,14 +639,14 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
             if (currentGroup && currentGroup.PKFinal === pkInici && currentGroup.PREVISIO === previsio && currentGroup.via === segment.Via) {
                 currentGroup.PKFinal = pkFinal;
-                currentGroup.length += (pkFinal - pkInici) * 1000;
+                currentGroup.length += (pkFinal - pkInici) *                 currentGroup.length += (pkFinal - pkInici) * 1000;
             } else {
                 if (currentGroup) {
                     groupedData.push(currentGroup);
                 }
                 currentGroup = {
                     PKInici: pkInici,
-                                       PKFinal: pkFinal,
+                    PKFinal: pkFinal,
                     PREVISIO: previsio,
                     length: (pkFinal - pkInici) * 1000,
                     via: segment.Via
@@ -784,10 +769,8 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             range: [pkMax, pkMin],
             tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
             ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => {
-                const yearRange = Math.floor(pkMin) + i;
-                const startYear = yearRange;
-                const endYear = yearRange + 4;
-                return `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`; // Formato XX-YY
+                const pkValue = Math.floor(pkMin) + i;
+                return `${pkValue}+000`; // Formato x+xxx
             })
         },
         showlegend: true,
@@ -836,4 +819,6 @@ async function init() {
 document.addEventListener('DOMContentLoaded', () => {
     init();
 });
+
+
 
