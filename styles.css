@@ -167,8 +167,12 @@ body {
     word-break: keep-all;
 }
 
-#data-table td:last-child {
-    white-space: normal;
+/* Asegurar que los encabezados siempre estén visibles */
+#data-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #f0f0f0;
+    z-index: 10; /* Asegurarse de que esté encima de otras filas */
 }
 
 .filter-dropdown {
