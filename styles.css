@@ -105,7 +105,7 @@ body {
 .pyramid-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+        align-items: center;
     justify-content: center;
     width: 20%;
     min-width: 200px;
@@ -115,6 +115,7 @@ body {
 .plot-container {
     flex-grow: 1;
     width: 60%;
+    height: 500px; /* Altura fija para evitar ajustes repetidos */
     margin-left: 10px;
     margin-right: 10px;
 }
@@ -122,7 +123,7 @@ body {
 .pie-chart-wrapper,
 .pyramid-chart-wrapper {
     position: relative;
-    width: 200px;
+    width: 300px; /* Aumentar el ancho de los gráficos de quesitos y pirámide */
     height: 250px;
     margin-bottom: 20px;
 }
@@ -167,12 +168,8 @@ body {
     word-break: keep-all;
 }
 
-/* Asegurar que los encabezados siempre estén visibles */
-#data-table thead {
-    position: sticky;
-    top: 0;
-    background-color: #f0f0f0;
-    z-index: 10; /* Asegurarse de que esté encima de otras filas */
+#data-table td:last-child {
+    white-space: normal;
 }
 
 .filter-dropdown {
@@ -223,3 +220,4 @@ body {
 .filter-dropdown input[type="checkbox"]:focus {
     outline: none;
 }
+
