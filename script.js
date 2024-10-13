@@ -118,10 +118,7 @@ function renderTable(data) {
             event.stopPropagation(); // Prevenir que el evento se propague al body
             showFilterDropdown(th, headerText);
         });
-        th.style.position = 'sticky'; // Para fijar el encabezado
-        th.style.top = '0'; // Fijar al tope
-        th.style.backgroundColor = '#f0f0f0'; // Fondo para evitar transparencia
-        th.style.zIndex = '3'; // Asegurar que el encabezado esté por encima
+        th.style.position = 'relative'; // Para posicionar el filtro debajo
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -170,7 +167,7 @@ function showFilterDropdown(th, headerText) {
     selectAllCheckbox.value = 'select-all';
     selectAllCheckbox.checked = !activeFilters[headerText] || activeFilters[headerText].length === uniqueValues.length;
     selectAllLabel.appendChild(selectAllCheckbox);
-    const selectAllText = document.createTextNode(' Seleccionar tot');
+    const selectAllText = document.createTextNode('Seleccionar tot');
     selectAllLabel.appendChild(selectAllText);
     filterDropdown.appendChild(selectAllLabel);
 
@@ -188,13 +185,12 @@ function showFilterDropdown(th, headerText) {
         const label = document.createElement('label');
         label.style.display = 'flex';
         label.style.alignItems = 'center';
-        label.style.marginTop = '5px';
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.value = value;
         checkbox.checked = !activeFilters[headerText] || activeFilters[headerText].includes(value);
         label.appendChild(checkbox);
-        const textNode = document.createTextNode(' ' + value);
+        const textNode = document.createTextNode(value);
         label.appendChild(textNode);
         filterDropdown.appendChild(label);
 
@@ -372,14 +368,14 @@ async function drawFullLinePlot(trams, resumData) {
             const length = [lengthBefore2025, lengthBetween2025And2030, lengthAfter2030][index];
             const percentage = ((length / totalLength) * 100).toFixed(1);
             const sliceName = sliceNames[index];
-            return `${percentage}%`;
+            return `<b>${sliceName}<br>${percentage}%<br>${length.toLocaleString('de-DE')} m</b>`;
         }
 
         // Asignar colores de fuente acorde al color del quesito
         pieData[0].textfont = {
             size: 12,
             color: pieData[0].marker.colors.map(color => {
-                const rgba = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([\d\.]+)?\)/);
+                const rgba = color.match(/rgba?\((\d+), (\d+), (\d+),? ?([\d\.]+)?\)/);
                 if (rgba) {
                     const r = rgba[1];
                     const g = rgba[2];
@@ -419,11 +415,7 @@ async function drawFullLinePlot(trams, resumData) {
         // Calcular datos para el gráfico de pirámide
         const lustrums = [];
         for (let year = 1995; year <= 2060; year += 5) {
-            const start = year;
-            const end = year + 4;
-            const formattedStart = String(start).slice(-2);
-            const formattedEnd = String(end).slice(-2);
-            lustrums.push(`${formattedStart}-${formattedEnd}`);
+            lustrums.push(`${year}-${year + 4}`);
         }
         lustrums.reverse(); // Para que los más recientes estén abajo
 
@@ -431,11 +423,10 @@ async function drawFullLinePlot(trams, resumData) {
         const via2Lengths = [];
         const totalLengthPerTram = totalLength;
 
-        lustrums.forEach((lustro, index) => {
-            const startYear = 1995 + index * 5;
-            const endYear = startYear + 4;
+        lustrums.forEach(lustro => {
+            const [startYear, endYear] = lustro.split('-').map(Number);
             const via1Length = resumData
-                .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
+                               .filter(d => d.TRAM === tram && parseInt(d.Via) === 1 && parseInt(d['PREVISIÓ REHABILITACIÓ']) >= startYear && parseInt(d['PREVISIÓ REHABILITACIÓ']) <= endYear)
                 .reduce((sum, d) => sum + (parseFloat(d['PK final']) - parseFloat(d['PK inici'])) * 1000, 0);
             via1Lengths.push(via1Length);
 
@@ -447,7 +438,7 @@ async function drawFullLinePlot(trams, resumData) {
 
         const pyramidData = [
             {
-                x: via1Lengths.map(length => -length / totalLengthPerTram * 30), // Escala de 0 a 30%
+                x: via1Lengths.map(length => -length / totalLengthPerTram * 100),
                 y: lustrums,
                 name: 'Via 1',
                 orientation: 'h',
@@ -457,14 +448,14 @@ async function drawFullLinePlot(trams, resumData) {
                 },
                 hoverinfo: 'none', // Desactivar etiquetas hover
                 text: via1Lengths.map(length => `${(length / totalLengthPerTram * 100).toFixed(1)}%`),
-                textposition: 'outside',
+                textposition: 'outside', // Etiquetas fuera de las barras
                 textfont: {
-                    size: 10,
+                    size: 12, // Tamaño de fuente uniforme
                     color: 'black'
                 }
             },
             {
-                x: via2Lengths.map(length => length / totalLengthPerTram * 30), // Escala de 0 a 30%
+                x: via2Lengths.map(length => length / totalLengthPerTram * 100),
                 y: lustrums,
                 name: 'Via 2',
                 orientation: 'h',
@@ -474,71 +465,40 @@ async function drawFullLinePlot(trams, resumData) {
                 },
                 hoverinfo: 'none', // Desactivar etiquetas hover
                 text: via2Lengths.map(length => `${(length / totalLengthPerTram * 100).toFixed(1)}%`),
-                textposition: 'outside',
+                textposition: 'outside', // Etiquetas fuera de las barras
                 textfont: {
-                    size: 10,
+                    size: 12, // Tamaño de fuente uniforme
                     color: 'black'
                 }
             }
         ];
-
-        // Encontrar el índice del lustrum '25-29'
-        const index2025 = lustrums.indexOf('25-29');
 
         const pyramidLayout = {
             barmode: 'overlay',
             bargap: 0.1,
             bargroupgap: 0,
             height: 250,
-            width: 300, // Aumentar el ancho para acomodar las etiquetas
-            margin: { t: 0, b: 20, l: 50, r: 50 },
+            width: 200,
+            margin: { t: 0, b: 20, l: 20, r: 20 },
             xaxis: {
                 tickvals: [-30, -15, 0, 15, 30],
                 ticktext: ['30%', '15%', '0%', '15%', '30%'],
                 range: [-30, 30], // Ajustar rango del eje X
                 showgrid: false,
-                showticklabels: true
+                showticklabels: true // Mostrar etiquetas en el eje X
             },
             yaxis: {
-                title: 'Lustrums',
-                type: 'category',
-                categoryorder: 'array',
-                categoryarray: lustrums,
-                automargin: true
+                automargin: true,
+                tickvals: lustrums.map(lustro => lustro),
+                ticktext: lustrums.map(lustro => {
+                    const [startYear, endYear] = lustro.split('-');
+                    return `${startYear.slice(-2)}-${endYear.slice(-2)}`; // Formato XX-YY
+                }),
             },
             showlegend: false,
-            hovermode: false, // Desactivar modo hover
-            shapes: [
-                // Área sombreada roja para lustrums <2025
-                {
-                    type: 'rect',
-                    x0: -30,
-                    x1: 30,
-                    y0: 0,
-                    y1: index2025 !== -1 ? index2025 : 0,
-                    fillcolor: 'rgba(255, 0, 0, 0.1)',
-                    line: {
-                        width: 0
-                    },
-                    layer: 'below'
-                },
-                // Área sombreada naranja para lustrum 2025-2029
-                {
-                    type: 'rect',
-                    x0: -30,
-                    x1: 30,
-                    y0: index2025 !== -1 ? index2025 : 0,
-                    y1: index2025 !== -1 ? index2025 + 1 : 0,
-                    fillcolor: 'rgba(255, 165, 0, 0.1)',
-                    line: {
-                        width: 0
-                    },
-                    layer: 'below'
-                }
-            ]
+            hovermode: false // Desactivar modo hover
         };
 
-        // Renderizar el gráfico de pirámide
         const pyramidChart = document.createElement('div');
         pyramidChartContainer.appendChild(pyramidChart);
         pyramidContainer.appendChild(pyramidChartContainer);
@@ -562,7 +522,11 @@ async function drawFullLinePlot(trams, resumData) {
         // Ahora que el elemento está en el DOM, podemos llamar a drawPlot
         const addHorizontalLabels = true;
         await drawPlot(tram, resumData, estacionsData, plotContainer.id, addHorizontalLabels, pkMin, pkMax, tramoHeight, fixedHeightComponents, globalMinYear, globalMaxYear);
-    } // Cierre de drawFullLinePlot
+    }
+
+    document.body.style.height = 'auto';
+    document.body.style.overflow = 'auto';
+}
 
 // Función para añadir líneas y sombreado
 function addLinesAndShading(pkMin, pkMax, xRange) {
@@ -699,7 +663,6 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
 
     const via1Data = resumData.filter(d => parseInt(d.Via) === 1 && d.TRAM === tram);
     const via2Data = resumData.filter(d => parseInt(d.Via) === 2 && d.TRAM === tram);
-
     const via1 = groupConsecutiveSegments(via1Data);
     const via2 = groupConsecutiveSegments(via2Data);
 
@@ -800,11 +763,16 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
             showticklabels: addHorizontalLabels
         },
         yaxis: {
-            title: 'Lustrums',
-            type: 'category',
-            categoryorder: 'array',
-            categoryarray: lustrums,
-            automargin: true
+            title: 'PK',
+            autorange: 'reversed',
+            range: [pkMax, pkMin],
+            tickvals: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => Math.floor(pkMin) + i),
+            ticktext: Array.from({ length: Math.ceil(pkMax - pkMin + 1) }, (_, i) => {
+                const yearRange = Math.floor(pkMin) + i;
+                const startYear = yearRange;
+                const endYear = yearRange + 4;
+                return `${startYear.toString().slice(-2)}-${endYear.toString().slice(-2)}`; // Formato XX-YY
+            })
         },
         showlegend: true,
         legend: {
@@ -837,7 +805,7 @@ async function drawPlot(tram, resumData, estacionsData, containerId = 'plot', ad
     };
 
     Plotly.newPlot(containerId, traces, layout, config);
-} // Cierre de drawPlot
+}
 
 // Inicializar la página y los eventos
 async function init() {
@@ -849,5 +817,7 @@ async function init() {
 
 // Ejecutar cuando el contenido del DOM esté cargado
 document.addEventListener('DOMContentLoaded', () => {
-    init()
-})
+    init();
+});
+
+
